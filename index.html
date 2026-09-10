@@ -6302,6 +6302,104 @@
     border-color: var(--mfr-red);
     color: var(--mfr-red);
   }
+  .btn-action.action-primary {
+    background: #F1F8E9;
+    border-color: #5C6F3E;
+    color: #3E4A29;
+    font-weight: 600;
+  }
+  .btn-action.action-primary:hover {
+    background: #5C6F3E;
+    color: white;
+  }
+  .btn-mini.action-primary {
+    background: #F1F8E9;
+    border-color: #5C6F3E;
+    color: #3E4A29;
+  }
+  .btn-mini.action-primary:hover {
+    background: #5C6F3E;
+    color: white;
+  }
+
+  /* === REPRISE D'ENTREPRISE EXISTANTE === */
+  .reprise-entreprise-zone {
+    background: linear-gradient(180deg, #FFFDF5 0%, #FCF9EE 100%);
+    border: 1px solid #C9A23E;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .reprise-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: #6B5312;
+    font-size: 0.92rem;
+    flex: 1;
+    min-width: 300px;
+  }
+  .reprise-icone { font-size: 1.4rem; flex-shrink: 0; }
+  .reprise-succes {
+    background: #E8F5E9;
+    color: #1B5E20;
+    padding: 0.6rem 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #2E5B31;
+  }
+  .reprise-detectee {
+    background: #E8F5E9;
+    border: 1px solid #2E5B31;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin-bottom: 1rem;
+    color: #1B5E20;
+  }
+  .reprise-detectee-titre {
+    font-weight: 600;
+    margin-bottom: 0.4rem;
+  }
+  .entreprises-selection-liste {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: #FAFAF7;
+  }
+  .entreprise-select-item {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #E8E8E0;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .entreprise-select-item:last-child { border-bottom: none; }
+  .entreprise-select-item:hover {
+    background: #F1F8E9;
+  }
+  .entreprise-select-nom {
+    font-weight: 600;
+    color: #3E4A29;
+    margin-bottom: 0.3rem;
+    font-size: 1rem;
+  }
+  .entreprise-select-meta {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.82rem;
+    color: #666;
+    flex-wrap: wrap;
+    margin-bottom: 0.2rem;
+  }
+  .entreprise-select-ma {
+    font-size: 0.85rem;
+    color: #555;
+    font-style: italic;
+  }
 
   .aucun-profil {
     background: white;
@@ -10107,6 +10205,17 @@
   .footer-cert-logo {
     flex-shrink: 0;
   }
+  .footer-cert-img {
+    width: 110px;
+    height: auto;
+    max-height: 90px;
+    display: block;
+    background: white;
+    padding: 6px 10px;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+  }
   .cert-badge {
     width: 90px;
     height: 90px;
@@ -12116,6 +12225,140 @@
     .qv10-indicateur { break-inside: avoid; }
     .qv10-indic-notes textarea { border: 1px dashed #999; background: white !important; }
   }
+
+  /* ============ PAGE PARAMÉTRAGE ANNÉE SCOLAIRE ============ */
+  #page-parametrage-annee { max-width: 1200px; margin: 0 auto; }
+  .param-header {
+    background: linear-gradient(135deg, #5C6F3E 0%, #3E4A29 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .param-header h2 { color: white; margin: 0 0 0.5rem 0; }
+  .param-intro { color: rgba(255,255,255,0.9); margin: 0; }
+
+  .param-toolbar {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .param-selecteur {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+  .param-selecteur label { font-weight: 600; color: #3E4A29; }
+  .param-selecteur select {
+    padding: 0.45rem 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    background: white;
+    min-width: 180px;
+  }
+
+  .param-infos-carte {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .param-info-item { color: #444; }
+  .param-info-label { color: #666; font-size: 0.9rem; }
+  .param-info-stats {
+    margin-left: auto;
+    font-size: 0.95rem;
+    color: #555;
+  }
+  .param-stat-M { color: #2E5B31; font-weight: 600; }
+  .param-stat-E { color: #C9A23E; font-weight: 600; }
+  .param-stat-F { color: #888; font-weight: 600; }
+
+  .param-legende {
+    background: #FAFAF7;
+    padding: 0.8rem 1.2rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    align-items: center;
+    font-size: 0.88rem;
+  }
+  .param-legende-label { color: #555; margin-right: 0.5rem; }
+  .param-badge {
+    padding: 0.3rem 0.7rem;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.82rem;
+  }
+  .param-badge-M { background: #E8F5E9; color: #1B5E20; }
+  .param-badge-E { background: #FFF8E1; color: #6B5312; }
+  .param-badge-F { background: #F5F5F5; color: #666; }
+
+  .param-grille {
+    background: white;
+    padding: 1.2rem;
+    border-radius: 10px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    margin-bottom: 1rem;
+  }
+  .param-mois-bloc { margin-bottom: 1.2rem; }
+  .param-mois-titre {
+    color: #3E4A29;
+    margin: 0 0 0.6rem 0;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid #E8E8E0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .param-mois-semaines {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.5rem;
+  }
+  .param-semaine {
+    padding: 0.5rem 0.4rem;
+    border-radius: 6px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: 2px solid transparent;
+    user-select: none;
+  }
+  .param-semaine:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .param-semaine-M { background: #E8F5E9; color: #1B5E20; border-color: #2E5B31; }
+  .param-semaine-E { background: #FFF8E1; color: #6B5312; border-color: #C9A23E; }
+  .param-semaine-F { background: #F5F5F5; color: #666; border-color: #ccc; }
+  .param-semaine-date { font-size: 0.75rem; opacity: 0.75; }
+  .param-semaine-jour { font-size: 0.7rem; opacity: 0.65; margin-bottom: 0.2rem; }
+  .param-semaine-valeur {
+    font-weight: 700;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .param-actions {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    padding: 1rem 0;
+  }
 </style>
 
 <!-- Bibliothèque html2pdf pour l'export PDF du carnet -->
@@ -12287,6 +12530,9 @@
         </button>
         <button class="tab tab-admin" data-page="qualiopi-v10" onclick="changerPage('qualiopi-v10')" style="display:none;">
           <span class="tab-icon">📋</span><span class="tab-label">Tableau de bord Qualiopi V10</span>
+        </button>
+        <button class="tab tab-admin" data-page="parametrage-annee" onclick="changerPage('parametrage-annee')" style="display:none;">
+          <span class="tab-icon">⚙️</span><span class="tab-label">Paramétrage année scolaire</span>
         </button>
         <button class="tab tab-mfr" data-page="resultats" onclick="changerPage('resultats')" style="display:none;">
           <span class="tab-icon">📈</span><span class="tab-label">Résultats des tests</span>
@@ -15206,8 +15452,8 @@
         <p>Le planning détaillé est consultable dans l'onglet <strong>📅 Planning</strong>. Les sessions ci-dessous correspondent aux <strong>12 semaines de formation à la MFR</strong> du CAP EPC.</p>
       </div>
 
-      <!-- LES 12 SESSIONS MFR -->
-      <h2 class="carnet-section-titre">📚 Les 12 sessions à la MFR</h2>
+      <!-- LES 13 SESSIONS MFR -->
+      <h2 class="carnet-section-titre">📚 Les 13 sessions à la MFR</h2>
       <p class="carnet-section-intro">Pour chaque session de formation, l'apprenti·e consigne ses observations, les moniteurs renseignent les thèmes abordés et les activités à mener pendant l'alternance.</p>
 
       <!-- Encart pédagogique sur le dispositif -->
@@ -15220,7 +15466,7 @@
       </div>
 
       <div class="carnet-sessions" id="carnetSessionsContainer">
-        <!-- Les 12 sessions sont générées dynamiquement par JavaScript -->
+        <!-- Les 13 sessions sont générées dynamiquement par JavaScript -->
       </div>
 
       <!-- PÉRIODES EN ENTREPRISE -->
@@ -15237,7 +15483,7 @@
       </div>
 
       <div class="carnet-sessions" id="carnetPeriodesContainer">
-        <!-- Les 12 périodes sont générées dynamiquement par JavaScript -->
+        <!-- Les 13 périodes sont générées dynamiquement par JavaScript -->
       </div>
 
       <!-- ===== SYNTHÈSE GLOBALE DU PARCOURS ===== -->
@@ -15727,6 +15973,52 @@
       <!-- Les 32 indicateurs par critère -->
       <div id="qv10-indicateurs" class="qv10-indicateurs">
         <!-- Rempli dynamiquement -->
+      </div>
+    </div>
+
+    <!-- PAGE PARAMÉTRAGE ANNÉE SCOLAIRE -->
+    <div id="page-parametrage-annee" class="page">
+      <div class="param-header">
+        <h2>⚙️ Paramétrage des années scolaires</h2>
+        <p class="param-intro">
+          Définissez le calendrier d'alternance de chaque classe, année après année.
+          Une année scolaire va du <strong>premier lundi d'août</strong> au <strong>dernier vendredi de juillet</strong>.
+        </p>
+      </div>
+
+      <!-- Barre de sélection -->
+      <div class="param-toolbar">
+        <div class="param-selecteur">
+          <label>Année scolaire :</label>
+          <select id="param-annee-select" onchange="changerAnneeParametrage(this.value)"></select>
+          <button class="btn-secondary" onclick="creerNouvelleAnneeScolaire()">➕ Nouvelle année scolaire</button>
+        </div>
+        <div class="param-selecteur">
+          <label>Classe :</label>
+          <select id="param-classe-select" onchange="afficherGrillePlanning()"></select>
+          <button class="btn-secondary" onclick="copierPlanningDepuis()">📋 Copier depuis...</button>
+        </div>
+      </div>
+
+      <!-- Zone d'information -->
+      <div id="param-infos" class="param-infos-carte"></div>
+
+      <!-- Légende cliquable -->
+      <div class="param-legende">
+        <span class="param-legende-label">Légende (cliquer sur une case pour cycler entre les valeurs) :</span>
+        <span class="param-badge param-badge-M">M — Cours à la MFR</span>
+        <span class="param-badge param-badge-E">E — En entreprise</span>
+        <span class="param-badge param-badge-F">F — MFR fermée</span>
+      </div>
+
+      <!-- Grille des semaines -->
+      <div id="param-grille" class="param-grille"></div>
+
+      <!-- Actions bas -->
+      <div class="param-actions">
+        <button class="btn-primary" onclick="sauvegarderPlanningActuel()">💾 Enregistrer les modifications</button>
+        <button class="btn-secondary" onclick="reinitialiserPlanningActuel()">↺ Réinitialiser au planning par défaut</button>
+        <button class="btn-secondary" onclick="exporterPlanningCSV()">📥 Exporter CSV</button>
       </div>
     </div>
 
@@ -16276,6 +16568,7 @@
             <input type="text" id="rechercheLieu" placeholder="🔍 Rechercher..." oninput="filtrerLieux()">
             <select id="filtreStatutLieu" onchange="filtrerLieux()">
               <option value="actif">Actifs uniquement</option>
+              <option value="archive">📁 Archivés</option>
               <option value="desactive">Désactivés uniquement</option>
               <option value="all">Tous</option>
             </select>
@@ -16313,6 +16606,7 @@
             <input type="text" id="rechercheFamille" placeholder="🔍 Rechercher..." oninput="filtrerFamilles()">
             <select id="filtreStatutFamille" onchange="filtrerFamilles()">
               <option value="actif">Actifs uniquement</option>
+              <option value="archive">📁 Archivés</option>
               <option value="desactive">Désactivés uniquement</option>
               <option value="all">Tous</option>
             </select>
@@ -16363,6 +16657,7 @@
               <option value="actif">Actifs uniquement</option>
               <option value="conge">En congé</option>
               <option value="parti">Partis</option>
+              <option value="archive">📁 Archivés</option>
               <option value="all">Tous</option>
             </select>
           </div>
@@ -16484,11 +16779,7 @@
     <div class="footer-certifications">
       <div class="footer-cert-item">
         <div class="footer-cert-logo" title="Certification Qualiopi n° 2026/118673.1 - AFNOR Certification">
-          <div class="cert-badge cert-qualiopi">
-            <div class="cert-badge-titre">Qualiopi</div>
-            <div class="cert-badge-detail">Actions de formation</div>
-            <div class="cert-badge-detail">et par apprentissage</div>
-          </div>
+          <img src="logo-qualiopi.png" alt="Logo Qualiopi — Processus certifié — République Française" class="footer-cert-img">
         </div>
         <div class="footer-cert-info">
           <strong>Certification Qualiopi</strong><br>
@@ -16516,11 +16807,7 @@
 
       <div class="footer-cert-item">
         <div class="footer-cert-logo">
-          <div class="cert-badge cert-min-agri">
-            <div class="cert-badge-titre">MAA</div>
-            <div class="cert-badge-detail">Ministère de</div>
-            <div class="cert-badge-detail">l'Agriculture</div>
-          </div>
+          <img src="logo-ministere-agriculture.png" alt="Ministère de l'Agriculture et de la Souveraineté Alimentaire — République Française" class="footer-cert-img">
         </div>
         <div class="footer-cert-info">
           <strong>Enseignement Agricole Privé sous contrat</strong><br>
@@ -16544,7 +16831,7 @@
       </div>
     </div>
 
-    <!-- Grille des partenaires et financeurs -->
+    <!-- Grille des partenaires et financeurs — MASQUÉE en attendant les logos officiels
     <div class="footer-partenaires">
       <h4>Nos partenaires et financeurs</h4>
       <div class="footer-partenaires-grille">
@@ -16591,6 +16878,8 @@
       </div>
       <p class="footer-partenaires-hint">💡 Les visuels ci-dessus sont des placeholders. Pour intégrer les vrais logos, remplacer les <code>&lt;div class="partenaire-placeholder"&gt;</code> par des balises <code>&lt;img src="logos/xxx.png"&gt;</code>.</p>
     </div>
+    FIN section partenaires -->
+
 
     <!-- Bandeau bas : mentions et copyright -->
     <div class="footer-mentions">
@@ -16737,42 +17026,157 @@ const CLASSES = {
 };
 
 // =================================================================
-// PLANNINGS PAR CLASSE — Année scolaire 2026-2027
-// 49 semaines (semaine 36 du 31/08/2026 → semaine 31 du 02/08/2027)
-// M = semaine MFR | E = semaine en entreprise | F = MFR fermée (apprenti reste salarié)
-// Plannings CAP issus du fichier officiel MFR du Néracais.
+// PLANNINGS et ANNEES_SCOLAIRES sont désormais définis plus bas
+// (structure paramétrable en localStorage)
 // =================================================================
-const PLANNINGS = {
-  "CAP_EPC_1": [
-    "E","E","E","E","M","E","M","E","F","E",
-    "E","M","E","E","E","M","F","F","M","E",
-    "E","E","E","M","E","F","M","E","M","E",
-    "M","E","F","F","M","E","E","M","E","E",
-    "M","E","M","E","E","E","E","F","F"
-  ],
-  "CAP_EPC_2": [
-    "E","E","E","E","M","E","M","E","F","E",
-    "E","M","E","M","E","M","F","F","M","E",
-    "E","E","E","M","E","F","M","E","M","E",
-    "M","E","F","F","M","E","E","M","E","E",
-    "M","E","E","E","E","E","E","F","F"
-  ],
-  "CAP_AEPE_1": [
-    "E","E","E","M","E","E","M","E","F","E",
-    "M","E","E","M","E","M","F","F","E","M",
-    "E","M","M","E","E","F","E","M","E","M",
-    "E","E","F","F","E","M","E","E","E","M",
-    "E","E","E","E","E","E","E","F","F"
-  ],
-};
+
+
 
 // =================================================================
-// CALCUL DES SEMAINES (année scolaire 2026-2027)
-// Première semaine : lundi 31 août 2026 (sem. n°36)
-// Dernière semaine : lundi 2 août 2027 (sem. n°31) → 49 semaines
+// SYSTÈME D'ANNÉES SCOLAIRES PARAMÉTRABLES
 // =================================================================
-const DATE_DEBUT = new Date(2026, 7, 31); // 31 août 2026 (mois 0-indexé)
-const NB_SEMAINES = 49;
+// Une année scolaire va du premier lundi d'août au dernier vendredi de juillet.
+// Les plannings sont stockés en localStorage : mfr_annees_scolaires
+// Structure : { "2026-2027": { plannings: { "CAP_EPC_1": [52 chars M/E/F], ... } } }
+//
+// Codes semaine :
+//   M = semaine à la MFR (cours)
+//   E = semaine en entreprise
+//   F = MFR fermée (apprenti salarié en entreprise ou congés été)
+// =================================================================
+
+// Plannings 2026-2027 par défaut — issus du fichier officiel MFR du 08/09/2026
+// 52 semaines : du lundi 03/08/2026 au vendredi 30/07/2027
+// Semaines 32-35 (août : pré-rentrée) = F (fermeture été)
+// Semaines 36-26 (rentrée → fin de formation) = planning officiel du PDF
+// Semaines 27-30 (juillet) = F (fermeture été)
+const ANNEES_SCOLAIRES_DEFAUT = {
+  "2026-2027": {
+    plannings: {
+      // CAP EPC 1A — 13 sessions cours, 31 stages, 8 semaines fermeture
+      "CAP_EPC_1": [
+        "F","F","F","F",                                 // sem 32-35 août (pré-rentrée)
+        "E","E","E","M","E","E","M","E","E","E",         // sem 36-45
+        "E","M","E","E","E","M","E","E","M","E",         // sem 46-02
+        "E","E","E","M","E","E","M","E","M","E",         // sem 03-12
+        "M","E","E","E","M","E","E","M","E","E",         // sem 13-22
+        "M","E","M","E",                                 // sem 23-26
+        "F","F","F","F"                                  // sem 27-30 juillet
+      ],
+      // CAP EPC 2A — 13 sessions cours, 31 stages
+      "CAP_EPC_2": [
+        "F","F","F","F",
+        "E","E","E","M","E","E","M","E","E","E",
+        "E","M","E","M","E","M","E","E","M","E",
+        "E","E","E","M","E","E","M","E","M","E",
+        "M","E","E","E","M","E","E","M","E","E",
+        "M","E","E","E",
+        "F","F","F","F"
+      ],
+      // CAP AEPE 1A — À CONFIRMER par la Direction (PDF officiel non fourni)
+      "CAP_AEPE_1": [
+        "F","F","F","F",
+        "E","E","E","M","E","E","M","E","F","E",
+        "M","E","E","M","E","M","F","F","E","M",
+        "E","M","M","E","E","F","E","M","E","M",
+        "E","E","F","F","E","M","E","E","E","M",
+        "E","E","E","E",
+        "F","F","F","F"
+      ]
+    }
+  }
+};
+
+// Charge depuis localStorage ou initialise avec les valeurs par défaut
+let ANNEES_SCOLAIRES = JSON.parse(localStorage.getItem("mfr_annees_scolaires") || "null");
+if (!ANNEES_SCOLAIRES || Object.keys(ANNEES_SCOLAIRES).length === 0) {
+  ANNEES_SCOLAIRES = JSON.parse(JSON.stringify(ANNEES_SCOLAIRES_DEFAUT));
+  localStorage.setItem("mfr_annees_scolaires", JSON.stringify(ANNEES_SCOLAIRES));
+}
+
+// Année scolaire actuellement sélectionnée (par défaut : celle en cours)
+function calculerAnneeScolaireEnCours() {
+  const now = new Date();
+  const annee = now.getFullYear();
+  const mois = now.getMonth(); // 0-indexé
+  // Août à décembre → année N/N+1 ; janvier à juillet → année N-1/N
+  return (mois >= 7) ? annee + "-" + (annee + 1) : (annee - 1) + "-" + annee;
+}
+
+let ANNEE_SCOLAIRE_COURANTE = localStorage.getItem("mfr_annee_scolaire_courante") || calculerAnneeScolaireEnCours();
+// Si l'année courante n'existe pas encore dans la structure, on la crée avec un planning vide (F partout)
+if (!ANNEES_SCOLAIRES[ANNEE_SCOLAIRE_COURANTE]) {
+  ANNEES_SCOLAIRES[ANNEE_SCOLAIRE_COURANTE] = { plannings: {} };
+}
+localStorage.setItem("mfr_annee_scolaire_courante", ANNEE_SCOLAIRE_COURANTE);
+
+// Calcule les dates de début et fin d'une année scolaire
+// Retourne { dateDebut, dateFin, nbSemaines }
+function infosAnneeScolaire(anneeCode) {
+  const [a1, a2] = anneeCode.split("-").map(Number);
+  // Premier lundi d'août de a1
+  let dateDebut = new Date(a1, 7, 1); // 1er août
+  while (dateDebut.getDay() !== 1) {
+    dateDebut.setDate(dateDebut.getDate() + 1);
+  }
+  // Dernier vendredi de juillet de a2
+  let dateFin = new Date(a2, 6, 31); // 31 juillet
+  while (dateFin.getDay() !== 5) {
+    dateFin.setDate(dateFin.getDate() - 1);
+  }
+  // Nombre de semaines
+  const nbSemaines = Math.floor((dateFin - dateDebut) / (7 * 86400000)) + 1;
+  return { dateDebut, dateFin, nbSemaines };
+}
+
+// Retourne le planning M/E/F d'une classe pour une année scolaire donnée
+// Fallback : planning par défaut de l'année courante
+function getPlanningClasse(classeCode, anneeCode) {
+  anneeCode = anneeCode || ANNEE_SCOLAIRE_COURANTE;
+  const annee = ANNEES_SCOLAIRES[anneeCode];
+  if (annee && annee.plannings && annee.plannings[classeCode]) {
+    return annee.plannings[classeCode];
+  }
+  // Retourne un planning vide (F partout) si non défini
+  const { nbSemaines } = infosAnneeScolaire(anneeCode);
+  return Array(nbSemaines).fill("F");
+}
+
+// Sauvegarde le planning d'une classe pour une année scolaire
+function setPlanningClasse(classeCode, planning, anneeCode) {
+  anneeCode = anneeCode || ANNEE_SCOLAIRE_COURANTE;
+  if (!ANNEES_SCOLAIRES[anneeCode]) ANNEES_SCOLAIRES[anneeCode] = { plannings: {} };
+  if (!ANNEES_SCOLAIRES[anneeCode].plannings) ANNEES_SCOLAIRES[anneeCode].plannings = {};
+  ANNEES_SCOLAIRES[anneeCode].plannings[classeCode] = planning;
+  localStorage.setItem("mfr_annees_scolaires", JSON.stringify(ANNEES_SCOLAIRES));
+}
+
+// Rétrocompatibilité : PLANNINGS reste accessible pour les usages existants
+// C'est un proxy qui pointe toujours vers l'année scolaire courante
+const PLANNINGS = new Proxy({}, {
+  get(target, classeCode) {
+    return getPlanningClasse(classeCode);
+  },
+  ownKeys() {
+    const annee = ANNEES_SCOLAIRES[ANNEE_SCOLAIRE_COURANTE];
+    return annee && annee.plannings ? Object.keys(annee.plannings) : [];
+  },
+  has(target, classeCode) {
+    const annee = ANNEES_SCOLAIRES[ANNEE_SCOLAIRE_COURANTE];
+    return !!(annee && annee.plannings && annee.plannings[classeCode]);
+  }
+});
+
+// =================================================================
+// CALCUL DES SEMAINES — dynamique selon l'année scolaire courante
+// =================================================================
+// DATE_DEBUT et NB_SEMAINES sont désormais des getters dynamiques
+Object.defineProperty(window, "DATE_DEBUT", {
+  get() { return infosAnneeScolaire(ANNEE_SCOLAIRE_COURANTE).dateDebut; }
+});
+Object.defineProperty(window, "NB_SEMAINES", {
+  get() { return infosAnneeScolaire(ANNEE_SCOLAIRE_COURANTE).nbSemaines; }
+});
 const MOIS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
 
 // =================================================================
@@ -16932,6 +17336,7 @@ function changerPage(nomPage) {
   if (nomPage === "emargement" && typeof afficherEmargement === "function") afficherEmargement();
   if (nomPage === "rgpd" && typeof afficherRgpd === "function") afficherRgpd();
   if (nomPage === "qualiopi-v10" && typeof afficherQualiopiV10 === "function") afficherQualiopiV10();
+  if (nomPage === "parametrage-annee" && typeof afficherParametrageAnnee === "function") afficherParametrageAnnee();
 
   // Fermer la sidebar sur mobile après sélection d'un onglet
   fermerSidebarMobile();
@@ -20023,6 +20428,44 @@ function genererIdUnique() {
   return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 }
 
+// =================================================================
+// LISTE DES OPCO (Opérateurs de compétences)
+// =================================================================
+// 11 OPCO agréés par arrêté du 30 mars 2019 + option "Autre"
+// Ordre : les 4 principaux pour la MFR d'abord (CAP EPC + CAP AEPE)
+const OPCO_LISTE = [
+  { code: "AKTO", nom: "AKTO", branche: "Services à forte intensité de main-d'œuvre (crèches, MAM, particuliers employeurs, propreté, sécurité…)" },
+  { code: "OPCOMMERCE", nom: "OPCOMMERCE", branche: "Commerce (grande distribution, commerce de détail, e-commerce…)" },
+  { code: "OPCO_EP", nom: "OPCO EP", branche: "Entreprises de proximité (services de l'automobile, alimentation, coiffure, fleuristes…)" },
+  { code: "OCAPIAT", nom: "OCAPIAT", branche: "Agriculture, agroalimentaire, coopération agricole, pêche" },
+  { code: "UNIFORMATION", nom: "Uniformation", branche: "Cohésion sociale (associations, ESS, aide à domicile, animation…)" },
+  { code: "CNFPT", nom: "CNFPT", branche: "Fonction publique territoriale (collectivités, crèches municipales…)" },
+  { code: "AFDAS", nom: "AFDAS", branche: "Culture, communication, médias, sport, tourisme, loisirs" },
+  { code: "ATLAS", nom: "Atlas", branche: "Services financiers et conseil (banque, assurance, expertise comptable…)" },
+  { code: "CONSTRUCTYS", nom: "Constructys", branche: "Construction et bâtiment (gros œuvre, second œuvre, travaux publics)" },
+  { code: "OPCO_2I", nom: "OPCO 2i", branche: "Industrie (métallurgie, chimie, textile, plasturgie…)" },
+  { code: "OPCO_MOBILITES", nom: "OPCO Mobilités", branche: "Transport et logistique (transport routier, aérien, ferroviaire, tourisme d'affaires…)" },
+  { code: "OPCO_SANTE", nom: "OPCO Santé", branche: "Santé et médico-social (hospitalisation privée, cliniques, EHPAD…)" },
+  { code: "AUTRE", nom: "Autre / Non applicable", branche: "" }
+];
+
+// Retourne les options HTML pour un select
+function optionsOPCO(valeurSelectionnee) {
+  return '<option value="">-- Sélectionner --</option>' +
+    OPCO_LISTE.map(function(o) {
+      return '<option value="' + o.code + '"' + (valeurSelectionnee === o.code ? ' selected' : '') + '>' +
+        o.nom + (o.branche ? ' — ' + o.branche.substring(0, 60) + (o.branche.length > 60 ? '…' : '') : '') +
+        '</option>';
+    }).join("");
+}
+
+// Retourne le nom lisible d'un OPCO à partir de son code
+function nomOPCO(code) {
+  if (!code) return "";
+  const o = OPCO_LISTE.find(x => x.code === code);
+  return o ? o.nom : code;
+}
+
 // -----------------------------------------------------------------
 // INITIALISATION DE LA PAGE PROFILS
 // -----------------------------------------------------------------
@@ -20131,7 +20574,10 @@ function filtrerApprentis() {
         <td class="actions-cell">
           <button class="btn-action" onclick="modifierApprenti('${a.id}')">Modifier</button>
           <button class="btn-action" onclick="ouvrirEnregistrerEvenement('${a.id}')" title="Enregistrer une rupture, une sortie ou un changement de statut">📋 Événement</button>
-          ${estArchive ? `<button class="btn-action" onclick="imprimerFicheApprenti('${a.id}')" title="Imprimer la fiche récapitulative">🖨️ Fiche</button>` : `<button class="btn-action" onclick="reinitMotDePasse('apprenti','${a.id}')">🔑 MDP</button>`}
+          ${estArchive ? `<button class="btn-action" onclick="imprimerFicheApprenti('${a.id}')" title="Imprimer la fiche récapitulative">🖨️ Fiche</button>` : `
+            <button class="btn-action action-primary" onclick="editerCourriersTrio('${a.id}')" title="Éditer les 3 courriers d'identifiants (apprenti, famille, maître d'apprentissage)">✉️ Courriers</button>
+            <button class="btn-action" onclick="reinitMotDePasse('apprenti','${a.id}')" title="Réinitialiser le mot de passe de l'apprenti">🔑 MDP</button>
+          `}
           <button class="btn-action ${a.statut === 'actif' ? 'action-danger' : ''}" onclick="toggleStatutProfil('apprenti','${a.id}')">${a.statut === 'actif' ? '🚫 Désactiver' : '✓ Réactiver'}</button>
         </td>
       </tr>
@@ -20204,6 +20650,15 @@ function ouvrirFormulaireApprenti(idExistant) {
             <div class="formulaire-field">
               <label>Date d'entrée en formation</label>
               <input type="date" id="apprDateEntree" value="${apprenti?.dateEntree || ''}">
+            </div>
+          </div>
+          <div class="formulaire-row solo">
+            <div class="formulaire-field">
+              <label>OPCO financeur du contrat</label>
+              <select id="apprOpco">
+                ${optionsOPCO(apprenti?.opco)}
+              </select>
+              <div class="formulaire-help">Opérateur de compétences qui prend en charge le contrat d'apprentissage (dépend de la branche professionnelle de l'entreprise).</div>
             </div>
           </div>
         </div>
@@ -20293,6 +20748,7 @@ function enregistrerApprenti(idExistant) {
     dateNaissance: document.getElementById("apprDateNaissance").value,
     classe: classe,
     dateEntree: document.getElementById("apprDateEntree").value,
+    opco: document.getElementById("apprOpco").value || "",
     adresse: document.getElementById("apprAdresse").value.trim(),
     email: document.getElementById("apprEmail").value.trim(),
     telephone: document.getElementById("apprTelephone").value.trim(),
@@ -20388,8 +20844,14 @@ function filtrerLieux() {
         <td><span class="badge-statut ${statutClass}">${l.statut}</span></td>
         <td class="actions-cell">
           <button class="btn-action" onclick="modifierLieu('${l.id}')">Modifier</button>
-          <button class="btn-action" onclick="reinitMotDePasse('lieu','${l.id}')">🔑 MDP</button>
-          <button class="btn-action ${l.statut === 'actif' ? 'action-danger' : ''}" onclick="toggleStatutProfil('lieu','${l.id}')">${l.statut === 'actif' ? '🚫 Désactiver' : '✓ Réactiver'}</button>
+          ${l.statut === "archive" ? `
+            <button class="btn-action action-primary" onclick="restaurerProfil('lieu','${l.id}')" title="Restaurer ce lieu">↶ Restaurer</button>
+          ` : `
+            <button class="btn-action action-primary" onclick="editerCourrier('lieu','${l.id}')" title="Éditer le courrier d'identifiants du maître d'apprentissage">✉️ Courrier</button>
+            <button class="btn-action" onclick="reinitMotDePasse('lieu','${l.id}')">🔑 MDP</button>
+            <button class="btn-action" onclick="archiverProfil('lieu','${l.id}')" title="Archiver ce lieu (partenariat terminé)">📁 Archiver</button>
+          `}
+          <button class="btn-action ${l.statut === 'actif' ? 'action-danger' : ''}" onclick="toggleStatutProfil('lieu','${l.id}')">${l.statut === 'actif' ? '🚫 Désactiver' : (l.statut === 'archive' ? '' : '✓ Réactiver')}</button>
         </td>
       </tr>
     `;
@@ -20411,6 +20873,18 @@ function ouvrirFormulaireLieu(idExistant) {
       <div class="formulaire-body">
         <div class="erreur-formulaire" id="erreurLieu"></div>
 
+        ${lieu ? '' : `
+        <div class="reprise-entreprise-zone">
+          <div class="reprise-info">
+            <span class="reprise-icone">💡</span>
+            <span><strong>Cette entreprise accueille déjà des apprentis chez vous ?</strong>
+            Vous pouvez reprendre ses informations sans les ressaisir.</span>
+          </div>
+          <button class="btn-secondary" onclick="ouvrirSelecteurEntreprise()">📋 Reprendre les infos d'une entreprise existante</button>
+        </div>
+        <div id="lieu-entreprise-detectee" class="reprise-detectee" style="display:none;"></div>
+        `}
+
         <div class="formulaire-section">
           <h3>Entreprise / Structure</h3>
           <div class="formulaire-row solo">
@@ -20422,7 +20896,7 @@ function ouvrirFormulaireLieu(idExistant) {
           <div class="formulaire-row">
             <div class="formulaire-field">
               <label>SIRET</label>
-              <input type="text" id="lieuSiret" value="${lieu?.siret || ''}" placeholder="14 chiffres">
+              <input type="text" id="lieuSiret" value="${lieu?.siret || ''}" placeholder="14 chiffres" oninput="verifierSiretExistant()">
             </div>
             <div class="formulaire-field">
               <label>Convention collective</label>
@@ -20443,6 +20917,15 @@ function ouvrirFormulaireLieu(idExistant) {
             <div class="formulaire-field">
               <label>E-mail entreprise</label>
               <input type="email" id="lieuEmailEntreprise" value="${lieu?.emailEntreprise || ''}">
+            </div>
+          </div>
+          <div class="formulaire-row solo">
+            <div class="formulaire-field">
+              <label>OPCO de l'entreprise</label>
+              <select id="lieuOpco">
+                ${optionsOPCO(lieu?.opco)}
+              </select>
+              <div class="formulaire-help">Opérateur de compétences dont dépend l'entreprise selon sa branche professionnelle.</div>
             </div>
           </div>
         </div>
@@ -20487,6 +20970,190 @@ function ouvrirFormulaireLieu(idExistant) {
   document.body.appendChild(modal);
 }
 
+// =================================================================
+// DÉTECTION AUTOMATIQUE D'UNE ENTREPRISE EXISTANTE
+// Objectif : éviter la ressaisie des infos entreprise (SIREN, adresse, OPCO)
+// quand on crée un nouveau maître d'apprentissage pour la même entreprise.
+// =================================================================
+
+// Normalise un SIRET pour comparaison (enlève espaces et caractères non-numériques)
+function normaliserSiret(siret) {
+  if (!siret) return "";
+  return siret.replace(/\D/g, "");
+}
+
+// Retourne les lieux ayant le même SIRET (hors archive)
+function lieuxMemeSiret(siret) {
+  const norm = normaliserSiret(siret);
+  if (!norm || norm.length < 9) return [];
+  return PROFILS_LIEUX.filter(l => normaliserSiret(l.siret) === norm && l.statut !== "archive");
+}
+
+// Regroupe tous les lieux par entreprise (clé = SIRET normalisé si présent, sinon nom entreprise)
+function grouperEntreprises() {
+  const groupes = {};
+  PROFILS_LIEUX.forEach(l => {
+    if (l.statut === "archive") return;
+    const cle = normaliserSiret(l.siret) || (l.entreprise || "").trim().toLowerCase();
+    if (!cle) return;
+    if (!groupes[cle]) {
+      groupes[cle] = {
+        cle: cle,
+        nom: l.entreprise,
+        siret: l.siret || "",
+        adresse: l.adresse || "",
+        opco: l.opco || "",
+        ccn: l.conventionCollective || "",
+        telephone: l.telephoneEntreprise || "",
+        email: l.emailEntreprise || "",
+        lieux: []
+      };
+    }
+    // Compléter les infos si vides (au cas où un lieu a plus d'infos qu'un autre)
+    groupes[cle].adresse = groupes[cle].adresse || l.adresse || "";
+    groupes[cle].opco = groupes[cle].opco || l.opco || "";
+    groupes[cle].ccn = groupes[cle].ccn || l.conventionCollective || "";
+    groupes[cle].telephone = groupes[cle].telephone || l.telephoneEntreprise || "";
+    groupes[cle].email = groupes[cle].email || l.emailEntreprise || "";
+    groupes[cle].lieux.push(l);
+  });
+  return Object.values(groupes);
+}
+
+// Compte les apprentis d'une entreprise (via lieux)
+function apprentisEntreprise(lieuxDeLentreprise) {
+  const ids = lieuxDeLentreprise.map(l => l.id);
+  return PROFILS_APPRENTIS.filter(a => ids.indexOf(a.lieuId) >= 0 && a.statut !== "archive");
+}
+
+// Déclenchée à chaque saisie dans le champ SIRET
+function verifierSiretExistant() {
+  const zone = document.getElementById("lieu-entreprise-detectee");
+  if (!zone) return;
+  const siret = document.getElementById("lieuSiret").value;
+  const norm = normaliserSiret(siret);
+  if (!norm || norm.length < 9) {
+    zone.style.display = "none";
+    return;
+  }
+  const memeSiret = lieuxMemeSiret(siret);
+  if (memeSiret.length === 0) {
+    zone.style.display = "none";
+    return;
+  }
+  const entreprise = memeSiret[0];
+  const nbApprentis = apprentisEntreprise(memeSiret).length;
+  const nbMA = memeSiret.length;
+
+  zone.style.display = "block";
+  zone.innerHTML =
+    '<div class="reprise-detectee-titre">✅ Cette entreprise est déjà connue</div>' +
+    '<div><strong>' + escapeHTML(entreprise.entreprise) + '</strong> — ' +
+      nbMA + ' maître' + (nbMA > 1 ? 's' : '') + ' d\'apprentissage, ' +
+      nbApprentis + ' apprenti' + (nbApprentis > 1 ? 's' : '') + ' actuellement</div>' +
+    '<div style="margin-top:0.6rem;">' +
+      '<button class="btn-secondary" onclick="reprendreInfosEntreprise(\'' + entreprise.id + '\')">📋 Reprendre les infos entreprise</button>' +
+    '</div>';
+}
+
+// Reprend les informations d'une entreprise existante dans le formulaire courant
+function reprendreInfosEntreprise(sourceLieuId) {
+  const source = PROFILS_LIEUX.find(l => l.id === sourceLieuId);
+  if (!source) return;
+
+  document.getElementById("lieuEntreprise").value = source.entreprise || "";
+  document.getElementById("lieuSiret").value = source.siret || "";
+  document.getElementById("lieuCcn").value = source.conventionCollective || "";
+  document.getElementById("lieuAdresse").value = source.adresse || "";
+  document.getElementById("lieuTelEntreprise").value = source.telephoneEntreprise || "";
+  document.getElementById("lieuEmailEntreprise").value = source.emailEntreprise || "";
+  if (document.getElementById("lieuOpco")) {
+    document.getElementById("lieuOpco").value = source.opco || "";
+  }
+
+  // Vider les champs MA (à saisir pour le nouveau)
+  document.getElementById("lieuNomMA").value = "";
+  document.getElementById("lieuPrenomMA").value = "";
+  document.getElementById("lieuEmailMA").value = "";
+  document.getElementById("lieuTelMA").value = "";
+
+  // Masquer le bandeau
+  const zone = document.getElementById("lieu-entreprise-detectee");
+  if (zone) zone.style.display = "none";
+
+  // Feedback discret + focus sur le nom du MA
+  const banniere = document.querySelector(".reprise-entreprise-zone");
+  if (banniere) {
+    banniere.innerHTML = '<div class="reprise-info reprise-succes">' +
+      '<span class="reprise-icone">✅</span>' +
+      '<span>Infos entreprise reprises pour <strong>' + escapeHTML(source.entreprise) + '</strong>. Saisissez maintenant les coordonnées du <strong>nouveau maître d\'apprentissage</strong>.</span>' +
+      '</div>';
+  }
+
+  const nomMA = document.getElementById("lieuNomMA");
+  if (nomMA) nomMA.focus();
+}
+
+// Ouvre un modal pour choisir parmi les entreprises existantes
+function ouvrirSelecteurEntreprise() {
+  const entreprises = grouperEntreprises();
+  if (entreprises.length === 0) {
+    alert("Aucune entreprise déjà enregistrée. Vous êtes en train de créer la première.");
+    return;
+  }
+
+  // Trier par nom
+  entreprises.sort((a, b) => (a.nom || "").localeCompare(b.nom || ""));
+
+  const modal = document.createElement("div");
+  modal.className = "formulaire-overlay";
+  modal.id = "selecteurEntreprise";
+  modal.innerHTML =
+    '<div class="formulaire-modal" style="max-width:700px;">' +
+      '<div class="formulaire-header">' +
+        '<h2>📋 Choisir une entreprise existante</h2>' +
+        '<button class="btn-fermer" onclick="fermerFormulaire(\'selecteurEntreprise\')">✕</button>' +
+      '</div>' +
+      '<div class="formulaire-body">' +
+        '<p style="color:var(--text-secondary);margin-bottom:1rem;">Sélectionnez l\'entreprise dont vous voulez reprendre les informations. Le nouveau maître d\'apprentissage sera ajouté à cette entreprise.</p>' +
+        '<input type="text" id="filtreEntrepriseSelect" placeholder="🔍 Filtrer par nom d\'entreprise..." oninput="filtrerSelecteurEntreprise()" style="width:100%;margin-bottom:1rem;padding:0.6rem 0.8rem;">' +
+        '<div id="listeEntreprisesSelect" class="entreprises-selection-liste">' +
+          entreprises.map(function(e) {
+            const nbApp = apprentisEntreprise(e.lieux).length;
+            const nbMA = e.lieux.length;
+            const noms = e.lieux.map(l => (l.prenomMA + " " + l.nomMA).trim()).filter(Boolean).slice(0, 3).join(", ");
+            const nomsMA = noms + (e.lieux.length > 3 ? "…" : "");
+            return '<div class="entreprise-select-item" onclick="reprendreInfosEntreprise(\'' + e.lieux[0].id + '\');fermerFormulaire(\'selecteurEntreprise\');">' +
+              '<div class="entreprise-select-nom">' + escapeHTML(e.nom) + '</div>' +
+              '<div class="entreprise-select-meta">' +
+                (e.siret ? '<span>SIRET : ' + escapeHTML(e.siret) + '</span>' : '') +
+                (e.opco ? '<span>OPCO : ' + escapeHTML(nomOPCO(e.opco)) + '</span>' : '') +
+                '<span>' + nbMA + ' MA · ' + nbApp + ' apprenti' + (nbApp > 1 ? 's' : '') + '</span>' +
+              '</div>' +
+              (nomsMA ? '<div class="entreprise-select-ma">MA : ' + escapeHTML(nomsMA) + '</div>' : '') +
+            '</div>';
+          }).join("") +
+        '</div>' +
+      '</div>' +
+      '<div class="formulaire-footer">' +
+        '<button class="btn-secondary" onclick="fermerFormulaire(\'selecteurEntreprise\')">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  setTimeout(() => {
+    const f = document.getElementById("filtreEntrepriseSelect");
+    if (f) f.focus();
+  }, 100);
+}
+
+function filtrerSelecteurEntreprise() {
+  const filtre = (document.getElementById("filtreEntrepriseSelect")?.value || "").toLowerCase();
+  document.querySelectorAll(".entreprise-select-item").forEach(el => {
+    const texte = el.textContent.toLowerCase();
+    el.style.display = texte.indexOf(filtre) >= 0 ? "block" : "none";
+  });
+}
+
 function enregistrerLieu(idExistant) {
   const entreprise = document.getElementById("lieuEntreprise").value.trim();
   const nomMA = document.getElementById("lieuNomMA").value.trim();
@@ -20504,6 +21171,7 @@ function enregistrerLieu(idExistant) {
     adresse: document.getElementById("lieuAdresse").value.trim(),
     telephoneEntreprise: document.getElementById("lieuTelEntreprise").value.trim(),
     emailEntreprise: document.getElementById("lieuEmailEntreprise").value.trim(),
+    opco: document.getElementById("lieuOpco").value || "",
     nomMA: nomMA,
     prenomMA: prenomMA,
     emailMA: document.getElementById("lieuEmailMA").value.trim(),
@@ -20596,8 +21264,14 @@ function filtrerFamilles() {
         <td><span class="badge-statut ${statutClass}">${f.statut}</span></td>
         <td class="actions-cell">
           <button class="btn-action" onclick="modifierFamille('${f.id}')">Modifier</button>
-          <button class="btn-action" onclick="reinitMotDePasse('famille','${f.id}')">🔑 MDP</button>
-          <button class="btn-action ${f.statut === 'actif' ? 'action-danger' : ''}" onclick="toggleStatutProfil('famille','${f.id}')">${f.statut === 'actif' ? '🚫 Désactiver' : '✓ Réactiver'}</button>
+          ${f.statut === "archive" ? `
+            <button class="btn-action action-primary" onclick="restaurerProfil('famille','${f.id}')" title="Restaurer cette famille">↶ Restaurer</button>
+          ` : `
+            <button class="btn-action action-primary" onclick="editerCourrier('famille','${f.id}')" title="Éditer le courrier d'identifiants pour la famille">✉️ Courrier</button>
+            <button class="btn-action" onclick="reinitMotDePasse('famille','${f.id}')">🔑 MDP</button>
+            <button class="btn-action" onclick="archiverProfil('famille','${f.id}')" title="Archiver cette famille (apprenti sorti de formation)">📁 Archiver</button>
+          `}
+          <button class="btn-action ${f.statut === 'actif' ? 'action-danger' : ''}" onclick="toggleStatutProfil('famille','${f.id}')">${f.statut === 'actif' ? '🚫 Désactiver' : (f.statut === 'archive' ? '' : '✓ Réactiver')}</button>
         </td>
       </tr>
     `;
@@ -20877,6 +21551,406 @@ function copierFicheAcces(username, password, url) {
   }).catch(() => {
     prompt("Copiez manuellement les identifiants ci-dessous :", texte);
   });
+}
+
+// =================================================================
+// COURRIERS INSTITUTIONNELS D'IDENTIFIANTS
+// Ouverture dans une nouvelle fenêtre au format A4, prêt à imprimer
+// =================================================================
+
+function genererCourrierInstitutionnel(type, profil, contexteApprenti) {
+  const urlApp = window.location.origin + window.location.pathname;
+  const dateJour = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+
+  let destinataireLignes = [];
+  let formuleAppel = "Madame, Monsieur,";
+  let objet = "Vos identifiants d'accès à l'application MFR du Néracais";
+  let contexteTexte = "";
+  let identifiantAffiche = profil.username || profil.identifiant || "";
+  let passwordAffiche = profil.password || "";
+
+  if (type === "apprenti") {
+    destinataireLignes = [
+      profil.prenom + " " + profil.nom.toUpperCase(),
+      profil.adresse || ""
+    ];
+    if (profil.dateNaissance) {
+      // Genre grammatical selon prénom : heuristique très simple (à améliorer)
+      formuleAppel = "Cher/Chère apprenti(e),";
+    }
+    contexteTexte = "Dans le cadre de votre formation à la MFR du Néracais en <strong>" + (CLASSES[profil.classe] || profil.classe) + "</strong>, nous vous informons que votre compte personnel a été créé sur notre application de suivi pédagogique.<br><br>" +
+      "Cet outil vous permettra de consulter votre carnet de liaison, vos évaluations, votre planning d'alternance, ainsi que les documents officiels de votre parcours.";
+  }
+  else if (type === "famille") {
+    destinataireLignes = [
+      "Famille " + profil.nom.toUpperCase(),
+      profil.prenom + " " + profil.nom,
+      profil.adresse || ""
+    ];
+    const apprentiLie = contexteApprenti ? (contexteApprenti.prenom + " " + contexteApprenti.nom) : "votre enfant";
+    contexteTexte = "Dans le cadre du suivi pédagogique de <strong>" + apprentiLie + "</strong>" +
+      (contexteApprenti ? ", en formation " + (CLASSES[contexteApprenti.classe] || contexteApprenti.classe) : "") +
+      " à la MFR du Néracais, nous vous adressons vos identifiants d'accès à notre application familiale.<br><br>" +
+      "Cet espace vous permet de consulter à tout moment le carnet de liaison de votre enfant, ses évaluations, son planning d'alternance, ainsi que de communiquer directement avec l'équipe pédagogique.";
+  }
+  else if (type === "lieu" || type === "maitre") {
+    destinataireLignes = [
+      profil.prenomMA + " " + profil.nomMA.toUpperCase(),
+      "Maître d'apprentissage",
+      profil.entreprise,
+      profil.adresseEntreprise || ""
+    ];
+    const apprentiLie = contexteApprenti ? (contexteApprenti.prenom + " " + contexteApprenti.nom) : "de votre apprenti(e)";
+    contexteTexte = "Dans le cadre de votre mission de maître d'apprentissage pour <strong>" + apprentiLie + "</strong>" +
+      (contexteApprenti ? ", inscrit(e) en " + (CLASSES[contexteApprenti.classe] || contexteApprenti.classe) : "") +
+      ", nous avons le plaisir de vous adresser vos identifiants d'accès à notre application de suivi.<br><br>" +
+      "Cet espace vous permet de renseigner les appréciations en entreprise, de consulter le carnet de liaison, et de communiquer avec l'équipe pédagogique de la MFR.";
+    identifiantAffiche = profil.username || profil.identifiant || "";
+    passwordAffiche = profil.password || "";
+  }
+  else if (type === "salarie") {
+    destinataireLignes = [
+      profil.prenom + " " + profil.nom.toUpperCase(),
+      profil.fonction || ""
+    ];
+    formuleAppel = "Cher(e) collègue,";
+    contexteTexte = "Vous trouverez ci-dessous vos identifiants d'accès à l'application interne de la MFR du Néracais.<br><br>" +
+      "Cet outil vous permet de gérer votre périmètre pédagogique et administratif, d'accéder aux carnets de liaison, aux évaluations, aux plannings et à la documentation Qualiopi et RGPD.";
+  }
+
+  // Nettoyer les lignes vides
+  destinataireLignes = destinataireLignes.filter(function(l) { return l && l.trim(); });
+
+  return '<div class="courrier-page">' +
+    '<div class="courrier-entete">' +
+      '<div class="courrier-logo">' +
+        '<img src="logo_mfr_print.png" alt="MFR du Néracais" onerror="this.style.display=\'none\'">' +
+      '</div>' +
+      '<div class="courrier-coord">' +
+        '<div><strong>MFR du Néracais</strong></div>' +
+        '<div>200 route de Bordeaux</div>' +
+        '<div>47230 BARBASTE</div>' +
+        '<div>Tél. 05 53 65 56 06</div>' +
+        '<div>direction.barbaste@mfr.asso.fr</div>' +
+      '</div>' +
+    '</div>' +
+
+    '<div class="courrier-date-lieu">Barbaste, le ' + dateJour + '</div>' +
+
+    '<div class="courrier-destinataire">' +
+      destinataireLignes.map(function(l) { return '<div>' + escapeHTML(l) + '</div>'; }).join("") +
+    '</div>' +
+
+    '<div class="courrier-objet"><strong>Objet :</strong> ' + objet + '</div>' +
+
+    '<div class="courrier-corps">' +
+      '<p>' + formuleAppel + '</p>' +
+      '<p>' + contexteTexte + '</p>' +
+
+      '<div class="courrier-identifiants">' +
+        '<div class="courrier-identifiants-titre">🔐 Vos identifiants personnels</div>' +
+        '<table>' +
+          '<tr><td>Adresse de l\'application</td><td><code>' + urlApp + '</code></td></tr>' +
+          '<tr><td>Identifiant</td><td><code>' + escapeHTML(identifiantAffiche) + '</code></td></tr>' +
+          '<tr><td>Mot de passe</td><td><code>' + escapeHTML(passwordAffiche) + '</code></td></tr>' +
+        '</table>' +
+      '</div>' +
+
+      '<p><strong>Instructions de première connexion :</strong></p>' +
+      '<ol>' +
+        '<li>Rendez-vous à l\'adresse indiquée ci-dessus depuis n\'importe quel navigateur (ordinateur, tablette ou téléphone).</li>' +
+        '<li>Saisissez votre identifiant et votre mot de passe exactement comme indiqués (attention aux majuscules et minuscules).</li>' +
+        '<li>Cliquez sur "Se connecter".</li>' +
+      '</ol>' +
+
+      '<p><strong>Confidentialité et sécurité :</strong> ces identifiants sont strictement personnels. En cas de perte ou de doute sur leur confidentialité, contactez sans délai la direction de la MFR au 05 53 65 56 06 ou par courriel à direction.barbaste@mfr.asso.fr. Un nouveau mot de passe pourra vous être communiqué.</p>' +
+
+      '<p>Nos équipes se tiennent à votre disposition pour tout accompagnement dans la prise en main de cet outil.</p>' +
+
+      '<p>Nous vous prions de croire, ' + (type === "apprenti" ? "Cher/Chère apprenti(e)" : "Madame, Monsieur") + ', en l\'expression de nos salutations distinguées.</p>' +
+    '</div>' +
+
+    '<div class="courrier-signature">' +
+      '<div>Pascale DAUGÉ</div>' +
+      '<div class="courrier-signature-fonction"><em>Directrice — MFR du Néracais</em></div>' +
+    '</div>' +
+
+    '<div class="courrier-pied">' +
+      'MFR du Néracais — Association loi 1901 — SIREN 782 198 931 — N° déclaration d\'activité 75470139547 — Certifié Qualiopi n° 2026/118673.1<br>' +
+      'Vos données personnelles sont traitées conformément au RGPD. DPO : direction.barbaste@mfr.asso.fr' +
+    '</div>' +
+  '</div>';
+}
+
+// CSS pour les courriers (injecté dans la fenêtre d'impression)
+function stylesCourriers() {
+  return '<style>' +
+    '@page { size: A4; margin: 1.5cm; }' +
+    '* { box-sizing: border-box; }' +
+    'body { font-family: Georgia, "Times New Roman", serif; color: #222; line-height: 1.5; margin: 0; padding: 0; background: #f4f4f0; }' +
+    '.courrier-controle { position: sticky; top: 0; background: white; border-bottom: 1px solid #ddd; padding: 0.8rem 1.5rem; text-align: right; z-index: 100; }' +
+    '.courrier-controle button { padding: 0.5rem 1.2rem; margin-left: 0.5rem; border: 1px solid #5C6F3E; background: #5C6F3E; color: white; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.95rem; }' +
+    '.courrier-controle button.secondary { background: white; color: #5C6F3E; }' +
+    '.courrier-page { background: white; max-width: 21cm; min-height: 27cm; margin: 1.5cm auto; padding: 1.5cm; box-shadow: 0 2px 8px rgba(0,0,0,0.1); page-break-after: always; position: relative; }' +
+    '.courrier-page:last-child { page-break-after: auto; }' +
+    '.courrier-entete { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; border-bottom: 2px solid #5C6F3E; margin-bottom: 1.5rem; }' +
+    '.courrier-logo img { max-height: 90px; width: auto; }' +
+    '.courrier-coord { text-align: right; font-size: 0.88rem; line-height: 1.4; }' +
+    '.courrier-coord strong { color: #3E4A29; font-size: 1rem; }' +
+    '.courrier-date-lieu { text-align: right; margin: 1rem 0 1.5rem; font-style: italic; }' +
+    '.courrier-destinataire { margin-left: 55%; margin-bottom: 1.5rem; line-height: 1.4; }' +
+    '.courrier-objet { margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px dashed #999; }' +
+    '.courrier-corps { text-align: justify; }' +
+    '.courrier-corps p { margin: 0 0 0.8rem 0; }' +
+    '.courrier-identifiants { background: #F1F8E9; border-left: 4px solid #5C6F3E; padding: 1rem 1.2rem; margin: 1.2rem 0; border-radius: 4px; }' +
+    '.courrier-identifiants-titre { font-weight: bold; color: #3E4A29; margin-bottom: 0.5rem; }' +
+    '.courrier-identifiants table { width: 100%; border-collapse: collapse; }' +
+    '.courrier-identifiants td { padding: 0.3rem 0.5rem; }' +
+    '.courrier-identifiants td:first-child { color: #555; width: 45%; font-size: 0.9rem; }' +
+    '.courrier-identifiants code { font-family: "Courier New", monospace; background: white; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.95rem; font-weight: bold; letter-spacing: 0.5px; }' +
+    '.courrier-corps ol { margin: 0.5rem 0 1rem 1.5rem; }' +
+    '.courrier-corps ol li { margin-bottom: 0.3rem; }' +
+    '.courrier-signature { margin-top: 2rem; text-align: right; }' +
+    '.courrier-signature-fonction { font-size: 0.88rem; color: #555; margin-top: 0.2rem; }' +
+    '.courrier-pied { position: absolute; bottom: 1.5cm; left: 1.5cm; right: 1.5cm; padding-top: 0.8rem; border-top: 1px solid #ddd; font-size: 0.72rem; color: #888; line-height: 1.4; text-align: center; }' +
+    '@media print { body { background: white; } .courrier-controle { display: none; } .courrier-page { box-shadow: none; margin: 0; page-break-after: always; } .courrier-page:last-child { page-break-after: auto; } }' +
+  '</style>';
+}
+
+// Ouvre une fenêtre avec un ou plusieurs courriers
+function ouvrirCourriers(courriersHTML, titreOnglet) {
+  const win = window.open("", "_blank", "width=900,height=1000,scrollbars=yes");
+  if (!win) {
+    alert("⚠️ La fenêtre d'impression a été bloquée par votre navigateur.\n\nAutorisez les fenêtres pop-up pour ce site puis réessayez.");
+    return;
+  }
+  const html = '<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">' +
+    '<title>' + (titreOnglet || "Courriers d'identifiants MFR") + '</title>' +
+    stylesCourriers() +
+    '</head><body>' +
+    '<div class="courrier-controle">' +
+      '<button onclick="window.print()">🖨️ Imprimer</button>' +
+      '<button class="secondary" onclick="window.close()">Fermer</button>' +
+    '</div>' +
+    courriersHTML +
+    '</body></html>';
+  win.document.write(html);
+  win.document.close();
+  // Petit délai pour laisser le rendu se faire
+  setTimeout(function() { win.focus(); }, 300);
+}
+
+// Éditer 1 courrier isolé (utilisé par les boutons individuels)
+function editerCourrier(type, id) {
+  let profil, contexte;
+  if (type === "apprenti") {
+    profil = PROFILS_APPRENTIS.find(p => p.id === id);
+  } else if (type === "famille") {
+    profil = PROFILS_FAMILLES.find(p => p.id === id);
+    // Trouver un apprenti rattaché pour le contexte
+    contexte = PROFILS_APPRENTIS.find(a => a.familleId === id);
+  } else if (type === "lieu") {
+    profil = PROFILS_LIEUX.find(p => p.id === id);
+    contexte = PROFILS_APPRENTIS.find(a => a.lieuId === id);
+  } else if (type === "salarie") {
+    profil = PROFILS_SALARIES.find(p => p.id === id || p.identifiant === id);
+    // Normaliser : le courrier utilise profil.username, alors que salariés ont profil.identifiant
+    if (profil && profil.identifiant && !profil.username) profil.username = profil.identifiant;
+  }
+  if (!profil) { alert("Profil introuvable."); return; }
+  if (!profil.password) {
+    alert("Ce profil n'a pas de mot de passe défini. Utilisez « Réinitialiser » pour en générer un.");
+    return;
+  }
+  const courrierHTML = genererCourrierInstitutionnel(type, profil, contexte);
+  ouvrirCourriers(courrierHTML, "Courrier — " + (profil.prenom || profil.prenomMA || "") + " " + (profil.nom || profil.nomMA || profil.entreprise || ""));
+}
+
+// Réinitialisation mot de passe salarié
+function reinitMotDePasseSalarie(id) {
+  const salarie = PROFILS_SALARIES.find(s => s.id === id);
+  if (!salarie) return;
+  const nomAffiche = (salarie.prenom || "") + " " + (salarie.nom || "");
+  if (!confirm("Réinitialiser le mot de passe de " + nomAffiche.trim() + " ?\n\nUn nouveau mot de passe sera généré et un courrier vous sera proposé à l'impression.")) return;
+  salarie.password = genererMotDePasse();
+  if (!salarie.username && salarie.identifiant) salarie.username = salarie.identifiant;
+  salarie.dateReinitMdp = new Date().toISOString();
+  localStorage.setItem("mfr_profils_salaries", JSON.stringify(PROFILS_SALARIES));
+  // Ouvrir le courrier immédiatement
+  const courrierHTML = genererCourrierInstitutionnel("salarie", salarie);
+  ouvrirCourriers(courrierHTML, "Nouveau mot de passe — " + nomAffiche.trim());
+}
+
+// Éditer les 3 courriers du trio pour un apprenti (apprenti + famille + maître d'apprentissage)
+function editerCourriersTrio(apprentiId) {
+  const apprenti = PROFILS_APPRENTIS.find(a => a.id === apprentiId);
+  if (!apprenti) { alert("Apprenti introuvable."); return; }
+  if (!apprenti.password) {
+    alert("Cet apprenti n'a pas de mot de passe. Utilisez « Réinitialiser » pour en générer un.");
+    return;
+  }
+
+  const famille = apprenti.familleId ? PROFILS_FAMILLES.find(f => f.id === apprenti.familleId) : null;
+  const lieu = apprenti.lieuId ? PROFILS_LIEUX.find(l => l.id === apprenti.lieuId) : null;
+
+  let manquants = [];
+  if (!famille) manquants.push("famille");
+  if (!lieu) manquants.push("lieu d'apprentissage");
+  if (manquants.length > 0) {
+    if (!confirm("⚠️ Aucun " + manquants.join(" ni ") + " n'est rattaché à cet apprenti.\n\nSeul(s) le(s) courrier(s) disponible(s) sera(ont) édité(s). Continuer ?")) return;
+  }
+  if (famille && !famille.password) manquants.push("mot de passe famille manquant");
+  if (lieu && !lieu.password) manquants.push("mot de passe maître manquant");
+
+  let courriers = "";
+  courriers += genererCourrierInstitutionnel("apprenti", apprenti, apprenti);
+  if (famille && famille.password) {
+    courriers += genererCourrierInstitutionnel("famille", famille, apprenti);
+  }
+  if (lieu && lieu.password) {
+    courriers += genererCourrierInstitutionnel("lieu", lieu, apprenti);
+  }
+
+  ouvrirCourriers(courriers, "Courriers d'identifiants — " + apprenti.prenom + " " + apprenti.nom);
+}
+
+// =================================================================
+// ARCHIVAGE UNIVERSEL DES PROFILS
+// Archiver ≠ supprimer : le profil reste consultable mais n'est plus actif.
+// L'archivage est réversible via bouton "Restaurer".
+// =================================================================
+
+// Retourne la collection associée à un type de profil
+function collectionProfils(type) {
+  if (type === "apprenti") return { arr: PROFILS_APPRENTIS, key: "mfr_profils_apprentis" };
+  if (type === "lieu") return { arr: PROFILS_LIEUX, key: "mfr_profils_lieux" };
+  if (type === "famille") return { arr: PROFILS_FAMILLES, key: "mfr_profils_familles" };
+  if (type === "salarie") return { arr: PROFILS_SALARIES, key: "mfr_profils_salaries" };
+  return null;
+}
+
+// Ouvre une petite modale pour saisir motif d'archivage puis archive
+function archiverProfil(type, id) {
+  const col = collectionProfils(type);
+  if (!col) return;
+  const profil = col.arr.find(p => p.id === id);
+  if (!profil) return;
+
+  const nomAffiche = profil.entreprise ||
+    ((profil.prenom || profil.prenomMA || "") + " " + (profil.nom || profil.nomMA || "")).trim();
+
+  // Motifs suggérés selon le type
+  const motifsSuggeres = {
+    "apprenti": ["Fin de formation (diplômé)", "Rupture de contrat", "Réorientation", "Abandon", "Déménagement"],
+    "lieu": ["Fin de partenariat", "Fermeture de l'entreprise", "Changement de maître d'apprentissage", "Non-renouvellement"],
+    "famille": ["Fin de suivi (apprenti sorti)", "Changement de représentant légal", "À la demande de la famille"],
+    "salarie": ["Départ retraite", "Démission", "Fin de contrat", "Rupture conventionnelle", "Mutation"]
+  };
+  const motifs = motifsSuggeres[type] || [];
+
+  const modal = document.createElement("div");
+  modal.className = "formulaire-overlay";
+  modal.id = "modalArchivage";
+  modal.innerHTML =
+    '<div class="formulaire-modal" style="max-width: 500px;">' +
+      '<div class="formulaire-header">' +
+        '<h2>📁 Archiver ce profil</h2>' +
+        '<button class="btn-fermer" onclick="fermerFormulaire(\'modalArchivage\')">✕</button>' +
+      '</div>' +
+      '<div class="formulaire-body">' +
+        '<p style="margin-bottom: 1rem;">Vous êtes sur le point d\'archiver <strong>' + escapeHTML(nomAffiche) + '</strong>.</p>' +
+        '<p style="color: var(--text-secondary); font-size: 0.9rem;">Le profil sera désactivé (accès impossible) mais conservé pour consultation ultérieure. Vous pourrez le restaurer à tout moment via le filtre « Archivés ».</p>' +
+        '<div class="formulaire-field" style="margin-top: 1.2rem;">' +
+          '<label>Date d\'archivage</label>' +
+          '<input type="date" id="archDateEffet" value="' + new Date().toISOString().slice(0,10) + '">' +
+        '</div>' +
+        '<div class="formulaire-field">' +
+          '<label>Motif d\'archivage</label>' +
+          '<select id="archMotifSelect" onchange="if(this.value===\'AUTRE\'){document.getElementById(\'archMotifLibre\').style.display=\'block\';document.getElementById(\'archMotifLibre\').focus();}else{document.getElementById(\'archMotifLibre\').style.display=\'none\';document.getElementById(\'archMotifLibre\').value=this.value;}">' +
+            '<option value="">-- Sélectionner --</option>' +
+            motifs.map(function(m) { return '<option value="' + m + '">' + m + '</option>'; }).join("") +
+            '<option value="AUTRE">Autre motif (préciser)</option>' +
+          '</select>' +
+          '<input type="text" id="archMotifLibre" placeholder="Précisez le motif..." style="display: none; margin-top: 0.5rem;">' +
+        '</div>' +
+        '<div class="formulaire-field">' +
+          '<label>Observations complémentaires (optionnel)</label>' +
+          '<textarea id="archObservations" rows="3" placeholder="Toute information utile pour le dossier..."></textarea>' +
+        '</div>' +
+      '</div>' +
+      '<div class="formulaire-footer">' +
+        '<button class="btn-secondary" onclick="fermerFormulaire(\'modalArchivage\')">Annuler</button>' +
+        '<button class="btn-primary" onclick="confirmerArchivage(\'' + type + '\',\'' + id + '\')">📁 Archiver</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+function confirmerArchivage(type, id) {
+  const col = collectionProfils(type);
+  if (!col) return;
+  const profil = col.arr.find(p => p.id === id);
+  if (!profil) return;
+
+  const dateEffet = document.getElementById("archDateEffet").value || new Date().toISOString().slice(0,10);
+  const motifSelect = document.getElementById("archMotifSelect").value;
+  const motifLibre = document.getElementById("archMotifLibre").value.trim();
+  const motif = (motifSelect === "AUTRE" || !motifSelect) ? motifLibre : motifSelect;
+  const observations = document.getElementById("archObservations").value.trim();
+
+  if (!motif) {
+    alert("Veuillez indiquer un motif d'archivage.");
+    return;
+  }
+
+  profil.statut = "archive";
+  profil.dateArchivage = dateEffet;
+  profil.motifArchivage = motif;
+  if (observations) profil.observationsArchivage = observations;
+  profil.archivePar = utilisateurConnecte ? utilisateurConnecte.id : "";
+
+  // Cas spécifique apprenti : historique des sorties déjà géré
+  if (type === "apprenti") profil.dateSortieFormation = dateEffet;
+
+  localStorage.setItem(col.key, JSON.stringify(col.arr));
+  fermerFormulaire("modalArchivage");
+  alert("Profil archivé avec succès.");
+
+  // Rafraîchir l'affichage selon le type
+  if (type === "apprenti" && typeof afficherTableauApprentis === "function") afficherTableauApprentis();
+  else if (type === "lieu" && typeof afficherTableauLieux === "function") afficherTableauLieux();
+  else if (type === "famille" && typeof afficherTableauFamilles === "function") afficherTableauFamilles();
+  else if (type === "salarie" && typeof filtrerSalaries === "function") filtrerSalaries();
+  if (typeof majCompteursProfils === "function") majCompteursProfils();
+}
+
+// Restauration d'un profil archivé
+function restaurerProfil(type, id) {
+  const col = collectionProfils(type);
+  if (!col) return;
+  const profil = col.arr.find(p => p.id === id);
+  if (!profil) return;
+
+  const nomAffiche = profil.entreprise ||
+    ((profil.prenom || profil.prenomMA || "") + " " + (profil.nom || profil.nomMA || "")).trim();
+
+  if (!confirm("Restaurer le profil de \"" + nomAffiche + "\" ?\n\nLe profil redeviendra actif et pourra se reconnecter à l'application.")) return;
+
+  profil.statut = "actif";
+  delete profil.dateArchivage;
+  delete profil.motifArchivage;
+  delete profil.observationsArchivage;
+  delete profil.archivePar;
+  if (type === "apprenti") delete profil.dateSortieFormation;
+
+  localStorage.setItem(col.key, JSON.stringify(col.arr));
+  alert("Profil restauré.");
+
+  if (type === "apprenti" && typeof afficherTableauApprentis === "function") afficherTableauApprentis();
+  else if (type === "lieu" && typeof afficherTableauLieux === "function") afficherTableauLieux();
+  else if (type === "famille" && typeof afficherTableauFamilles === "function") afficherTableauFamilles();
+  else if (type === "salarie" && typeof filtrerSalaries === "function") filtrerSalaries();
+  if (typeof majCompteursProfils === "function") majCompteursProfils();
 }
 
 // =================================================================
@@ -22017,8 +23091,14 @@ function filtrerSalaries() {
       '<td>' + libelleStatut(s.statut) + '</td>' +
       '<td>' +
         (admin
-          ? '<button class="btn-mini" onclick="ouvrirFormulaireSalarie(\'' + s.id + '\')" title="Modifier">✏️</button> ' +
-            '<button class="btn-mini btn-mini-danger" onclick="supprimerSalarie(\'' + s.id + '\')" title="Supprimer">🗑️</button>'
+          ? (s.statut === "archive"
+              ? '<button class="btn-mini action-primary" onclick="restaurerProfil(\'salarie\',\'' + s.id + '\')" title="Restaurer">↶ Restaurer</button> ' +
+                '<button class="btn-mini" onclick="ouvrirFormulaireSalarie(\'' + s.id + '\')" title="Consulter">👁</button>'
+              : '<button class="btn-mini action-primary" onclick="editerCourrier(\'salarie\',\'' + s.id + '\')" title="Éditer le courrier d\'identifiants">✉️</button> ' +
+                '<button class="btn-mini" onclick="reinitMotDePasseSalarie(\'' + s.id + '\')" title="Réinitialiser le mot de passe">🔑</button> ' +
+                '<button class="btn-mini" onclick="ouvrirFormulaireSalarie(\'' + s.id + '\')" title="Modifier">✏️</button> ' +
+                '<button class="btn-mini" onclick="archiverProfil(\'salarie\',\'' + s.id + '\')" title="Archiver (départ retraite, démission…)">📁</button>'
+            )
           : '<span class="lecture-seule">Consultation</span>') +
       '</td>' +
     '</tr>';
@@ -22814,7 +23894,7 @@ function chargerCarnet(apprentiId) {
   return {
     apprentiId: apprentiId,
     donnees: {},
-    sessions: Array.from({ length: 12 }, (_, i) => ({
+    sessions: Array.from({ length: 13 }, (_, i) => ({
       numero: i + 1,
       dateDebut: "",
       dateFin: "",
@@ -22842,7 +23922,7 @@ function chargerCarnet(apprentiId) {
 }
 
 /**
- * Crée la structure vide des 12 périodes d'entreprise.
+ * Crée la structure vide des 13 périodes d'entreprise.
  * Chaque période contient :
  * - dates (début, fin)
  * - titre du plan d'étude
@@ -22860,7 +23940,7 @@ function creerPeriodesEntrepriseVides() {
   const themesEcrit = 3;
   const sousQuestionsEcrit = 2;
 
-  return Array.from({ length: 12 }, (_, i) => ({
+  return Array.from({ length: 13 }, (_, i) => ({
     numero: i + 1,
     statut: (i === 0) ? "en_cours" : "a_venir",  // "a_venir" | "en_cours" | "cloturee"
     dateOuverture: "",   // horodatage d'ouverture (à remplir par le moniteur)
@@ -22919,10 +23999,10 @@ function initPageCarnet() {
   // Verrouiller les champs selon le rôle
   appliquerVerrousIdentite();
 
-  // Construire les 12 sessions MFR
+  // Construire les 13 sessions MFR
   construireSessionsMfr();
 
-  // Construire les 12 périodes en entreprise
+  // Construire les 13 périodes en entreprise
   construirePeriodesEntreprise();
 
   // Construire la synthèse globale du parcours
@@ -23031,7 +24111,7 @@ function construireSessionsMfr() {
   container.innerHTML = "";
   container.appendChild(toolbar);
 
-  // Construire les 12 sessions
+  // Construire les 13 sessions
   carnetEnCours.sessions.forEach((session, idx) => {
     const numero = session.numero;
     const sessionEl = document.createElement("div");
@@ -23051,7 +24131,7 @@ function construireSessionsMfr() {
       <div class="header-left">
         <div class="carnet-session-numero">${numero}</div>
         <div>
-          <div class="carnet-session-titre">Session ${numero} / 12 — ${themeAffiche}</div>
+          <div class="carnet-session-titre">Session ${numero} / 13 — ${themeAffiche}</div>
           <div class="carnet-session-status">${dateAffichee}</div>
         </div>
       </div>
@@ -23246,7 +24326,7 @@ function majEnteteSession(numSession) {
   const dateAffichee = (session.dateDebut && session.dateFin)
     ? `Du ${formatDateCourte(session.dateDebut)} au ${formatDateCourte(session.dateFin)}`
     : "Dates à renseigner";
-  titre.textContent = `Session ${numSession} / 12 — ${themeAffiche}`;
+  titre.textContent = `Session ${numSession} / 13 — ${themeAffiche}`;
   status.textContent = dateAffichee;
 }
 
@@ -23396,7 +24476,7 @@ function construirePeriodesEntreprise() {
       <div class="header-left">
         <div class="carnet-session-numero carnet-periode-numero">${numero}</div>
         <div>
-          <div class="carnet-session-titre">Période ${numero} / 12 — ${escapeHtml(titreAffiche)}</div>
+          <div class="carnet-session-titre">Période ${numero} / 13 — ${escapeHtml(titreAffiche)}</div>
           <div class="carnet-session-status">${dateAffichee}</div>
         </div>
       </div>
@@ -23891,7 +24971,7 @@ function majEntetePeriode(numPeriode) {
   const dateAffichee = (periode.dateDebut && periode.dateFin)
     ? `Du ${formatDateCourte(periode.dateDebut)} au ${formatDateCourte(periode.dateFin)}`
     : "Dates à renseigner";
-  if (titre) titre.textContent = `Période ${numPeriode} / 12 — ${titreAffiche}`;
+  if (titre) titre.textContent = `Période ${numPeriode} / 13 — ${titreAffiche}`;
   if (status) status.textContent = dateAffichee;
 }
 
@@ -24409,6 +25489,240 @@ function ajouterAbsenceAuCarnet(apprentiId, absence) {
 // CLÔTURE FINALE DU CARNET
 // =================================================================
 // =================================================================
+
+// -----------------------------------------------------------------
+// PARAMÉTRAGE DES ANNÉES SCOLAIRES
+// -----------------------------------------------------------------
+
+let planningEnCours = null; // Copie de travail (non sauvegardée)
+let anneeEnParametrage = null;
+let classeEnParametrage = null;
+
+function afficherParametrageAnnee() {
+  // Peupler le sélecteur d'année scolaire
+  const selectAnnee = document.getElementById("param-annee-select");
+  const anneesDisponibles = Object.keys(ANNEES_SCOLAIRES).sort();
+  selectAnnee.innerHTML = anneesDisponibles.map(function(a) {
+    return '<option value="' + a + '"' + (a === ANNEE_SCOLAIRE_COURANTE ? " selected" : "") + '>' + a + (a === ANNEE_SCOLAIRE_COURANTE ? " (courante)" : "") + '</option>';
+  }).join("");
+
+  // Peupler le sélecteur de classe
+  const selectClasse = document.getElementById("param-classe-select");
+  selectClasse.innerHTML = Object.keys(CLASSES).map(function(c) {
+    return '<option value="' + c + '">' + CLASSES[c] + '</option>';
+  }).join("");
+
+  anneeEnParametrage = ANNEE_SCOLAIRE_COURANTE;
+  classeEnParametrage = Object.keys(CLASSES)[0];
+
+  afficherGrillePlanning();
+}
+
+function changerAnneeParametrage(anneeCode) {
+  // Vérifier qu'il n'y a pas de modifs non sauvegardées
+  if (planningEnCours && !confirm("Vos modifications non enregistrées seront perdues. Continuer ?")) {
+    document.getElementById("param-annee-select").value = anneeEnParametrage;
+    return;
+  }
+  anneeEnParametrage = anneeCode;
+  afficherGrillePlanning();
+}
+
+function afficherGrillePlanning() {
+  classeEnParametrage = document.getElementById("param-classe-select").value;
+
+  const infos = infosAnneeScolaire(anneeEnParametrage);
+  const planning = getPlanningClasse(classeEnParametrage, anneeEnParametrage);
+
+  // Cas où le planning stocké a moins de semaines que nécessaire (année récente, nouvelle)
+  const planningComplet = Array(infos.nbSemaines).fill("F");
+  for (let i = 0; i < Math.min(planning.length, infos.nbSemaines); i++) {
+    planningComplet[i] = planning[i];
+  }
+  planningEnCours = planningComplet.slice();
+
+  // Zone infos
+  const infosDiv = document.getElementById("param-infos");
+  const dDeb = infos.dateDebut;
+  const dFin = infos.dateFin;
+  const formatDate = function(d) { return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear(); };
+  const nbM = planningEnCours.filter(function(v) { return v === "M"; }).length;
+  const nbE = planningEnCours.filter(function(v) { return v === "E"; }).length;
+  const nbF = planningEnCours.filter(function(v) { return v === "F"; }).length;
+  infosDiv.innerHTML =
+    '<div class="param-info-item"><span class="param-info-label">Période :</span> du <strong>' + formatDate(dDeb) + '</strong> au <strong>' + formatDate(dFin) + '</strong></div>' +
+    '<div class="param-info-item"><span class="param-info-label">Nombre de semaines :</span> <strong>' + infos.nbSemaines + '</strong></div>' +
+    '<div class="param-info-stats">' +
+      '<span class="param-stat-M">' + nbM + ' semaines cours</span> · ' +
+      '<span class="param-stat-E">' + nbE + ' semaines entreprise</span> · ' +
+      '<span class="param-stat-F">' + nbF + ' semaines fermées</span>' +
+    '</div>';
+
+  // Construire la grille
+  const grilleDiv = document.getElementById("param-grille");
+  let html = "";
+  let dateCourante = new Date(dDeb);
+  let moisAffiche = -1;
+
+  for (let i = 0; i < infos.nbSemaines; i++) {
+    const mois = dateCourante.getMonth();
+    if (mois !== moisAffiche) {
+      if (moisAffiche >= 0) html += "</div></div>"; // fermer le mois précédent
+      html += '<div class="param-mois-bloc">';
+      html += '<h4 class="param-mois-titre">' + MOIS[mois].charAt(0).toUpperCase() + MOIS[mois].slice(1) + " " + dateCourante.getFullYear() + '</h4>';
+      html += '<div class="param-mois-semaines">';
+      moisAffiche = mois;
+    }
+    const valeur = planningEnCours[i];
+    const numSem = numSemaineISO(dateCourante);
+    const dateFmt = String(dateCourante.getDate()).padStart(2,"0") + "/" + String(dateCourante.getMonth()+1).padStart(2,"0");
+    html += '<div class="param-semaine param-semaine-' + valeur + '" onclick="cyclerSemaine(' + i + ')" title="Semaine ' + numSem + ' — Cliquer pour changer">';
+    html += '<div class="param-semaine-date">S' + numSem + '</div>';
+    html += '<div class="param-semaine-jour">' + dateFmt + '</div>';
+    html += '<div class="param-semaine-valeur" id="param-sem-' + i + '">' + valeur + '</div>';
+    html += '</div>';
+    dateCourante.setDate(dateCourante.getDate() + 7);
+  }
+  html += "</div></div>"; // fermer le dernier mois
+
+  grilleDiv.innerHTML = html;
+}
+
+function cyclerSemaine(index) {
+  // Cycler entre M / E / F
+  const ordre = ["E", "M", "F"];
+  const actuel = planningEnCours[index];
+  const idx = ordre.indexOf(actuel);
+  const nouvelle = ordre[(idx + 1) % ordre.length];
+  planningEnCours[index] = nouvelle;
+
+  // Rafraîchir juste la case
+  const cell = document.querySelector('.param-semaine[onclick="cyclerSemaine(' + index + ')"]');
+  if (cell) {
+    cell.className = "param-semaine param-semaine-" + nouvelle;
+    document.getElementById("param-sem-" + index).textContent = nouvelle;
+  }
+
+  // Mettre à jour les stats sans regénérer la grille
+  const nbM = planningEnCours.filter(function(v) { return v === "M"; }).length;
+  const nbE = planningEnCours.filter(function(v) { return v === "E"; }).length;
+  const nbF = planningEnCours.filter(function(v) { return v === "F"; }).length;
+  const stats = document.querySelector(".param-info-stats");
+  if (stats) {
+    stats.innerHTML = '<span class="param-stat-M">' + nbM + ' semaines cours</span> · ' +
+      '<span class="param-stat-E">' + nbE + ' semaines entreprise</span> · ' +
+      '<span class="param-stat-F">' + nbF + ' semaines fermées</span>';
+  }
+}
+
+function sauvegarderPlanningActuel() {
+  if (!planningEnCours || !classeEnParametrage || !anneeEnParametrage) return;
+  setPlanningClasse(classeEnParametrage, planningEnCours.slice(), anneeEnParametrage);
+  alert("Planning sauvegardé pour " + (CLASSES[classeEnParametrage] || classeEnParametrage) + " — année " + anneeEnParametrage);
+}
+
+function reinitialiserPlanningActuel() {
+  if (!confirm("Réinitialiser le planning au planning par défaut ?\n\nCette action est irréversible sauf si vous l'exportez avant.")) return;
+  const defaut = ANNEES_SCOLAIRES_DEFAUT[anneeEnParametrage];
+  if (defaut && defaut.plannings && defaut.plannings[classeEnParametrage]) {
+    setPlanningClasse(classeEnParametrage, defaut.plannings[classeEnParametrage].slice(), anneeEnParametrage);
+    afficherGrillePlanning();
+  } else {
+    alert("Aucun planning par défaut disponible pour cette combinaison année/classe.");
+  }
+}
+
+function creerNouvelleAnneeScolaire() {
+  const anneeCode = prompt("Année scolaire au format 'AAAA-AAAA' (exemple : 2027-2028) :", "");
+  if (!anneeCode) return;
+  if (!/^\d{4}-\d{4}$/.test(anneeCode)) {
+    alert("Format invalide. Exemple attendu : 2027-2028");
+    return;
+  }
+  const [a, b] = anneeCode.split("-").map(Number);
+  if (b !== a + 1) {
+    alert("La deuxième année doit être l'année suivante (exemple : 2027-2028)");
+    return;
+  }
+  if (ANNEES_SCOLAIRES[anneeCode]) {
+    alert("Cette année scolaire existe déjà.");
+    return;
+  }
+  ANNEES_SCOLAIRES[anneeCode] = { plannings: {} };
+  localStorage.setItem("mfr_annees_scolaires", JSON.stringify(ANNEES_SCOLAIRES));
+  anneeEnParametrage = anneeCode;
+  afficherParametrageAnnee();
+  alert("Année scolaire " + anneeCode + " créée. Vous pouvez maintenant paramétrer les plannings de chaque classe.");
+}
+
+function copierPlanningDepuis() {
+  const anneesDisponibles = Object.keys(ANNEES_SCOLAIRES).sort().filter(function(a) { return a !== anneeEnParametrage; });
+  const classesDisponibles = Object.keys(CLASSES);
+
+  if (anneesDisponibles.length === 0 && classesDisponibles.length <= 1) {
+    alert("Aucune autre source de planning disponible.");
+    return;
+  }
+
+  const choix = prompt(
+    "Copier depuis quelle source ?\n\n" +
+    "Format : ANNEE / CLASSE\n" +
+    "Exemple : 2026-2027/CAP_EPC_1\n\n" +
+    "Années disponibles : " + Object.keys(ANNEES_SCOLAIRES).join(", ") + "\n" +
+    "Classes disponibles : " + classesDisponibles.join(", "),
+    ANNEE_SCOLAIRE_COURANTE + "/" + classeEnParametrage
+  );
+  if (!choix) return;
+
+  const [srcAnnee, srcClasse] = choix.split("/");
+  const planningSource = getPlanningClasse(srcClasse, srcAnnee);
+  if (!planningSource || planningSource.every(function(v) { return v === "F"; })) {
+    alert("Aucun planning trouvé pour cette source, ou planning entièrement vide.");
+    return;
+  }
+
+  // Ajuster à la longueur de l'année en paramétrage
+  const infosCible = infosAnneeScolaire(anneeEnParametrage);
+  const planningAjuste = Array(infosCible.nbSemaines).fill("F");
+  for (let i = 0; i < Math.min(planningSource.length, infosCible.nbSemaines); i++) {
+    planningAjuste[i] = planningSource[i];
+  }
+
+  planningEnCours = planningAjuste;
+  setPlanningClasse(classeEnParametrage, planningAjuste, anneeEnParametrage);
+  afficherGrillePlanning();
+  alert("Planning copié depuis " + srcAnnee + " / " + srcClasse + " et enregistré.");
+}
+
+function exporterPlanningCSV() {
+  if (!planningEnCours) return;
+  const infos = infosAnneeScolaire(anneeEnParametrage);
+  const lignes = [["Semaine", "Date début", "Date fin", "Type", "Signification"]];
+  const typeLabel = { "M": "MFR (cours)", "E": "Entreprise", "F": "MFR fermée" };
+  let d = new Date(infos.dateDebut);
+  for (let i = 0; i < infos.nbSemaines; i++) {
+    const debut = new Date(d);
+    const fin = new Date(d); fin.setDate(fin.getDate() + 4);
+    lignes.push([
+      "S" + numSemaineISO(debut),
+      String(debut.getDate()).padStart(2,"0") + "/" + String(debut.getMonth()+1).padStart(2,"0") + "/" + debut.getFullYear(),
+      String(fin.getDate()).padStart(2,"0") + "/" + String(fin.getMonth()+1).padStart(2,"0") + "/" + fin.getFullYear(),
+      planningEnCours[i],
+      typeLabel[planningEnCours[i]] || ""
+    ]);
+    d.setDate(d.getDate() + 7);
+  }
+  const csv = lignes.map(function(l) { return l.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(";"); }).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.download = "planning-" + anneeEnParametrage + "-" + classeEnParametrage + ".csv";
+  document.body.appendChild(lien);
+  lien.click();
+  document.body.removeChild(lien);
+  URL.revokeObjectURL(url);
+}
 
 // -----------------------------------------------------------------
 // TABLEAU DE BORD QUALIOPI V10 — 32 indicateurs officiels
