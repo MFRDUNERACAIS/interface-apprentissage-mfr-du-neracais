@@ -205,6 +205,101 @@
     font-size: 0.82rem;
     color: var(--text-muted);
   }
+  .link-oublie {
+    background: none;
+    border: none;
+    color: #5C6F3E;
+    text-decoration: underline;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 0.3rem 0;
+    margin-top: 0.3rem;
+    display: inline-block;
+    font-weight: 500;
+  }
+  .link-oublie:hover {
+    color: #3E4A29;
+    text-decoration: none;
+  }
+
+  /* Modal MDP oublié */
+  .mdp-oublie-etape {
+    display: flex;
+    gap: 0.8rem;
+    margin: 1rem 0;
+    align-items: flex-start;
+  }
+  .mdp-oublie-num {
+    background: #5C6F3E;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+    font-size: 0.95rem;
+  }
+  .mdp-oublie-contenu { flex: 1; line-height: 1.5; }
+  .mdp-oublie-contacts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+    margin-top: 0.6rem;
+  }
+  .mdp-oublie-contact {
+    background: #FAFAF7;
+    padding: 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #E8E8E0;
+    display: flex;
+    gap: 0.6rem;
+    align-items: flex-start;
+  }
+  .mdp-oublie-contact-icone {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .mdp-oublie-contact a {
+    color: #5C6F3E;
+    text-decoration: none;
+    font-weight: 500;
+    word-break: break-all;
+  }
+  .mdp-oublie-contact a:hover { text-decoration: underline; }
+  .mdp-oublie-delai {
+    background: #FFF8E1;
+    border-left: 3px solid #C9A23E;
+    padding: 0.7rem 1rem;
+    border-radius: 4px;
+    margin: 1rem 0 0.6rem;
+    color: #6B5312;
+    font-size: 0.9rem;
+  }
+  .mdp-oublie-confidentialite {
+    background: #EFF4FA;
+    padding: 0.7rem 1rem;
+    border-radius: 4px;
+    color: #0C447C;
+    font-size: 0.85rem;
+    line-height: 1.5;
+  }
+  @media (max-width: 550px) {
+    .mdp-oublie-contacts { grid-template-columns: 1fr; }
+  }
+  .login-version {
+    text-align: center;
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    opacity: 0.65;
+  }
 
   /* ZONE PLANNING */
   .welcome-banner {
@@ -11937,6 +12032,804 @@
     background: linear-gradient(180deg, #FFFDF5 0%, #FCF9EE 100%);
     border-left: 4px solid #C9A23E;
   }
+
+  /* Zone d'attestation */
+  .rgpd-attestation-todo, .rgpd-attestation-faite {
+    background: white;
+    padding: 1.2rem 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  .rgpd-attestation-todo {
+    background: linear-gradient(180deg, #FFFDF5 0%, #FCF9EE 100%);
+    border-left: 4px solid #C9A23E;
+  }
+  .rgpd-attestation-faite {
+    background: linear-gradient(180deg, #F1F8E9 0%, #FAFAF7 100%);
+    border-left: 4px solid #2E5B31;
+  }
+  .rgpd-att-icone { font-size: 2rem; flex-shrink: 0; line-height: 1; }
+  .rgpd-att-contenu { flex: 1; }
+  .rgpd-att-titre {
+    font-weight: 700;
+    color: #3E4A29;
+    font-size: 1.05rem;
+    margin-bottom: 0.5rem;
+  }
+  .rgpd-att-texte {
+    color: #555;
+    line-height: 1.6;
+    margin: 0.4rem 0 1rem;
+    font-size: 0.92rem;
+  }
+  .rgpd-att-checkbox {
+    background: white;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #E8E8E0;
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+    align-items: flex-start;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .rgpd-att-checkbox:hover {
+    border-color: #C9A23E;
+    background: #FFFDF5;
+  }
+  .rgpd-att-checkbox input[type="checkbox"] {
+    margin-top: 0.15rem;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    accent-color: #5C6F3E;
+  }
+  .rgpd-att-checkbox label {
+    color: #444;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    cursor: pointer;
+    flex: 1;
+  }
+  .rgpd-att-details {
+    color: #555;
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+  }
+  .rgpd-att-details code {
+    background: #E8E8E0;
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+    font-family: "Courier New", monospace;
+    font-size: 0.82rem;
+  }
+  .rgpd-att-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .rgpd-att-actions button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Colonne RGPD dans tableaux de profils */
+  .rgpd-cell {
+    text-align: center;
+    padding: 0.4rem 0.5rem !important;
+    white-space: nowrap;
+    font-size: 0.82rem;
+  }
+  .rgpd-cell-ok { color: #2E5B31; }
+  .rgpd-cell-ko { color: #C97A4F; }
+  .rgpd-pict-ok, .rgpd-pict-ko { font-size: 1rem; margin-right: 0.2rem; }
+  .rgpd-date-att { font-family: monospace; opacity: 0.85; }
+
+  /* Bannière RGPD to do */
+  .banniere-rgpd-todo {
+    background: linear-gradient(90deg, #FFF8E1 0%, #FFFDF5 100%);
+    border-bottom: 2px solid #C9A23E;
+    padding: 0.7rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: #6B5312;
+    font-size: 0.92rem;
+  }
+  .banniere-rgpd-icone { font-size: 1.2rem; flex-shrink: 0; }
+  .banniere-rgpd-texte { flex: 1; }
+  .banniere-rgpd-fermer {
+    background: none;
+    border: none;
+    color: #6B5312;
+    cursor: pointer;
+    font-size: 1.1rem;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+  }
+  .banniere-rgpd-fermer:hover { background: rgba(0,0,0,0.05); }
+
+  /* ============ PAGE MODE D'EMPLOI ============ */
+  #page-mode-emploi { max-width: 1200px; margin: 0 auto; }
+  .me-header {
+    background: linear-gradient(135deg, #5C6F3E 0%, #3E4A29 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .me-header h2 { color: white; margin: 0 0 0.5rem 0; }
+  .me-intro { color: rgba(255,255,255,0.9); margin: 0; line-height: 1.5; }
+
+  .me-onglets {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    border-bottom: 2px solid #E8E8E0;
+    padding-bottom: 0.5rem;
+  }
+  .me-onglet {
+    background: white;
+    border: 1px solid #E8E8E0;
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    transition: all 0.15s;
+    min-width: 110px;
+  }
+  .me-onglet:hover {
+    border-color: #C9A23E;
+    background: #FFFDF5;
+  }
+  .me-onglet.active {
+    background: #5C6F3E;
+    color: white;
+    border-color: #3E4A29;
+    box-shadow: 0 2px 8px rgba(92,111,62,0.3);
+  }
+  .me-onglet-icone { font-size: 1.5rem; }
+  .me-onglet-label { font-weight: 500; }
+
+  .me-role-header {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    border-left: 4px solid #C9A23E;
+  }
+  .me-role-icone {
+    font-size: 3rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .me-role-header h3 {
+    margin: 0 0 0.4rem 0;
+    color: #3E4A29;
+  }
+  .me-accroche {
+    margin: 0;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  .me-section {
+    background: white;
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .me-section-titre {
+    color: #3E4A29;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #E8E8E0;
+    font-size: 1.05rem;
+  }
+  .me-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 0.8rem;
+  }
+  .me-action {
+    background: #FAFAF7;
+    padding: 0.9rem 1rem;
+    border-radius: 6px;
+    border: 1px solid #E8E8E0;
+    transition: all 0.15s;
+  }
+  .me-action:hover {
+    border-color: #C9A23E;
+    background: #FFFDF5;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .me-action-titre {
+    font-weight: 600;
+    color: #3E4A29;
+    margin-bottom: 0.4rem;
+    font-size: 0.95rem;
+  }
+  .me-action-comment {
+    color: #555;
+    font-size: 0.87rem;
+    line-height: 1.5;
+    margin-bottom: 0.5rem;
+  }
+  .me-action-ou {
+    font-size: 0.78rem;
+    color: #6B5312;
+    background: #FFF8E1;
+    padding: 0.3rem 0.6rem;
+    border-radius: 4px;
+    display: inline-block;
+    font-style: italic;
+  }
+  .me-pied {
+    margin-top: 2rem;
+    padding: 1rem 1.5rem;
+    background: #FAFAF7;
+    border-radius: 8px;
+    color: #555;
+    font-size: 0.9rem;
+    text-align: center;
+  }
+  .me-pied a { color: #5C6F3E; font-weight: 500; }
+
+  /* ============ PAGE TROMBINOSCOPE ============ */
+  #page-trombinoscope { max-width: 1400px; margin: 0 auto; }
+  .tromb-header {
+    background: linear-gradient(135deg, #5C6F3E 0%, #3E4A29 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .tromb-header h2 { color: white; margin: 0 0 0.4rem 0; }
+  .tromb-intro { color: rgba(255,255,255,0.9); margin: 0; }
+  .tromb-header-actions { display: flex; gap: 0.6rem; align-items: center; }
+  .tromb-count {
+    background: rgba(255,255,255,0.15);
+    padding: 0.4rem 0.9rem;
+    border-radius: 20px;
+    font-size: 0.88rem;
+    font-weight: 500;
+  }
+
+  .tromb-toolbar {
+    background: white;
+    padding: 1rem 1.2rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .tromb-toolbar input, .tromb-toolbar select {
+    padding: 0.55rem 0.8rem;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 0.92rem;
+  }
+  .tromb-toolbar input { flex: 1; min-width: 220px; }
+  .tromb-toolbar select { min-width: 200px; }
+
+  .tromb-note-rgpd {
+    background: #EFF4FA;
+    padding: 0.7rem 1rem;
+    border-radius: 6px;
+    color: #0C447C;
+    font-size: 0.85rem;
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .tromb-note-icone { font-size: 1.1rem; flex-shrink: 0; }
+
+  .tromb-grille {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.2rem;
+  }
+
+  .tromb-carte {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .tromb-carte:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  }
+  .tromb-photo-zone {
+    aspect-ratio: 1;
+    background: linear-gradient(135deg, #E8E8E0 0%, #FAFAF7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .tromb-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .tromb-avatar-defaut {
+    background: linear-gradient(135deg, #5C6F3E 0%, #3E4A29 100%);
+    color: white;
+    font-size: 4rem;
+    font-weight: 300;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.05em;
+  }
+  .tromb-infos {
+    padding: 1rem 1.2rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .tromb-nom {
+    font-weight: 600;
+    color: #3E4A29;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+  }
+  .tromb-fonction {
+    color: #6B5312;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 0.15rem;
+  }
+  .tromb-fonction-sec {
+    color: #999;
+    font-size: 0.82rem;
+    font-style: italic;
+    margin-bottom: 0.4rem;
+  }
+  .tromb-contacts {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #F0F0EA;
+  }
+  .tromb-contact {
+    color: #5C6F3E;
+    text-decoration: none;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    word-break: break-all;
+  }
+  .tromb-contact:hover { color: #3E4A29; text-decoration: underline; }
+  .tromb-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid #F0F0EA;
+    flex-wrap: wrap;
+  }
+  .tromb-btn {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid #5C6F3E;
+    background: white;
+    color: #5C6F3E;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.15s;
+    flex: 1;
+  }
+  .tromb-btn:hover {
+    background: #5C6F3E;
+    color: white;
+  }
+  .tromb-btn-danger {
+    border-color: #C97A4F;
+    color: #C97A4F;
+    flex: 0 0 auto;
+  }
+  .tromb-btn-danger:hover {
+    background: #C97A4F;
+    color: white;
+  }
+  .tromb-vide {
+    background: white;
+    border-radius: 10px;
+    padding: 2.5rem 2rem;
+    text-align: center;
+    color: #888;
+  }
+  @media (max-width: 600px) {
+    .tromb-grille { grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .tromb-photo-zone { aspect-ratio: 1; }
+    .tromb-avatar-defaut { font-size: 2.5rem; }
+    .tromb-infos { padding: 0.8rem; }
+    .tromb-nom { font-size: 0.95rem; }
+  }
+
+  /* ============ CENTRE D'ALERTES ============ */
+  #page-alertes { max-width: 1200px; margin: 0 auto; }
+  .alertes-header {
+    background: linear-gradient(135deg, #C97A4F 0%, #A85A32 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  .alertes-header h2 { color: white; margin: 0 0 0.4rem 0; }
+  .alertes-intro { color: rgba(255,255,255,0.9); margin: 0; max-width: 700px; }
+  .alertes-actions { display: flex; gap: 0.6rem; align-items: center; }
+  .alertes-toggle {
+    background: rgba(255,255,255,0.15);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    color: white;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .alertes-toggle input { cursor: pointer; }
+
+  .alertes-synthese {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .alertes-carte {
+    background: white;
+    border-radius: 10px;
+    padding: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    border-left: 4px solid #ccc;
+  }
+  .alertes-carte-ok { border-left-color: #2E5B31; }
+  .alertes-carte-attention { border-left-color: #C97A4F; }
+  .alertes-carte-info { border-left-color: #2E5A8F; }
+  .alertes-carte-icone { font-size: 2.2rem; line-height: 1; }
+  .alertes-carte-chiffre { font-size: 2.2rem; font-weight: 700; color: #3E4A29; line-height: 1; }
+  .alertes-carte-label { font-size: 0.88rem; color: #666; margin-left: auto; text-align: right; max-width: 140px; line-height: 1.3; }
+
+  .alertes-section {
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .alertes-section-header {
+    padding: 1rem 1.5rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    background: #FAFAF7;
+    border-bottom: 1px solid #E8E8E0;
+    transition: background 0.15s;
+  }
+  .alertes-section-header:hover { background: #F1F8E9; }
+  .alertes-section-header h3 { margin: 0; color: #3E4A29; flex: 1; font-size: 1.05rem; }
+  .alertes-section-chevron { font-size: 0.9rem; color: #666; transition: transform 0.2s; }
+  .alertes-section-closed .alertes-section-chevron { transform: rotate(-90deg); }
+  .alertes-section-closed .alertes-section-body { display: none; }
+  .alertes-section-body { padding: 1rem 1.5rem; }
+
+  .alertes-count {
+    background: #E8E8E0;
+    color: #555;
+    padding: 0.25rem 0.7rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    min-width: 30px;
+    text-align: center;
+  }
+  .alertes-count-attention { background: #C97A4F; color: white; }
+  .alertes-count-info { background: #2E5A8F; color: white; }
+  .alertes-count-ok { background: #E8F5E9; color: #1B5E20; }
+
+  .alertes-liste { display: flex; flex-direction: column; gap: 0.6rem; }
+  .alertes-item {
+    padding: 0.9rem 1rem;
+    background: #FAFAF7;
+    border-radius: 6px;
+    border-left: 3px solid #C9A23E;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.5rem 1rem;
+    align-items: center;
+  }
+  .alertes-item-critique { border-left-color: #C97A4F; background: #FDF3EE; }
+  .alertes-item-titre { grid-column: 1; font-size: 0.95rem; color: #3E4A29; }
+  .alertes-item-detail { grid-column: 1; font-size: 0.85rem; color: #666; }
+  .alertes-item-action { grid-column: 2; grid-row: 1 / span 2; align-self: center; }
+  .alertes-item-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    background: rgba(0,0,0,0.05);
+    margin-left: 0.4rem;
+  }
+  .alertes-btn {
+    padding: 0.5rem 0.9rem;
+    background: #5C6F3E;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.83rem;
+    font-weight: 500;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  .alertes-btn:hover { background: #3E4A29; }
+  .alertes-btn-secondary { background: #E8E8E0; color: #3E4A29; }
+  .alertes-btn-secondary:hover { background: #C9A23E; color: white; }
+
+  .alertes-vide {
+    padding: 1.5rem;
+    text-align: center;
+    color: #2E5B31;
+    background: #E8F5E9;
+    border-radius: 6px;
+    font-size: 0.95rem;
+  }
+  .alertes-note {
+    padding: 1rem 1.5rem;
+    background: #EFF4FA;
+    border-radius: 6px;
+    color: #0C447C;
+    font-size: 0.88rem;
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 1.5rem;
+  }
+  @media (max-width: 600px) {
+    .alertes-item { grid-template-columns: 1fr; }
+    .alertes-item-action { grid-column: 1; grid-row: auto; }
+  }
+
+  /* ============ PAGE ACCESSIBILITÉ ============ */
+  #page-accessibilite { max-width: 1200px; margin: 0 auto; }
+  .acc-header {
+    background: linear-gradient(135deg, #2E5A8F 0%, #1B3F6D 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 1.2rem;
+  }
+  .acc-header h2 { color: white; margin: 0 0 0.4rem 0; }
+  .acc-intro { color: rgba(255,255,255,0.9); margin: 0; max-width: 800px; line-height: 1.5; }
+
+  .acc-cta {
+    background: linear-gradient(180deg, #FFF8E1 0%, #FCF9EE 100%);
+    border: 1px solid #C9A23E;
+    border-radius: 10px;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .acc-cta p { margin: 0.4rem 0 0 0; color: #6B5312; font-size: 0.92rem; }
+  .btn-cta {
+    background: #C9A23E !important;
+    padding: 0.7rem 1.2rem !important;
+    font-size: 0.95rem;
+  }
+  .btn-cta:hover { background: #A88427 !important; }
+
+  .acc-section {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  }
+  .acc-section h3 {
+    color: #3E4A29;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #E8E8E0;
+  }
+  .acc-section-rgpd {
+    background: #EFF4FA;
+    border-left: 4px solid #2E5A8F;
+  }
+  .acc-section-rgpd h3 { color: #0C447C; }
+  .acc-section ul { margin: 0.5rem 0 0 1.2rem; line-height: 1.7; }
+
+  .acc-referent-carte {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+    padding: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .acc-referent-photo-zone {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  .acc-referent-photo { width: 100%; height: 100%; object-fit: cover; }
+  .acc-referent-avatar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #2E5A8F 0%, #1B3F6D 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    font-weight: 300;
+  }
+  .acc-referent-infos { flex: 1; min-width: 250px; }
+  .acc-referent-nom { font-size: 1.15rem; font-weight: 600; color: #3E4A29; margin-bottom: 0.2rem; }
+  .acc-referent-role { color: #C9A23E; font-weight: 500; margin-bottom: 0.1rem; }
+  .acc-referent-fonction { color: #888; font-size: 0.88rem; font-style: italic; margin-bottom: 0.6rem; }
+  .acc-referent-contacts { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
+  .acc-contact {
+    color: #2E5A8F;
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .acc-contact:hover { text-decoration: underline; color: #1B3F6D; }
+  .acc-referent-defaut {
+    background: #FFF8E1;
+    padding: 1rem 1.2rem;
+    border-radius: 6px;
+    color: #6B5312;
+  }
+  .acc-referent-defaut p { margin: 0.4rem 0; }
+
+  .acc-etapes { display: flex; flex-direction: column; gap: 0.8rem; }
+  .acc-etape {
+    display: flex;
+    gap: 0.9rem;
+    align-items: flex-start;
+    padding: 0.9rem;
+    background: #FAFAF7;
+    border-radius: 8px;
+  }
+  .acc-etape-num {
+    background: #2E5A8F;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .acc-etape-contenu { flex: 1; }
+  .acc-etape-contenu strong { color: #3E4A29; display: block; margin-bottom: 0.3rem; }
+  .acc-etape-contenu p { margin: 0; color: #555; line-height: 1.5; font-size: 0.92rem; }
+
+  .acc-grille-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1rem;
+  }
+  .acc-carte {
+    background: #FAFAF7;
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    border: 1px solid #E8E8E0;
+  }
+  .acc-carte-titre { font-weight: 600; color: #3E4A29; margin-bottom: 0.5rem; font-size: 0.98rem; }
+  .acc-carte ul { margin: 0.3rem 0 0 1.2rem; padding: 0; font-size: 0.88rem; line-height: 1.6; color: #444; }
+
+  .acc-ressources {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 0.8rem;
+  }
+  .acc-ressource {
+    background: #FAFAF7;
+    padding: 1rem 1.2rem;
+    border-radius: 8px;
+    border: 1px solid #E8E8E0;
+  }
+  .acc-ressource-nom { font-weight: 600; color: #3E4A29; margin-bottom: 0.3rem; }
+  .acc-ressource-desc { color: #555; font-size: 0.88rem; line-height: 1.5; margin-bottom: 0.5rem; }
+  .acc-ressource-contact { display: flex; flex-direction: column; gap: 0.2rem; }
+  .acc-ressource-contact a { color: #2E5A8F; font-size: 0.85rem; text-decoration: none; }
+  .acc-ressource-contact a:hover { text-decoration: underline; }
+
+  /* Modal signalement handicap */
+  .acc-modal-encart {
+    background: #EFF4FA;
+    padding: 0.9rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 0.7rem;
+    align-items: flex-start;
+  }
+  .acc-modal-icone { font-size: 1.4rem; flex-shrink: 0; }
+  .acc-modal-actions { display: flex; flex-direction: column; gap: 0.6rem; }
+  .acc-modal-action {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    padding: 1rem;
+    background: #FAFAF7;
+    border: 1px solid #E8E8E0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #3E4A29;
+    transition: all 0.15s;
+  }
+  .acc-modal-action:hover {
+    background: #F1F8E9;
+    border-color: #5C6F3E;
+    transform: translateY(-1px);
+  }
+  .acc-modal-action-icone { font-size: 1.6rem; flex-shrink: 0; }
   .rgpd-cnil-encadre {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -12398,8 +13291,11 @@
     <button class="btn-primary" onclick="login()">Se connecter</button>
     <p class="login-help">
       Identifiants fournis par la MFR.<br>
-      En cas de difficulté : secretariat@mfr-neracais.fr
+      <button type="button" class="link-oublie" onclick="ouvrirMdpOublie()">🔑 Mot de passe oublié ?</button>
     </p>
+    <div class="login-version">
+      <span id="loginVersion"></span>
+    </div>
   </div>
 </div>
 
@@ -12419,6 +13315,16 @@
       <button class="btn-logout" onclick="logout()">Déconnexion</button>
     </div>
   </header>
+
+  <!-- Bannière discrète tant que l'attestation RGPD n'est pas faite -->
+  <div id="banniere-rgpd-todo" class="banniere-rgpd-todo no-print" style="display:none;">
+    <span class="banniere-rgpd-icone">📝</span>
+    <span class="banniere-rgpd-texte">
+      <strong>Action RGPD requise :</strong> merci d'attester votre prise de connaissance des documents relatifs à la protection de vos données.
+    </span>
+    <button class="btn-mini" onclick="changerPage('rgpd')">Y aller →</button>
+    <button class="banniere-rgpd-fermer" onclick="document.getElementById('banniere-rgpd-todo').style.display='none'" title="Masquer temporairement (réapparaîtra à la prochaine connexion)">✕</button>
+  </div>
 
   <div class="layout-app">
     <!-- BACKDROP (mobile) pour fermer la sidebar -->
@@ -12476,6 +13382,15 @@
         <button class="tab" data-page="rgpd" onclick="changerPage('rgpd')">
           <span class="tab-icon">🔒</span><span class="tab-label">Protection de vos données</span>
         </button>
+        <button class="tab" data-page="mode-emploi" onclick="changerPage('mode-emploi')">
+          <span class="tab-icon">📘</span><span class="tab-label">Mode d'emploi</span>
+        </button>
+        <button class="tab" data-page="trombinoscope" onclick="changerPage('trombinoscope')">
+          <span class="tab-icon">👥</span><span class="tab-label">Trombinoscope</span>
+        </button>
+        <button class="tab" data-page="accessibilite" onclick="changerPage('accessibilite')">
+          <span class="tab-icon">♿</span><span class="tab-label">Accessibilité et handicap</span>
+        </button>
         <button class="tab" data-page="demandes-rdv" onclick="changerPage('demandes-rdv')">
           <span class="tab-icon">📅</span><span class="tab-label">Demandes de RDV <span id="badgeRdvAttente" class="tab-badge" style="display:none;">0</span></span>
         </button>
@@ -12518,6 +13433,9 @@
         </button>
         <button class="tab" data-page="messages-entreprise" onclick="changerPage('messages-entreprise')" id="tab-messages-entreprise" style="display:none;">
           <span class="tab-icon">📮</span><span class="tab-label">Messages Entreprises</span>
+        </button>
+        <button class="tab tab-mfr" data-page="alertes" onclick="changerPage('alertes')" style="display:none;">
+          <span class="tab-icon">🔔</span><span class="tab-label">Centre d'alertes <span id="badgeAlertes" class="tab-badge" style="display:none;">0</span></span>
         </button>
         <button class="tab" data-page="cockpit" onclick="changerPage('cockpit')" id="tab-cockpit" style="display:none;">
           <span class="tab-icon">🎯</span><span class="tab-label">Cockpit Direction</span>
@@ -15976,6 +16894,288 @@
       </div>
     </div>
 
+    <!-- PAGE CENTRE D'ALERTES ET RAPPELS -->
+    <div id="page-alertes" class="page">
+      <div class="alertes-header">
+        <div>
+          <h2>🔔 Centre d'alertes et rappels</h2>
+          <p class="alertes-intro">
+            Ce centre agrège tout ce qui demande votre attention : émargements manquants,
+            visites en entreprise à programmer, enquêtes à lancer.
+          </p>
+        </div>
+        <div class="alertes-actions">
+          <label class="alertes-toggle">
+            <input type="checkbox" id="alertesMaClasse" onchange="chargerAlertes()">
+            <span>Ma classe référente uniquement</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="alertes-synthese" id="alertesSynthese"></div>
+
+      <!-- Section 1 : Émargements -->
+      <div class="alertes-section" id="section-emargements">
+        <div class="alertes-section-header" onclick="basculerSectionAlertes('emargements')">
+          <span class="alertes-section-chevron">▼</span>
+          <h3>📋 Émargements manquants</h3>
+          <span id="alertes-count-emargements" class="alertes-count"></span>
+        </div>
+        <div class="alertes-section-body" id="body-emargements"></div>
+      </div>
+
+      <!-- Section 2 : Visites -->
+      <div class="alertes-section" id="section-visites">
+        <div class="alertes-section-header" onclick="basculerSectionAlertes('visites')">
+          <span class="alertes-section-chevron">▼</span>
+          <h3>🚗 Visites en entreprise à programmer</h3>
+          <span id="alertes-count-visites" class="alertes-count"></span>
+        </div>
+        <div class="alertes-section-body" id="body-visites"></div>
+      </div>
+
+      <!-- Section 3 : Enquêtes -->
+      <div class="alertes-section" id="section-enquetes">
+        <div class="alertes-section-header" onclick="basculerSectionAlertes('enquetes')">
+          <span class="alertes-section-chevron">▼</span>
+          <h3>📊 Enquêtes à mener</h3>
+          <span id="alertes-count-enquetes" class="alertes-count"></span>
+        </div>
+        <div class="alertes-section-body" id="body-enquetes"></div>
+      </div>
+
+      <div class="alertes-note">
+        <span>💡</span>
+        <span>
+          Les alertes sont calculées en temps réel selon les données de l'application.
+          Cliquez sur les actions rapides pour vous rendre directement sur la page concernée.
+        </span>
+      </div>
+    </div>
+
+    <!-- PAGE ACCESSIBILITÉ ET HANDICAP -->
+    <div id="page-accessibilite" class="page">
+      <div class="acc-header">
+        <div>
+          <h2>♿ Accessibilité et handicap</h2>
+          <p class="acc-intro">
+            La MFR du Néracais s'engage pour un accueil inclusif. Nous accompagnons chaque apprenti(e)
+            en situation de handicap ou à besoins spécifiques dans son parcours de formation.
+          </p>
+        </div>
+      </div>
+
+      <!-- Bandeau d'action -->
+      <div class="acc-cta">
+        <div>
+          <strong>Vous êtes en situation de handicap ou vous accompagnez un apprenti concerné ?</strong>
+          <p>N'attendez pas : contactez le référent handicap ou signalez un besoin d'aménagement.
+            Toute demande est examinée avec bienveillance et confidentialité.</p>
+        </div>
+        <button class="btn-primary btn-cta" onclick="ouvrirSignalementAmenagement()">📝 Signaler un besoin d'aménagement</button>
+      </div>
+
+      <!-- Section 1 : Référent handicap -->
+      <div class="acc-section">
+        <h3>🤝 Votre référente handicap</h3>
+        <div id="acc-referent" class="acc-referent-zone"></div>
+      </div>
+
+      <!-- Section 2 : Notre engagement -->
+      <div class="acc-section">
+        <h3>💼 Notre engagement institutionnel</h3>
+        <p>Conformément à la <strong>loi du 11 février 2005</strong> pour l'égalité des droits et des chances,
+          au <strong>Code du travail (art. L6316-1)</strong> et au <strong>référentiel Qualiopi (Indicateur 26)</strong>,
+          la MFR du Néracais garantit :</p>
+        <ul>
+          <li><strong>L'accessibilité pédagogique</strong> : adaptation des supports, du rythme, des évaluations</li>
+          <li><strong>L'accessibilité physique</strong> : locaux accessibles PMR, matériel adapté sur demande</li>
+          <li><strong>L'accompagnement humain</strong> : référente dédiée, coordination avec les partenaires</li>
+          <li><strong>La confidentialité</strong> : toute information communiquée reste strictement confidentielle</li>
+        </ul>
+      </div>
+
+      <!-- Section 3 : Procédure -->
+      <div class="acc-section">
+        <h3>📋 Comment demander un aménagement ?</h3>
+        <div class="acc-etapes">
+          <div class="acc-etape">
+            <div class="acc-etape-num">1</div>
+            <div class="acc-etape-contenu">
+              <strong>Prenez contact</strong>
+              <p>Contactez la référente handicap par courriel ou téléphone (coordonnées ci-dessus).
+                Vous pouvez aussi cliquer sur le bouton « Signaler un besoin d'aménagement » en haut de cette page.</p>
+            </div>
+          </div>
+          <div class="acc-etape">
+            <div class="acc-etape-num">2</div>
+            <div class="acc-etape-contenu">
+              <strong>Entretien d'analyse des besoins</strong>
+              <p>Un entretien confidentiel est organisé (en présentiel ou en distanciel) pour comprendre
+                votre situation, vos difficultés éventuelles, et identifier ensemble les aménagements pertinents.</p>
+            </div>
+          </div>
+          <div class="acc-etape">
+            <div class="acc-etape-num">3</div>
+            <div class="acc-etape-contenu">
+              <strong>Mise en place des aménagements</strong>
+              <p>Les aménagements sont validés avec vous et formalisés dans un plan d'accompagnement individualisé.
+                Ils sont mobilisés en formation et, si nécessaire, en entreprise avec le maître d'apprentissage.</p>
+            </div>
+          </div>
+          <div class="acc-etape">
+            <div class="acc-etape-num">4</div>
+            <div class="acc-etape-contenu">
+              <strong>Suivi régulier</strong>
+              <p>Des points d'étape sont organisés pour ajuster les aménagements selon l'évolution du parcours
+                et vos retours.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4 : Aménagements possibles -->
+      <div class="acc-section">
+        <h3>🛠️ Aménagements possibles</h3>
+        <div class="acc-grille-2">
+          <div class="acc-carte">
+            <div class="acc-carte-titre">📚 Aménagements pédagogiques</div>
+            <ul>
+              <li>Adaptation du rythme d'apprentissage</li>
+              <li>Supports adaptés (police agrandie, format audio, contraste renforcé)</li>
+              <li>Tiers-temps pour les évaluations</li>
+              <li>Prise de notes assistée</li>
+              <li>Traduction en langue des signes (sur devis)</li>
+            </ul>
+          </div>
+          <div class="acc-carte">
+            <div class="acc-carte-titre">🏢 Aménagements matériels</div>
+            <ul>
+              <li>Salle accessible PMR</li>
+              <li>Mobilier ergonomique</li>
+              <li>Logiciels d'aide (lecteur d'écran, dictée vocale)</li>
+              <li>Boucle magnétique (sur demande, via AGEFIPH)</li>
+              <li>Aide au transport (sous conditions)</li>
+            </ul>
+          </div>
+          <div class="acc-carte">
+            <div class="acc-carte-titre">👥 Aménagements humains</div>
+            <ul>
+              <li>Tutorat renforcé</li>
+              <li>Auxiliaire de vie scolaire (AESH) — sur notification MDPH</li>
+              <li>Coordination avec Cap Emploi et la MDPH</li>
+              <li>Sensibilisation du maître d'apprentissage</li>
+            </ul>
+          </div>
+          <div class="acc-carte">
+            <div class="acc-carte-titre">💰 Aides financières mobilisables</div>
+            <ul>
+              <li><strong>AGEFIPH</strong> : aménagement du poste, aides à la formation, prime</li>
+              <li><strong>Prime à l'apprentissage handicap</strong> : versée à l'employeur</li>
+              <li><strong>FIPHFP</strong> : équivalent AGEFIPH pour la fonction publique</li>
+              <li>Aide au permis de conduire majorée</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 5 : Ressources externes -->
+      <div class="acc-section">
+        <h3>🌐 Ressources et contacts utiles</h3>
+        <div class="acc-ressources">
+          <div class="acc-ressource">
+            <div class="acc-ressource-nom">AGEFIPH — Nouvelle-Aquitaine</div>
+            <div class="acc-ressource-desc">Fonds pour l'insertion professionnelle des personnes handicapées. Aides financières et humaines.</div>
+            <div class="acc-ressource-contact">
+              <a href="https://www.agefiph.fr" target="_blank" rel="noopener">🌐 www.agefiph.fr</a>
+              <a href="tel:0800111000">📞 0 800 11 10 00</a>
+            </div>
+          </div>
+          <div class="acc-ressource">
+            <div class="acc-ressource-nom">Cap Emploi 47</div>
+            <div class="acc-ressource-desc">Accompagnement à l'emploi et à l'apprentissage pour les personnes en situation de handicap.</div>
+            <div class="acc-ressource-contact">
+              <a href="https://www.capemploi47.org" target="_blank" rel="noopener">🌐 www.capemploi47.org</a>
+              <a href="tel:0553780606">📞 05 53 78 06 06</a>
+            </div>
+          </div>
+          <div class="acc-ressource">
+            <div class="acc-ressource-nom">MDPH 47 — Lot-et-Garonne</div>
+            <div class="acc-ressource-desc">Maison Départementale des Personnes Handicapées. RQTH, notifications, orientations.</div>
+            <div class="acc-ressource-contact">
+              <a href="https://www.lotetgaronne.fr/mdph" target="_blank" rel="noopener">🌐 lotetgaronne.fr/mdph</a>
+              <a href="tel:0553694949">📞 05 53 69 49 49</a>
+            </div>
+          </div>
+          <div class="acc-ressource">
+            <div class="acc-ressource-nom">Ressource Handicap Formation Nouvelle-Aquitaine</div>
+            <div class="acc-ressource-desc">Réseau régional qui outille les organismes de formation dans l'accueil des personnes en situation de handicap.</div>
+            <div class="acc-ressource-contact">
+              <a href="https://www.rhf-nouvelle-aquitaine.fr" target="_blank" rel="noopener">🌐 rhf-nouvelle-aquitaine.fr</a>
+            </div>
+          </div>
+          <div class="acc-ressource">
+            <div class="acc-ressource-nom">Défenseur des droits</div>
+            <div class="acc-ressource-desc">Autorité indépendante en cas de discrimination liée au handicap.</div>
+            <div class="acc-ressource-contact">
+              <a href="https://www.defenseurdesdroits.fr" target="_blank" rel="noopener">🌐 defenseurdesdroits.fr</a>
+              <a href="tel:0969390000">📞 09 69 39 00 00</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 6 : RGPD -->
+      <div class="acc-section acc-section-rgpd">
+        <h3>🔒 Confidentialité et RGPD</h3>
+        <p>Les informations relatives à votre situation de handicap sont des <strong>données de santé</strong>
+          (article 9 du RGPD) qui bénéficient d'une protection renforcée :</p>
+        <ul>
+          <li>Le partage d'une RQTH ou d'un diagnostic médical <strong>reste à votre initiative</strong>. Vous n'êtes jamais obligé(e) de le déclarer.</li>
+          <li>Seule la référente handicap et la Direction ont accès aux informations que vous partagez.</li>
+          <li>Aucun document médical n'est stocké dans l'application. Les justificatifs sont conservés en dossier papier sécurisé.</li>
+          <li>Vous disposez à tout moment de vos droits d'accès, de rectification, d'effacement et d'opposition.</li>
+        </ul>
+        <p><em>Contact DPO : <a href="mailto:direction.barbaste@mfr.asso.fr">direction.barbaste@mfr.asso.fr</a></em></p>
+      </div>
+    </div>
+
+    <!-- PAGE TROMBINOSCOPE -->
+    <div id="page-trombinoscope" class="page">
+      <div class="tromb-header">
+        <div>
+          <h2>👥 Trombinoscope de l'équipe</h2>
+          <p class="tromb-intro">
+            L'équipe pédagogique et administrative de la MFR du Néracais, à votre écoute et à votre service.
+          </p>
+        </div>
+        <div class="tromb-header-actions">
+          <span id="tromb-count" class="tromb-count"></span>
+        </div>
+      </div>
+
+      <div class="tromb-toolbar">
+        <input type="text" id="tromb-recherche" placeholder="🔍 Rechercher par nom ou prénom..." oninput="filtrerTrombinoscope()">
+        <select id="tromb-filtre-fonction" onchange="filtrerTrombinoscope()">
+          <option value="">Toutes les fonctions</option>
+        </select>
+      </div>
+
+      <div class="tromb-note-rgpd">
+        <span class="tromb-note-icone">🔒</span>
+        <span>
+          <strong>Confidentialité :</strong> les photos sont publiées avec le consentement écrit de chaque salarié
+          (article 9 du RGPD). Pour une modification ou un retrait, contactez la Direction.
+        </span>
+      </div>
+
+      <div id="tromb-grille" class="tromb-grille"></div>
+
+      <div id="tromb-vide" class="tromb-vide" style="display:none;">
+        <p>Aucun salarié à afficher pour ce filtre.</p>
+      </div>
+    </div>
+
     <!-- PAGE PARAMÉTRAGE ANNÉE SCOLAIRE -->
     <div id="page-parametrage-annee" class="page">
       <div class="param-header">
@@ -16022,6 +17222,48 @@
       </div>
     </div>
 
+    <!-- PAGE MODE D'EMPLOI -->
+    <div id="page-mode-emploi" class="page">
+      <div class="me-header">
+        <h2>📘 Mode d'emploi de l'application</h2>
+        <p class="me-intro">
+          Retrouvez ici toutes les actions possibles selon votre profil, avec le chemin d'accès dans l'application.
+          Cliquez sur votre rôle pour afficher le mode d'emploi qui vous concerne.
+        </p>
+      </div>
+
+      <div class="me-onglets">
+        <button class="me-onglet active" data-role="apprenti" onclick="afficherModeEmploi('apprenti')">
+          <span class="me-onglet-icone">👨‍🎓</span>
+          <span class="me-onglet-label">Apprenti</span>
+        </button>
+        <button class="me-onglet" data-role="famille" onclick="afficherModeEmploi('famille')">
+          <span class="me-onglet-icone">👨‍👩‍👧</span>
+          <span class="me-onglet-label">Famille</span>
+        </button>
+        <button class="me-onglet" data-role="maitre" onclick="afficherModeEmploi('maitre')">
+          <span class="me-onglet-icone">👔</span>
+          <span class="me-onglet-label">Maître d'apprentissage</span>
+        </button>
+        <button class="me-onglet" data-role="salarie" onclick="afficherModeEmploi('salarie')">
+          <span class="me-onglet-icone">🏫</span>
+          <span class="me-onglet-label">Salarié MFR</span>
+        </button>
+        <button class="me-onglet" data-role="admin" onclick="afficherModeEmploi('admin')">
+          <span class="me-onglet-icone">⚙️</span>
+          <span class="me-onglet-label">Direction / Secrétariat</span>
+        </button>
+      </div>
+
+      <div id="me-contenu" class="me-contenu"></div>
+
+      <div class="me-pied">
+        <p>Une action manque à ce mode d'emploi ou une modalité n'est pas claire ? Signalez-le à la Direction :
+          <a href="mailto:direction.barbaste@mfr.asso.fr">direction.barbaste@mfr.asso.fr</a>.
+        </p>
+      </div>
+    </div>
+
     <!-- PAGE PROTECTION DES DONNÉES (RGPD) -->
     <div id="page-rgpd" class="page">
 
@@ -16043,6 +17285,9 @@
           </div>
         </div>
       </div>
+
+      <!-- ========== ZONE D'ATTESTATION ========== -->
+      <div id="rgpd-zone-attestation"></div>
 
       <!-- ========== VOS DROITS ========== -->
       <div class="rgpd-section">
@@ -16546,6 +17791,7 @@
                 <th>Lieu d'apprentissage</th>
                 <th>Famille</th>
                 <th>Statut</th>
+                <th title="Attestation de prise de connaissance RGPD">RGPD</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -16584,6 +17830,7 @@
                 <th>Contact</th>
                 <th>Apprenti(s) accueilli(s)</th>
                 <th>Statut</th>
+                <th title="Attestation de prise de connaissance RGPD">RGPD</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -16621,6 +17868,7 @@
                 <th>Contact</th>
                 <th>Apprenti(s)</th>
                 <th>Statut</th>
+                <th title="Attestation de prise de connaissance RGPD">RGPD</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -16673,6 +17921,7 @@
                 <th>Contact</th>
                 <th>Onglets accessibles</th>
                 <th>Statut</th>
+                <th title="Attestation de prise de connaissance RGPD">RGPD</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -16900,10 +18149,117 @@
 </div>
 
 <script>
+// =================================================================
+// PROCÉDURE DE MOT DE PASSE OUBLIÉ
+// Pas de backend → passe forcément par contact humain avec la MFR
+// =================================================================
+function ouvrirMdpOublie() {
+  const usernameSaisi = (document.getElementById("username")?.value || "").trim();
+
+  const sujet = "Demande de réinitialisation de mot de passe — Application MFR du Néracais";
+  const corps =
+    "Bonjour,\n\n" +
+    "Je souhaite réinitialiser mon mot de passe pour accéder à l'application de la MFR du Néracais.\n\n" +
+    "Voici mes informations :\n" +
+    "• Nom : \n" +
+    "• Prénom : \n" +
+    "• Identifiant (si connu) : " + usernameSaisi + "\n" +
+    "• Qualité (apprenti / famille / maître d'apprentissage / salarié) : \n" +
+    "• Nom de l'apprenti concerné (si vous êtes famille ou maître d'apprentissage) : \n\n" +
+    "Merci de m'envoyer un nouveau mot de passe.\n\n" +
+    "Cordialement";
+
+  const mailtoUrl = "mailto:secretariat.barbaste@mfr.asso.fr" +
+    "?cc=direction.barbaste@mfr.asso.fr" +
+    "&subject=" + encodeURIComponent(sujet) +
+    "&body=" + encodeURIComponent(corps);
+
+  const modal = document.createElement("div");
+  modal.className = "formulaire-overlay";
+  modal.id = "modalMdpOublie";
+  modal.innerHTML =
+    '<div class="formulaire-modal" style="max-width:560px;">' +
+      '<div class="formulaire-header">' +
+        '<h2>🔑 Mot de passe oublié</h2>' +
+        '<button class="btn-fermer" onclick="fermerFormulaire(\'modalMdpOublie\')">✕</button>' +
+      '</div>' +
+      '<div class="formulaire-body">' +
+        '<p style="font-size:0.95rem;line-height:1.6;">Pas d\'inquiétude — cela arrive à tout le monde. Voici comment procéder :</p>' +
+
+        '<div class="mdp-oublie-etape">' +
+          '<div class="mdp-oublie-num">1</div>' +
+          '<div class="mdp-oublie-contenu">' +
+            '<strong>Contactez la MFR</strong> — deux moyens au choix :' +
+            '<div class="mdp-oublie-contacts">' +
+              '<div class="mdp-oublie-contact">' +
+                '<div class="mdp-oublie-contact-icone">📧</div>' +
+                '<div>' +
+                  '<div><strong>Par courriel</strong></div>' +
+                  '<div><a href="mailto:secretariat.barbaste@mfr.asso.fr">secretariat.barbaste@mfr.asso.fr</a></div>' +
+                '</div>' +
+              '</div>' +
+              '<div class="mdp-oublie-contact">' +
+                '<div class="mdp-oublie-contact-icone">📞</div>' +
+                '<div>' +
+                  '<div><strong>Par téléphone</strong></div>' +
+                  '<div><a href="tel:0553655606">05 53 65 56 06</a></div>' +
+                  '<div style="font-size:0.82rem;color:var(--text-muted);">Lundi au vendredi, 8h30 - 17h30</div>' +
+                '</div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="mdp-oublie-etape">' +
+          '<div class="mdp-oublie-num">2</div>' +
+          '<div class="mdp-oublie-contenu">' +
+            '<strong>Le secrétariat génère un nouveau mot de passe</strong> et vous transmet un courrier d\'accès (par courriel, par courrier postal ou en main propre selon votre préférence).' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="mdp-oublie-etape">' +
+          '<div class="mdp-oublie-num">3</div>' +
+          '<div class="mdp-oublie-contenu">' +
+            '<strong>Vous vous reconnectez</strong> avec vos nouveaux identifiants.' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="mdp-oublie-delai">' +
+          '⏱ <strong>Délai habituel :</strong> réponse sous 24 h ouvrées.' +
+        '</div>' +
+
+        '<div class="mdp-oublie-confidentialite">' +
+          '<strong>🔒 Confidentialité :</strong> le secrétariat ne connaît jamais votre ancien mot de passe (il est stocké chiffré). Un nouveau mot de passe est simplement généré à votre demande.' +
+        '</div>' +
+      '</div>' +
+      '<div class="formulaire-footer">' +
+        '<button class="btn-secondary" onclick="fermerFormulaire(\'modalMdpOublie\')">Annuler</button>' +
+        '<a href="' + mailtoUrl + '" class="btn-primary" style="text-decoration:none;text-align:center;">📧 Envoyer ma demande par courriel</a>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+// =================================================================
+// VERSION DE L'APPLICATION
+// =================================================================
+// Format Major.Minor — à incrémenter à chaque livraison significative.
+// Historique récent :
+//   v2.0 (10/09/2026) — Refonte majeure : émargement horodaté SHA-256,
+//        module RGPD, tableau de bord Qualiopi V10, paramétrage année scolaire,
+//        courriers institutionnels, archivage universel, OPCO, autocomplétion entreprise
+//   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
+//   v1.0 (juillet 2026) — Version initiale
+const APP_VERSION = "2.0";
+const APP_DATE_BUILD = "10 septembre 2026";
+
 // Injection année dynamique dans le footer
 document.addEventListener("DOMContentLoaded", function() {
   const el = document.getElementById("footer-annee");
   if (el) el.textContent = new Date().getFullYear();
+  // Injection version sur la page de connexion
+  const v = document.getElementById("loginVersion");
+  if (v) v.textContent = "Version " + APP_VERSION + " · " + APP_DATE_BUILD;
 });
 
 // =================================================================
@@ -17288,6 +18644,10 @@ async function login() {
   document.getElementById("mainApp").style.display = "block";
   initInterface();
   if (typeof majBadgeRdv === "function") majBadgeRdv();
+  if (typeof majBadgeAttestationRgpd === "function") majBadgeAttestationRgpd();
+  if (typeof chargerAlertes === "function" && utilisateurConnecte && utilisateurConnecte.role === "mfr") {
+    setTimeout(function() { try { chargerAlertes(); } catch(e){} }, 300);
+  }
 }
 
 function logout() {
@@ -17337,6 +18697,10 @@ function changerPage(nomPage) {
   if (nomPage === "rgpd" && typeof afficherRgpd === "function") afficherRgpd();
   if (nomPage === "qualiopi-v10" && typeof afficherQualiopiV10 === "function") afficherQualiopiV10();
   if (nomPage === "parametrage-annee" && typeof afficherParametrageAnnee === "function") afficherParametrageAnnee();
+  if (nomPage === "mode-emploi" && typeof initModeEmploi === "function") initModeEmploi();
+  if (nomPage === "trombinoscope" && typeof afficherTrombinoscope === "function") afficherTrombinoscope();
+  if (nomPage === "alertes" && typeof chargerAlertes === "function") chargerAlertes();
+  if (nomPage === "accessibilite" && typeof afficherPageAccessibilite === "function") afficherPageAccessibilite();
 
   // Fermer la sidebar sur mobile après sélection d'un onglet
   fermerSidebarMobile();
@@ -20502,6 +21866,25 @@ function changerSousPageProfils(souspage) {
 // -----------------------------------------------------------------
 // AFFICHAGE DU TABLEAU APPRENTIS
 // -----------------------------------------------------------------
+// Helper pour la cellule RGPD dans les tableaux de profils
+function celluleRgpdProfil(profil) {
+  const att = profil && profil.attestationRgpd;
+  if (att && att.dateAttestation) {
+    const d = new Date(att.dateAttestation);
+    const dateFmt = String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear();
+    const heureFmt = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
+    const hashCourt = (att.hashAttestation || "").substring(0, 8);
+    return '<td class="rgpd-cell rgpd-cell-ok" title="Attesté le ' + dateFmt + ' à ' + heureFmt + '&#10;Empreinte : ' + hashCourt + '…">' +
+      '<span class="rgpd-pict-ok">✅</span>' +
+      '<span class="rgpd-date-att">' + dateFmt + '</span>' +
+    '</td>';
+  }
+  return '<td class="rgpd-cell rgpd-cell-ko" title="Attestation non effectuée">' +
+    '<span class="rgpd-pict-ko">❌</span>' +
+    '<span class="rgpd-date-att">Non attesté</span>' +
+  '</td>';
+}
+
 function afficherTableauApprentis() {
   filtrerApprentis();
 }
@@ -20571,6 +21954,7 @@ function filtrerApprentis() {
         <td>${lieuTexte}</td>
         <td>${familleTexte}</td>
         <td><span class="badge-statut ${statutClass}">${statutLabel}</span></td>
+        ${celluleRgpdProfil(a)}
         <td class="actions-cell">
           <button class="btn-action" onclick="modifierApprenti('${a.id}')">Modifier</button>
           <button class="btn-action" onclick="ouvrirEnregistrerEvenement('${a.id}')" title="Enregistrer une rupture, une sortie ou un changement de statut">📋 Événement</button>
@@ -20842,6 +22226,7 @@ function filtrerLieux() {
         <td>${contact}</td>
         <td>${apprentisTexte}</td>
         <td><span class="badge-statut ${statutClass}">${l.statut}</span></td>
+        ${celluleRgpdProfil(l)}
         <td class="actions-cell">
           <button class="btn-action" onclick="modifierLieu('${l.id}')">Modifier</button>
           ${l.statut === "archive" ? `
@@ -21262,6 +22647,7 @@ function filtrerFamilles() {
         <td>${contact}</td>
         <td>${apprentisTexte}</td>
         <td><span class="badge-statut ${statutClass}">${f.statut}</span></td>
+        ${celluleRgpdProfil(f)}
         <td class="actions-cell">
           <button class="btn-action" onclick="modifierFamille('${f.id}')">Modifier</button>
           ${f.statut === "archive" ? `
@@ -23089,6 +24475,7 @@ function filtrerSalaries() {
       '<td>' + (contact || '—') + '</td>' +
       '<td>' + resumeOnglets(s) + '</td>' +
       '<td>' + libelleStatut(s.statut) + '</td>' +
+      celluleRgpdProfil(s) +
       '<td>' +
         (admin
           ? (s.statut === "archive"
@@ -23199,6 +24586,16 @@ function ouvrirFormulaireSalarie(idExistant) {
             }).join('') +
           '</div>' +
         '</div>' +
+        '<div class="form-group">' +
+          '<label>Rôles spécifiques <small style="color:#888;">(mentions institutionnelles Qualiopi)</small></label>' +
+          '<div class="hab-onglets-grid">' +
+            '<label class="hab-onglet-item"><input type="checkbox" id="sal_ref_handicap"' + (salarie.referentHandicap ? ' checked' : '') + '> <span>♿ Référent(e) handicap</span></label>' +
+            '<label class="hab-onglet-item"><input type="checkbox" id="sal_ref_qualiopi"' + (salarie.referentQualiopi ? ' checked' : '') + '> <span>🏅 Référent(e) Qualiopi</span></label>' +
+            '<label class="hab-onglet-item"><input type="checkbox" id="sal_ref_numerique"' + (salarie.referentNumerique ? ' checked' : '') + '> <span>💻 Référent(e) numérique</span></label>' +
+            '<label class="hab-onglet-item"><input type="checkbox" id="sal_ref_egalite"' + (salarie.referentEgalite ? ' checked' : '') + '> <span>⚖️ Référent(e) égalité H/F</span></label>' +
+            '<label class="hab-onglet-item"><input type="checkbox" id="sal_ref_harcelement"' + (salarie.referentHarcelement ? ' checked' : '') + '> <span>🛡️ Référent(e) harcèlement</span></label>' +
+          '</div>' +
+        '</div>' +
       '</div>' +
 
       '<div class="form-section">' +
@@ -23295,6 +24692,11 @@ function sauvegarderSalarie(id, edition) {
     statut: document.getElementById('sal_statut').value,
     onglets: ongletsCoches,
     classesReferentes: Array.from(document.querySelectorAll('input[data-classe-ref]:checked')).map(function(el) { return el.dataset.classeRef; }),
+    referentHandicap: document.getElementById('sal_ref_handicap')?.checked || false,
+    referentQualiopi: document.getElementById('sal_ref_qualiopi')?.checked || false,
+    referentNumerique: document.getElementById('sal_ref_numerique')?.checked || false,
+    referentEgalite: document.getElementById('sal_ref_egalite')?.checked || false,
+    referentHarcelement: document.getElementById('sal_ref_harcelement')?.checked || false,
     derogations: document.getElementById('sal_derogations').value.trim(),
     modifieLe: new Date().toISOString(),
     modifiePar: utilisateurConnecte ? utilisateurConnecte.id : "inconnu"
@@ -25491,6 +26893,1037 @@ function ajouterAbsenceAuCarnet(apprentiId, absence) {
 // =================================================================
 
 // -----------------------------------------------------------------
+// ACCESSIBILITÉ ET HANDICAP
+// -----------------------------------------------------------------
+
+function trouverReferentHandicap() {
+  return PROFILS_SALARIES.find(s => s.referentHandicap && (s.statut || "actif") !== "archive" && s.statut !== "parti");
+}
+
+function afficherPageAccessibilite() {
+  const zoneReferent = document.getElementById("acc-referent");
+  if (!zoneReferent) return;
+
+  const referent = trouverReferentHandicap();
+
+  if (referent) {
+    const nomComplet = ((referent.prenom || "") + " " + (referent.nom || "")).trim();
+    const photo = referent.photo
+      ? '<img src="' + referent.photo + '" alt="' + escapeHTML(nomComplet) + '" class="acc-referent-photo">'
+      : '<div class="acc-referent-avatar">' + ((referent.prenom || "?").charAt(0) + (referent.nom || "").charAt(0)).toUpperCase() + '</div>';
+
+    zoneReferent.innerHTML =
+      '<div class="acc-referent-carte">' +
+        '<div class="acc-referent-photo-zone">' + photo + '</div>' +
+        '<div class="acc-referent-infos">' +
+          '<div class="acc-referent-nom">' + escapeHTML(nomComplet) + '</div>' +
+          '<div class="acc-referent-role">Référent(e) handicap</div>' +
+          (referent.fonction ? '<div class="acc-referent-fonction">' + escapeHTML(referent.fonction) + '</div>' : '') +
+          '<div class="acc-referent-contacts">' +
+            (referent.email ? '<a href="mailto:' + referent.email + '" class="acc-contact"><span>📧</span> ' + escapeHTML(referent.email) + '</a>' : '') +
+            (referent.telephone ? '<a href="tel:' + referent.telephone.replace(/\s/g,"") + '" class="acc-contact"><span>📞</span> ' + escapeHTML(referent.telephone) + '</a>' : '') +
+            '<a href="mailto:direction.barbaste@mfr.asso.fr" class="acc-contact"><span>📧</span> direction.barbaste@mfr.asso.fr</a>' +
+            '<a href="tel:0553655606" class="acc-contact"><span>📞</span> 05 53 65 56 06</a>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  } else {
+    zoneReferent.innerHTML =
+      '<div class="acc-referent-defaut">' +
+        '<p><strong>Aucun référent handicap n\'est actuellement désigné dans l\'application.</strong></p>' +
+        '<p>Pour toute question ou demande d\'aménagement, contactez la Direction :</p>' +
+        '<div class="acc-referent-contacts">' +
+          '<a href="mailto:direction.barbaste@mfr.asso.fr" class="acc-contact"><span>📧</span> direction.barbaste@mfr.asso.fr</a>' +
+          '<a href="tel:0553655606" class="acc-contact"><span>📞</span> 05 53 65 56 06</a>' +
+        '</div>' +
+        (peutModifierTrombinoscope() ? '<p style="margin-top:1rem;font-style:italic;color:#6B5312;">💡 Vous pouvez désigner un référent handicap depuis un profil salarié (Profils > Salariés > Modifier).</p>' : '') +
+      '</div>';
+  }
+}
+
+function ouvrirSignalementAmenagement() {
+  const u = utilisateurConnecte;
+  const referent = trouverReferentHandicap();
+  const emailReferent = referent && referent.email ? referent.email : "direction.barbaste@mfr.asso.fr";
+  const nomReferent = referent ? ((referent.prenom || "") + " " + (referent.nom || "")).trim() : "l'équipe de direction";
+
+  // Pré-remplir selon utilisateur connecté
+  let identifiantSaisi = "";
+  let nomSaisi = "";
+  if (u) {
+    if (u.role === "apprenti") {
+      const a = PROFILS_APPRENTIS.find(x => x.username === u.id);
+      if (a) { nomSaisi = a.prenom + " " + a.nom; identifiantSaisi = a.username; }
+    } else if (u.role === "parent") {
+      const f = PROFILS_FAMILLES.find(x => x.username === u.id);
+      if (f) { nomSaisi = f.prenom + " " + f.nom; identifiantSaisi = f.username; }
+    }
+  }
+
+  const sujet = "Demande d'aménagement — MFR du Néracais";
+  const corps =
+    "Bonjour " + nomReferent + ",\n\n" +
+    "Je vous contacte pour signaler un besoin d'aménagement dans le cadre de la formation.\n\n" +
+    "Mes coordonnées :\n" +
+    "• Nom et prénom : " + nomSaisi + "\n" +
+    "• Qualité (apprenti / famille / maître d'apprentissage) : \n" +
+    "• Identifiant (si connu) : " + identifiantSaisi + "\n\n" +
+    "Nature du besoin (vous n'êtes pas obligé(e) de préciser un diagnostic médical) :\n\n" +
+    "\n\n" +
+    "Aménagements souhaités ou envisagés :\n\n" +
+    "\n\n" +
+    "Disponibilités pour un entretien :\n\n" +
+    "\n\n" +
+    "Merci pour votre attention et votre bienveillance.\n\n" +
+    "Cordialement";
+
+  const mailtoUrl = "mailto:" + emailReferent +
+    "?cc=direction.barbaste@mfr.asso.fr" +
+    "&subject=" + encodeURIComponent(sujet) +
+    "&body=" + encodeURIComponent(corps);
+
+  const modal = document.createElement("div");
+  modal.className = "formulaire-overlay";
+  modal.id = "modalSignalementHandicap";
+  modal.innerHTML =
+    '<div class="formulaire-modal" style="max-width:580px;">' +
+      '<div class="formulaire-header">' +
+        '<h2>📝 Signaler un besoin d\'aménagement</h2>' +
+        '<button class="btn-fermer" onclick="fermerFormulaire(\'modalSignalementHandicap\')">✕</button>' +
+      '</div>' +
+      '<div class="formulaire-body">' +
+        '<div class="acc-modal-encart">' +
+          '<span class="acc-modal-icone">🔒</span>' +
+          '<div>' +
+            '<strong>Votre démarche est confidentielle.</strong>' +
+            '<p style="margin:0.3rem 0 0 0;">Vous n\'êtes pas tenu(e) de fournir un diagnostic médical. Vous pouvez simplement décrire vos besoins.</p>' +
+          '</div>' +
+        '</div>' +
+        '<p><strong>Deux moyens de contacter ' + escapeHTML(nomReferent) + '</strong> :</p>' +
+        '<div class="acc-modal-actions">' +
+          '<a href="' + mailtoUrl + '" class="acc-modal-action">' +
+            '<span class="acc-modal-action-icone">📧</span>' +
+            '<div>' +
+              '<div><strong>Par courriel</strong></div>' +
+              '<div style="font-size:0.82rem;color:#555;">Un modèle sera pré-rempli dans votre logiciel de messagerie</div>' +
+            '</div>' +
+          '</a>' +
+          '<a href="tel:' + (referent && referent.telephone ? referent.telephone.replace(/\s/g,"") : "0553655606") + '" class="acc-modal-action">' +
+            '<span class="acc-modal-action-icone">📞</span>' +
+            '<div>' +
+              '<div><strong>Par téléphone</strong></div>' +
+              '<div style="font-size:0.82rem;color:#555;">' + (referent && referent.telephone ? escapeHTML(referent.telephone) : "05 53 65 56 06") + '</div>' +
+              '<div style="font-size:0.78rem;color:#888;">Lundi au vendredi, 8h30-17h30</div>' +
+            '</div>' +
+          '</a>' +
+        '</div>' +
+        '<p style="font-size:0.85rem;color:#555;margin-top:1rem;"><strong>Suite du processus :</strong> un entretien confidentiel sera organisé pour analyser ensemble vos besoins et définir les aménagements pertinents.</p>' +
+      '</div>' +
+      '<div class="formulaire-footer">' +
+        '<button class="btn-secondary" onclick="fermerFormulaire(\'modalSignalementHandicap\')">Fermer</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+}
+
+// -----------------------------------------------------------------
+// CENTRE D'ALERTES ET RAPPELS
+// -----------------------------------------------------------------
+// Agrège 3 types d'alertes :
+// 1) Émargements manquants (semaines de cours passées sans séance enregistrée)
+// 2) Visites en entreprise à programmer (< 3 par an ou trop anciennes)
+// 3) Enquêtes à lancer selon le calendrier Qualiopi
+// -----------------------------------------------------------------
+
+const NB_VISITES_MIN_ANNEE = 3;
+const SEUIL_VISITE_MOIS = 4; // 4 mois sans visite = alerte
+
+// Retourne les classes du référent connecté, ou toutes si admin
+function classesDuReferent() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "mfr") return Object.keys(CLASSES);
+  const salarie = PROFILS_SALARIES.find(s => s.username === u.id || s.identifiant === u.id);
+  return (salarie && salarie.classesReferentes && salarie.classesReferentes.length > 0)
+    ? salarie.classesReferentes
+    : Object.keys(CLASSES);
+}
+
+// Retourne les apprentis actifs d'une classe
+function apprentisActifsClasse(classeCode) {
+  return PROFILS_APPRENTIS.filter(a =>
+    a.classe === classeCode &&
+    a.statut === "actif" &&
+    !a.dateSortieFormation
+  );
+}
+
+// Détecte les semaines M passées SANS séance d'émargement enregistrée
+function detecterEmargementsManquants(classesAScanner) {
+  const alertes = [];
+  const aujourdHui = new Date();
+  aujourdHui.setHours(23, 59, 59, 999);
+
+  const infosAnnee = infosAnneeScolaire(ANNEE_SCOLAIRE_COURANTE);
+  const dateDebut = infosAnnee.dateDebut;
+
+  classesAScanner.forEach(function(classeCode) {
+    const planning = getPlanningClasse(classeCode);
+    if (!planning || planning.length === 0) return;
+
+    // Vérifier les apprentis actifs (pas d'alerte si aucun apprenti)
+    const apprentis = apprentisActifsClasse(classeCode);
+    if (apprentis.length === 0) return;
+
+    for (let i = 0; i < planning.length; i++) {
+      if (planning[i] !== "M") continue;
+
+      const lundiSem = new Date(dateDebut);
+      lundiSem.setDate(lundiSem.getDate() + (i * 7));
+      const vendrediSem = new Date(lundiSem);
+      vendrediSem.setDate(vendrediSem.getDate() + 4);
+
+      // Semaine passée uniquement
+      if (vendrediSem > aujourdHui) continue;
+
+      // Chercher au moins une séance d'émargement dans cette semaine
+      const seancesTrouvees = PROFILS_EMARGEMENTS.filter(function(s) {
+        if (s.classe !== classeCode) return false;
+        if (!s.date) return false;
+        const dSeance = new Date(s.date);
+        return dSeance >= lundiSem && dSeance <= vendrediSem;
+      });
+
+      if (seancesTrouvees.length === 0) {
+        alertes.push({
+          classe: classeCode,
+          numSemaine: numSemaineISO(lundiSem),
+          dateDebut: lundiSem,
+          dateFin: vendrediSem,
+          nbApprentis: apprentis.length
+        });
+      }
+    }
+  });
+
+  // Trier par date de semaine (les plus anciennes d'abord)
+  alertes.sort((a, b) => a.dateDebut - b.dateDebut);
+  return alertes;
+}
+
+// Détecte les visites en entreprise manquantes ou trop anciennes
+function detecterVisitesManquantes(classesAScanner) {
+  const visites = (function() {
+    try { return JSON.parse(localStorage.getItem("mfr_visites_entreprise") || "[]"); }
+    catch (e) { return []; }
+  })();
+
+  const infosAnnee = infosAnneeScolaire(ANNEE_SCOLAIRE_COURANTE);
+  const dateDebutAnnee = infosAnnee.dateDebut;
+  const aujourdHui = new Date();
+  const seuilAncienneteMs = SEUIL_VISITE_MOIS * 30 * 86400000;
+
+  const alertes = [];
+
+  classesAScanner.forEach(function(classeCode) {
+    apprentisActifsClasse(classeCode).forEach(function(a) {
+      const visitesApprenti = visites
+        .filter(v => v.apprentiId === a.id && new Date(v.dateVisite) >= dateDebutAnnee)
+        .sort((x, y) => new Date(y.dateVisite) - new Date(x.dateVisite));
+
+      const nb = visitesApprenti.length;
+      const derniere = visitesApprenti[0];
+      const dateDerniere = derniere ? new Date(derniere.dateVisite) : null;
+      const anciennete = dateDerniere ? (aujourdHui - dateDerniere) : Infinity;
+
+      let niveau = null;
+      let motif = "";
+
+      if (nb === 0) {
+        niveau = "critique";
+        motif = "Aucune visite cette année scolaire";
+      } else if (nb < NB_VISITES_MIN_ANNEE) {
+        niveau = "attention";
+        motif = "Seulement " + nb + " visite" + (nb > 1 ? "s" : "") + " cette année (min. " + NB_VISITES_MIN_ANNEE + ")";
+      }
+
+      if (anciennete > seuilAncienneteMs && dateDerniere) {
+        niveau = niveau === "critique" ? "critique" : "attention";
+        const moisAncienne = Math.floor(anciennete / (30 * 86400000));
+        motif = motif + (motif ? " · " : "") + "Dernière visite il y a " + moisAncienne + " mois";
+      }
+
+      if (niveau) {
+        const lieu = PROFILS_LIEUX.find(l => l.id === a.lieuId);
+        alertes.push({
+          apprenti: a,
+          classe: classeCode,
+          entreprise: lieu ? lieu.entreprise : "Sans entreprise",
+          nbVisites: nb,
+          derniereVisiteDate: dateDerniere,
+          niveau: niveau,
+          motif: motif
+        });
+      }
+    });
+  });
+
+  // Trier par urgence puis par nom
+  alertes.sort((a, b) => {
+    if (a.niveau !== b.niveau) return a.niveau === "critique" ? -1 : 1;
+    return a.apprenti.nom.localeCompare(b.apprenti.nom);
+  });
+  return alertes;
+}
+
+// Retourne le calendrier des enquêtes prévues pour l'année scolaire courante
+function enquetesAMener() {
+  const enquetes = [];
+  const now = new Date();
+  const moisActuel = now.getMonth(); // 0-indexé
+
+  // Modèles Qualiopi standards
+  const calendrier = [
+    {
+      code: "satisfaction_debut",
+      libelle: "Enquête de satisfaction à mi-parcours (S1)",
+      periode: "Décembre - Janvier",
+      moisDebut: 11, moisFin: 0,
+      cibles: ["apprenti", "famille", "maitre"],
+      indicateur: "Qualiopi V10 - Indicateur 30",
+      description: "Recueil de la satisfaction en cours de formation."
+    },
+    {
+      code: "satisfaction_fin",
+      libelle: "Enquête de satisfaction en fin de formation",
+      periode: "Juin - Juillet",
+      moisDebut: 5, moisFin: 6,
+      cibles: ["apprenti", "famille", "maitre"],
+      indicateur: "Qualiopi V10 - Indicateur 30",
+      description: "Bilan complet en fin de parcours."
+    },
+    {
+      code: "insertion_6mois",
+      libelle: "Enquête de devenir des apprenants (6 mois après sortie)",
+      periode: "Décembre - Janvier (N+1)",
+      moisDebut: 11, moisFin: 0,
+      cibles: ["ancien_apprenti"],
+      indicateur: "Qualiopi V10 - Indicateur 5",
+      description: "Suivi de l'insertion professionnelle."
+    },
+    {
+      code: "attentes_debut",
+      libelle: "Recueil des attentes en début de formation",
+      periode: "Septembre - Octobre",
+      moisDebut: 8, moisFin: 9,
+      cibles: ["apprenti", "famille", "maitre"],
+      indicateur: "Qualiopi V10 - Indicateur 6",
+      description: "Analyse du besoin en début de parcours."
+    }
+  ];
+
+  calendrier.forEach(function(e) {
+    // Fenêtre de lancement : entre moisDebut et moisFin
+    let dansLaFenetre = false;
+    if (e.moisDebut <= e.moisFin) {
+      dansLaFenetre = (moisActuel >= e.moisDebut && moisActuel <= e.moisFin);
+    } else {
+      // Chevauchement d'année (ex : dec-jan)
+      dansLaFenetre = (moisActuel >= e.moisDebut || moisActuel <= e.moisFin);
+    }
+    // Ajouter fenêtre "approche" = mois précédent
+    const moisApproche = (e.moisDebut - 1 + 12) % 12;
+    const approche = moisActuel === moisApproche;
+
+    if (dansLaFenetre || approche) {
+      e.statut = dansLaFenetre ? "a_lancer" : "prevoir";
+      enquetes.push(e);
+    }
+  });
+
+  return enquetes;
+}
+
+// Fonction principale : charge et affiche toutes les alertes
+function chargerAlertes() {
+  const maClasseUniquement = document.getElementById("alertesMaClasse")?.checked || false;
+  const classes = maClasseUniquement ? classesDuReferent() : Object.keys(CLASSES);
+
+  const alertesEmarg = detecterEmargementsManquants(classes);
+  const alertesVisit = detecterVisitesManquantes(classes);
+  const alertesEnq = enquetesAMener();
+
+  const total = alertesEmarg.length + alertesVisit.length + alertesEnq.length;
+
+  // Synthèse en haut
+  const synthese = document.getElementById("alertesSynthese");
+  if (synthese) {
+    synthese.innerHTML =
+      '<div class="alertes-carte alertes-carte-' + (alertesEmarg.length > 0 ? "attention" : "ok") + '">' +
+        '<div class="alertes-carte-icone">📋</div>' +
+        '<div class="alertes-carte-chiffre">' + alertesEmarg.length + '</div>' +
+        '<div class="alertes-carte-label">Émargement' + (alertesEmarg.length > 1 ? "s" : "") + ' manquant' + (alertesEmarg.length > 1 ? "s" : "") + '</div>' +
+      '</div>' +
+      '<div class="alertes-carte alertes-carte-' + (alertesVisit.length > 0 ? "attention" : "ok") + '">' +
+        '<div class="alertes-carte-icone">🚗</div>' +
+        '<div class="alertes-carte-chiffre">' + alertesVisit.length + '</div>' +
+        '<div class="alertes-carte-label">Visite' + (alertesVisit.length > 1 ? "s" : "") + ' à programmer</div>' +
+      '</div>' +
+      '<div class="alertes-carte alertes-carte-' + (alertesEnq.length > 0 ? "info" : "ok") + '">' +
+        '<div class="alertes-carte-icone">📊</div>' +
+        '<div class="alertes-carte-chiffre">' + alertesEnq.length + '</div>' +
+        '<div class="alertes-carte-label">Enquête' + (alertesEnq.length > 1 ? "s" : "") + ' à mener</div>' +
+      '</div>';
+  }
+
+  afficherSectionEmargements(alertesEmarg);
+  afficherSectionVisites(alertesVisit);
+  afficherSectionEnquetes(alertesEnq);
+
+  // Badge dans la sidebar
+  const badge = document.getElementById("badgeAlertes");
+  if (badge) {
+    badge.textContent = total;
+    badge.style.display = total > 0 ? "inline-block" : "none";
+  }
+}
+
+function afficherSectionEmargements(alertes) {
+  const body = document.getElementById("body-emargements");
+  const count = document.getElementById("alertes-count-emargements");
+  if (count) {
+    count.textContent = alertes.length;
+    count.className = "alertes-count " + (alertes.length > 0 ? "alertes-count-attention" : "alertes-count-ok");
+  }
+  if (!body) return;
+  if (alertes.length === 0) {
+    body.innerHTML = '<div class="alertes-vide">✅ Aucun émargement manquant. Tout est à jour.</div>';
+    return;
+  }
+  const fmtDate = function(d) { return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear(); };
+  body.innerHTML = '<div class="alertes-liste">' + alertes.map(function(a) {
+    return '<div class="alertes-item">' +
+      '<div class="alertes-item-titre">' +
+        '<strong>' + (CLASSES[a.classe] || a.classe) + '</strong> — Semaine ' + a.numSemaine +
+      '</div>' +
+      '<div class="alertes-item-detail">' +
+        'Du ' + fmtDate(a.dateDebut) + ' au ' + fmtDate(a.dateFin) +
+        ' — ' + a.nbApprentis + ' apprenti' + (a.nbApprentis > 1 ? 's' : '') + ' concerné' + (a.nbApprentis > 1 ? 's' : '') +
+      '</div>' +
+      '<div class="alertes-item-action">' +
+        '<button class="alertes-btn" onclick="changerPage(\'emargement\')">→ Créer la séance</button>' +
+      '</div>' +
+    '</div>';
+  }).join("") + '</div>';
+}
+
+function afficherSectionVisites(alertes) {
+  const body = document.getElementById("body-visites");
+  const count = document.getElementById("alertes-count-visites");
+  if (count) {
+    count.textContent = alertes.length;
+    count.className = "alertes-count " + (alertes.length > 0 ? "alertes-count-attention" : "alertes-count-ok");
+  }
+  if (!body) return;
+  if (alertes.length === 0) {
+    body.innerHTML = '<div class="alertes-vide">✅ Toutes les visites sont à jour (min. ' + NB_VISITES_MIN_ANNEE + ' par apprenti/an).</div>';
+    return;
+  }
+  const fmtDate = function(d) { return String(d.getDate()).padStart(2,"0") + "/" + String(d.getMonth()+1).padStart(2,"0") + "/" + d.getFullYear(); };
+  body.innerHTML = '<div class="alertes-liste">' + alertes.map(function(a) {
+    const derniere = a.derniereVisiteDate ? fmtDate(a.derniereVisiteDate) : "Aucune";
+    return '<div class="alertes-item alertes-item-' + a.niveau + '">' +
+      '<div class="alertes-item-titre">' +
+        '<strong>' + escapeHTML(a.apprenti.prenom + " " + a.apprenti.nom) + '</strong> — ' + (CLASSES[a.classe] || a.classe) +
+        ' <span class="alertes-item-badge">' + (a.niveau === "critique" ? "🔴 Critique" : "🟠 À prévoir") + '</span>' +
+      '</div>' +
+      '<div class="alertes-item-detail">' +
+        '🏢 ' + escapeHTML(a.entreprise) + ' — ' + a.motif + ' — Dernière visite : ' + derniere +
+      '</div>' +
+      '<div class="alertes-item-action">' +
+        '<button class="alertes-btn" onclick="changerPage(\'visites\')">→ Programmer une visite</button>' +
+      '</div>' +
+    '</div>';
+  }).join("") + '</div>';
+}
+
+function afficherSectionEnquetes(alertes) {
+  const body = document.getElementById("body-enquetes");
+  const count = document.getElementById("alertes-count-enquetes");
+  if (count) {
+    count.textContent = alertes.length;
+    count.className = "alertes-count " + (alertes.length > 0 ? "alertes-count-info" : "alertes-count-ok");
+  }
+  if (!body) return;
+  if (alertes.length === 0) {
+    body.innerHTML = '<div class="alertes-vide">✅ Aucune enquête dans la fenêtre actuelle. Prochaines suggestions selon calendrier.</div>';
+    return;
+  }
+  body.innerHTML = '<div class="alertes-liste">' + alertes.map(function(e) {
+    const label = e.statut === "a_lancer" ? "🟢 À lancer maintenant" : "🟡 À préparer";
+    return '<div class="alertes-item">' +
+      '<div class="alertes-item-titre">' +
+        '<strong>' + e.libelle + '</strong>' +
+        ' <span class="alertes-item-badge">' + label + '</span>' +
+      '</div>' +
+      '<div class="alertes-item-detail">' +
+        e.description + '<br>' +
+        '<em>Période habituelle : ' + e.periode + ' — ' + e.indicateur + '</em><br>' +
+        'Cibles : ' + e.cibles.join(", ") +
+      '</div>' +
+      '<div class="alertes-item-action">' +
+        '<button class="alertes-btn" onclick="lancerCampagneEnquete(\'' + e.code + '\')">📋 Générer la liste des destinataires</button>' +
+        ' <button class="alertes-btn alertes-btn-secondary" onclick="changerPage(\'enquetes\')">→ Aller au module Enquêtes</button>' +
+      '</div>' +
+    '</div>';
+  }).join("") + '</div>';
+}
+
+// Génère un CSV avec les destinataires d'une campagne d'enquête
+function lancerCampagneEnquete(codeEnquete) {
+  const enquetes = enquetesAMener();
+  const enq = enquetes.find(e => e.code === codeEnquete);
+  if (!enq) { alert("Enquête introuvable."); return; }
+
+  const lignes = [["Type", "Nom", "Prénom / Entreprise", "Email", "Téléphone", "Apprenti concerné", "Classe"]];
+
+  if (enq.cibles.indexOf("apprenti") >= 0) {
+    PROFILS_APPRENTIS.filter(a => a.statut === "actif" && !a.dateSortieFormation).forEach(a => {
+      lignes.push(["Apprenti", a.nom, a.prenom, a.email || "", a.telephone || "", "", CLASSES[a.classe] || a.classe]);
+    });
+  }
+  if (enq.cibles.indexOf("famille") >= 0) {
+    PROFILS_APPRENTIS.filter(a => a.statut === "actif" && !a.dateSortieFormation && a.familleId).forEach(a => {
+      const f = PROFILS_FAMILLES.find(x => x.id === a.familleId);
+      if (f) lignes.push(["Famille", f.nom, f.prenom, f.email || "", f.telephone || "", a.prenom + " " + a.nom, CLASSES[a.classe] || a.classe]);
+    });
+  }
+  if (enq.cibles.indexOf("maitre") >= 0) {
+    PROFILS_APPRENTIS.filter(a => a.statut === "actif" && !a.dateSortieFormation && a.lieuId).forEach(a => {
+      const l = PROFILS_LIEUX.find(x => x.id === a.lieuId);
+      if (l) lignes.push(["Maître d'apprentissage", l.nomMA, l.prenomMA + " (" + l.entreprise + ")", l.emailMA || l.emailEntreprise || "", l.telephoneMA || l.telephoneEntreprise || "", a.prenom + " " + a.nom, CLASSES[a.classe] || a.classe]);
+    });
+  }
+  if (enq.cibles.indexOf("ancien_apprenti") >= 0) {
+    PROFILS_APPRENTIS.filter(a => a.dateSortieFormation).forEach(a => {
+      lignes.push(["Ancien apprenti", a.nom, a.prenom, a.email || "", a.telephone || "", "", CLASSES[a.classe] || a.classe]);
+    });
+  }
+
+  if (lignes.length === 1) {
+    alert("Aucun destinataire trouvé pour cette enquête.");
+    return;
+  }
+
+  const csv = lignes.map(l => l.map(c => '"' + String(c).replace(/"/g, '""') + '"').join(";")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.download = "enquete-" + codeEnquete + "-" + new Date().toISOString().slice(0,10) + ".csv";
+  document.body.appendChild(lien);
+  lien.click();
+  document.body.removeChild(lien);
+  URL.revokeObjectURL(url);
+
+  alert("📥 Liste de " + (lignes.length - 1) + " destinataires téléchargée.\n\nVous pouvez maintenant :\n1. Ouvrir le CSV dans Excel ou Google Sheets\n2. Envoyer l'enquête par courriel groupé\n3. Suivre les retours dans le module Enquêtes");
+}
+
+function basculerSectionAlertes(id) {
+  const section = document.getElementById("section-" + id);
+  if (section) section.classList.toggle("alertes-section-closed");
+}
+
+// -----------------------------------------------------------------
+// TROMBINOSCOPE DE L'ÉQUIPE
+// -----------------------------------------------------------------
+
+// Compresse et redimensionne une photo pour stockage localStorage
+function compresserPhotoPourStockage(file, maxDim) {
+  maxDim = maxDim || 400;
+  return new Promise(function(resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        let w = img.width;
+        let h = img.height;
+        // Recadrage carré centré (pour trombinoscope uniforme)
+        const cote = Math.min(w, h);
+        const offsetX = (w - cote) / 2;
+        const offsetY = (h - cote) / 2;
+        canvas.width = maxDim;
+        canvas.height = maxDim;
+        const ctx = canvas.getContext("2d");
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, offsetX, offsetY, cote, cote, 0, 0, maxDim, maxDim);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = function() { reject(new Error("Image invalide")); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function() { reject(new Error("Lecture impossible")); };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadPhotoSalarie(id, event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    alert("Veuillez sélectionner une image (JPG, PNG, WebP).");
+    return;
+  }
+  try {
+    const dataUrl = await compresserPhotoPourStockage(file, 400);
+    const salarie = PROFILS_SALARIES.find(s => s.id === id);
+    if (!salarie) return;
+    salarie.photo = dataUrl;
+    salarie.datePhoto = new Date().toISOString();
+    localStorage.setItem("mfr_profils_salaries", JSON.stringify(PROFILS_SALARIES));
+    afficherTrombinoscope();
+    if (typeof filtrerSalaries === "function") filtrerSalaries();
+  } catch (e) {
+    alert("Erreur lors du chargement de la photo : " + e.message + "\n\nSi le fichier est très volumineux, essayez de le redimensionner avant l'import.");
+  }
+  event.target.value = ""; // reset pour permettre re-upload du même fichier
+}
+
+function supprimerPhotoSalarie(id) {
+  const salarie = PROFILS_SALARIES.find(s => s.id === id);
+  if (!salarie || !salarie.photo) return;
+  const nom = ((salarie.prenom || "") + " " + (salarie.nom || "")).trim();
+  if (!confirm("Supprimer la photo de " + nom + " du trombinoscope ?")) return;
+  delete salarie.photo;
+  delete salarie.datePhoto;
+  localStorage.setItem("mfr_profils_salaries", JSON.stringify(PROFILS_SALARIES));
+  afficherTrombinoscope();
+}
+
+// Retourne un avatar par défaut (initiales sur fond dégradé olive)
+function avatarInitiales(prenom, nom) {
+  const initiales = ((prenom || "?").charAt(0) + (nom || "").charAt(0)).toUpperCase();
+  return '<div class="tromb-avatar-defaut">' + initiales + '</div>';
+}
+
+function peutModifierTrombinoscope() {
+  // Direction et secrétariat peuvent modifier
+  const u = utilisateurConnecte;
+  if (!u) return false;
+  if (u.role !== "mfr") return false;
+  const admins = ["pascale.dauge", "secretariat"];
+  return admins.indexOf(u.id) >= 0;
+}
+
+function afficherTrombinoscope() {
+  const grille = document.getElementById("tromb-grille");
+  const vide = document.getElementById("tromb-vide");
+  const compteur = document.getElementById("tromb-count");
+  const filtreFonction = document.getElementById("tromb-filtre-fonction");
+  if (!grille || !filtreFonction) return;
+
+  // Peupler le filtre de fonctions (sur salariés actifs uniquement)
+  const salariesActifs = PROFILS_SALARIES.filter(s =>
+    (s.statut || "actif") !== "archive" && (s.statut || "actif") !== "parti"
+  );
+  const fonctions = [...new Set(salariesActifs.map(s => s.fonction).filter(Boolean))].sort();
+  const valeurFonction = filtreFonction.value;
+  filtreFonction.innerHTML = '<option value="">Toutes les fonctions</option>' +
+    fonctions.map(f => '<option value="' + escapeHTML(f) + '"' + (f === valeurFonction ? ' selected' : '') + '>' + escapeHTML(f) + '</option>').join("");
+
+  filtrerTrombinoscope();
+}
+
+function filtrerTrombinoscope() {
+  const grille = document.getElementById("tromb-grille");
+  const vide = document.getElementById("tromb-vide");
+  const compteur = document.getElementById("tromb-count");
+  if (!grille) return;
+
+  const recherche = (document.getElementById("tromb-recherche")?.value || "").toLowerCase().trim();
+  const filtreFonction = document.getElementById("tromb-filtre-fonction")?.value || "";
+
+  let liste = PROFILS_SALARIES.filter(s =>
+    (s.statut || "actif") !== "archive" && (s.statut || "actif") !== "parti"
+  );
+
+  if (filtreFonction) liste = liste.filter(s => s.fonction === filtreFonction);
+  if (recherche) {
+    liste = liste.filter(s =>
+      ((s.nom || "") + " " + (s.prenom || "")).toLowerCase().indexOf(recherche) >= 0
+    );
+  }
+
+  // Trier par nom
+  liste.sort((a, b) => (a.nom || "").localeCompare(b.nom || ""));
+
+  if (compteur) {
+    compteur.textContent = liste.length + " membre" + (liste.length > 1 ? "s" : "") + " de l'équipe";
+  }
+
+  if (liste.length === 0) {
+    grille.innerHTML = "";
+    if (vide) vide.style.display = "block";
+    return;
+  }
+  if (vide) vide.style.display = "none";
+
+  const modifiable = peutModifierTrombinoscope();
+
+  grille.innerHTML = liste.map(function(s) {
+    const nomComplet = ((s.prenom || "") + " " + (s.nom || "")).trim();
+    const photo = s.photo
+      ? '<img src="' + s.photo + '" alt="' + escapeHTML(nomComplet) + '" class="tromb-photo">'
+      : avatarInitiales(s.prenom, s.nom);
+    const fonctionPrincipale = s.fonction ? '<div class="tromb-fonction">' + escapeHTML(s.fonction) + '</div>' : '';
+    const fonctionSec = s.fonctionSec ? '<div class="tromb-fonction-sec">' + escapeHTML(s.fonctionSec) + '</div>' : '';
+    const email = s.email
+      ? '<a href="mailto:' + s.email + '" class="tromb-contact" title="Envoyer un courriel"><span>📧</span> ' + escapeHTML(s.email) + '</a>'
+      : '';
+    const tel = s.telephone
+      ? '<a href="tel:' + s.telephone.replace(/\s/g, "") + '" class="tromb-contact" title="Appeler"><span>📞</span> ' + escapeHTML(s.telephone) + '</a>'
+      : '';
+
+    let actionsPhoto = '';
+    if (modifiable) {
+      const inputId = "tromb-upload-" + s.id;
+      actionsPhoto =
+        '<div class="tromb-actions">' +
+          '<input type="file" id="' + inputId + '" accept="image/*" style="display:none" onchange="uploadPhotoSalarie(\'' + s.id + '\', event)">' +
+          '<button class="tromb-btn" onclick="document.getElementById(\'' + inputId + '\').click()" title="' + (s.photo ? 'Remplacer la photo' : 'Ajouter une photo') + '">' +
+            (s.photo ? '📸 Remplacer' : '📸 Ajouter une photo') +
+          '</button>' +
+          (s.photo ? '<button class="tromb-btn tromb-btn-danger" onclick="supprimerPhotoSalarie(\'' + s.id + '\')" title="Retirer la photo">🗑️</button>' : '') +
+        '</div>';
+    }
+
+    return '<div class="tromb-carte">' +
+      '<div class="tromb-photo-zone">' + photo + '</div>' +
+      '<div class="tromb-infos">' +
+        '<div class="tromb-nom">' + escapeHTML(nomComplet) + '</div>' +
+        fonctionPrincipale +
+        fonctionSec +
+        '<div class="tromb-contacts">' +
+          email +
+          tel +
+        '</div>' +
+        actionsPhoto +
+      '</div>' +
+    '</div>';
+  }).join("");
+}
+
+// -----------------------------------------------------------------
+// MODE D'EMPLOI DE L'APPLICATION
+// -----------------------------------------------------------------
+
+const MODE_EMPLOI_CONTENU = {
+  "apprenti": {
+    icone: "👨‍🎓",
+    titre: "Mode d'emploi — Apprenti(e)",
+    accroche: "Votre application vous accompagne tout au long de votre parcours à la MFR. Voici tout ce que vous pouvez y faire.",
+    sections: [
+      {
+        titre: "🚪 Se connecter et gérer son compte",
+        actions: [
+          { titre: "Se connecter à l'application",
+            comment: "Depuis la page d'accueil, saisissez votre identifiant (format prenom.nom) et le mot de passe qui vous a été communiqué par la MFR. Cliquez sur « Se connecter ».",
+            ou: "Page d'accueil de l'application" },
+          { titre: "Récupérer un mot de passe oublié",
+            comment: "Cliquez sur le lien « 🔑 Mot de passe oublié ? » sous le bouton de connexion. Suivez la procédure : contactez la MFR par téléphone ou par courriel pour recevoir un nouveau mot de passe.",
+            ou: "Page d'accueil > lien Mot de passe oublié" },
+          { titre: "Attester ma prise de connaissance des documents RGPD",
+            comment: "Une bannière dorée en haut de l'écran vous rappelle cette obligation. Cliquez sur « Y aller », puis cochez la case et validez. Cette attestation est horodatée et signée cryptographiquement.",
+            ou: "Menu > Protection de vos données" }
+        ]
+      },
+      {
+        titre: "📅 Suivre son parcours de formation",
+        actions: [
+          { titre: "Consulter mon planning d'alternance",
+            comment: "Retrouvez le calendrier des semaines à la MFR et en entreprise pour toute l'année scolaire. Les périodes de cours et de stage sont clairement identifiées.",
+            ou: "Menu > Planning d'alternance" },
+          { titre: "Consulter mon carnet de liaison",
+            comment: "Toutes les échanges entre vous, votre famille, votre maître d'apprentissage et l'équipe pédagogique sont centralisés ici.",
+            ou: "Menu > Mon carnet de liaison" },
+          { titre: "Consulter mes évaluations",
+            comment: "Suivez vos notes et appréciations pour chaque module. Vos évaluations en entreprise sont également consultables.",
+            ou: "Menu > Mes évaluations" },
+          { titre: "Passer les tests de positionnement",
+            comment: "En début de formation, l'équipe pédagogique vous invite à passer les tests de positionnement pour évaluer vos acquis. Suivez le lien fourni par votre formateur.",
+            ou: "Sur invitation de l'équipe pédagogique" }
+        ]
+      },
+      {
+        titre: "✍️ Émarger et signaler",
+        actions: [
+          { titre: "Émarger ma présence",
+            comment: "Selon les modalités définies par votre formateur : soit collectivement en début de cours, soit via un code de session communiqué à l'oral. Votre émargement est horodaté et infalsifiable.",
+            ou: "Menu > Émargement" },
+          { titre: "Demander un rendez-vous",
+            comment: "Pour toute question, rencontre ou entretien souhaité, utilisez la fonction de demande de rendez-vous. Précisez le motif et vos disponibilités.",
+            ou: "Menu > Demandes de RDV" },
+          { titre: "Signaler une difficulté",
+            comment: "Si vous rencontrez un problème (santé, harcèlement, difficulté personnelle...), utilisez la procédure de signalement pour alerter l'équipe. Votre signalement peut rester confidentiel.",
+            ou: "Menu > Signalement" }
+        ]
+      }
+    ]
+  },
+  "famille": {
+    icone: "👨‍👩‍👧",
+    titre: "Mode d'emploi — Famille / Représentant légal",
+    accroche: "Votre application vous permet de suivre au quotidien la scolarité de votre enfant et de rester en lien avec l'équipe pédagogique.",
+    sections: [
+      {
+        titre: "🚪 Se connecter et gérer son compte",
+        actions: [
+          { titre: "Se connecter à l'application",
+            comment: "Saisissez l'identifiant et le mot de passe fournis par la MFR sur le courrier d'accueil. En cas de perte, cliquez sur « Mot de passe oublié ? ».",
+            ou: "Page d'accueil" },
+          { titre: "Attester ma prise de connaissance RGPD",
+            comment: "Cliquez sur la bannière dorée, cochez la case d'attestation puis validez. Cette étape est indispensable pour la conformité RGPD.",
+            ou: "Menu > Protection de vos données" }
+        ]
+      },
+      {
+        titre: "👀 Suivre la scolarité de mon enfant",
+        actions: [
+          { titre: "Consulter le planning d'alternance",
+            comment: "Visualisez les semaines à la MFR et en entreprise pour toute l'année. Utile pour organiser la vie familiale.",
+            ou: "Menu > Planning" },
+          { titre: "Lire le carnet de liaison",
+            comment: "Suivez les messages échangés entre votre enfant, la MFR et le maître d'apprentissage. Vous pouvez également y écrire.",
+            ou: "Menu > Carnet de liaison" },
+          { titre: "Consulter les évaluations",
+            comment: "Notes, appréciations pédagogiques, bilans en entreprise : tout est centralisé.",
+            ou: "Menu > Évaluations" }
+        ]
+      },
+      {
+        titre: "📞 Communiquer avec l'équipe",
+        actions: [
+          { titre: "Demander un rendez-vous",
+            comment: "Sollicitez un entretien avec la Direction, un formateur ou l'équipe éducative. Motif et disponibilités à préciser.",
+            ou: "Menu > Demandes de RDV" },
+          { titre: "Signaler une situation",
+            comment: "Si vous constatez un problème (santé, conflit, difficulté), utilisez la fonction de signalement. La MFR traite chaque signalement avec soin.",
+            ou: "Menu > Signalement" }
+        ]
+      }
+    ]
+  },
+  "maitre": {
+    icone: "👔",
+    titre: "Mode d'emploi — Maître d'apprentissage",
+    accroche: "En tant que tuteur en entreprise, vous êtes un partenaire essentiel de la formation. L'application vous permet de suivre votre apprenti(e) et de communiquer avec la MFR.",
+    sections: [
+      {
+        titre: "🚪 Se connecter et gérer son compte",
+        actions: [
+          { titre: "Se connecter à l'application",
+            comment: "Identifiant et mot de passe fournis par courrier de la MFR à la signature du contrat. Perte de mot de passe : voir procédure sur la page d'accueil.",
+            ou: "Page d'accueil" },
+          { titre: "Attester ma prise de connaissance RGPD",
+            comment: "Cochez la case d'attestation sur la page dédiée. Vous confirmez avoir pris connaissance de la politique de traitement des données des apprentis et de l'entreprise.",
+            ou: "Menu > Protection de vos données" }
+        ]
+      },
+      {
+        titre: "📝 Suivre l'apprenti en entreprise",
+        actions: [
+          { titre: "Consulter le carnet de liaison",
+            comment: "Suivez les échanges entre l'apprenti, la famille et la MFR. Ajoutez vos propres observations sur le travail réalisé en entreprise.",
+            ou: "Menu > Carnet de liaison" },
+          { titre: "Renseigner les appréciations en entreprise",
+            comment: "À chaque période en entreprise, complétez la grille d'évaluation : compétences observées, comportement professionnel, évolution.",
+            ou: "Menu > Évaluations en entreprise" },
+          { titre: "Consulter le planning d'alternance",
+            comment: "Vérifiez les semaines où l'apprenti est en entreprise vs à la MFR pour organiser sa formation en interne.",
+            ou: "Menu > Planning" }
+        ]
+      },
+      {
+        titre: "📞 Communiquer avec la MFR",
+        actions: [
+          { titre: "Demander un rendez-vous",
+            comment: "Pour un point sur l'apprenti, une visite en entreprise, une problématique : sollicitez la MFR.",
+            ou: "Menu > Demandes de RDV" },
+          { titre: "Signaler une difficulté ou une rupture",
+            comment: "Si une situation dégénère (absence répétée, comportement inadéquat, envie de rupture), utilisez le signalement. La MFR interviendra rapidement.",
+            ou: "Menu > Signalement" }
+        ]
+      }
+    ]
+  },
+  "salarie": {
+    icone: "🏫",
+    titre: "Mode d'emploi — Salarié MFR (hors direction)",
+    accroche: "En tant que formateur ou personnel de la MFR, l'application est votre outil pédagogique et administratif quotidien.",
+    sections: [
+      {
+        titre: "🚪 Se connecter et attestations",
+        actions: [
+          { titre: "Se connecter",
+            comment: "Identifiants remis par la Direction. Chaque salarié dispose d'un compte individuel selon son périmètre.",
+            ou: "Page d'accueil" },
+          { titre: "Attester ma prise de connaissance RGPD",
+            comment: "6 documents vous concernent en tant que salarié : notice, charte informatique, formulaires, procédures, convention, note DPO. Attestation obligatoire.",
+            ou: "Menu > Protection de vos données" }
+        ]
+      },
+      {
+        titre: "📋 Gestion pédagogique quotidienne",
+        actions: [
+          { titre: "Renseigner les carnets de liaison",
+            comment: "Pour chaque apprenti dont vous êtes formateur référent, complétez les échanges pédagogiques et communiquez avec les familles.",
+            ou: "Menu > Apprentis > sélectionner un apprenti > Carnet" },
+          { titre: "Saisir des évaluations",
+            comment: "Après chaque module ou évaluation, notez les résultats et rédigez une appréciation.",
+            ou: "Menu > Évaluations" },
+          { titre: "Contrôler l'émargement",
+            comment: "Pour vos classes : générer les codes de session d'émargement, contrôler les présences, exporter les feuilles.",
+            ou: "Menu > Émargement" },
+          { titre: "Consulter le planning d'alternance",
+            comment: "Vérifier les semaines M/E/F pour votre classe référente, préparer vos sessions.",
+            ou: "Menu > Planning" }
+        ]
+      },
+      {
+        titre: "📊 Qualiopi et documentation",
+        actions: [
+          { titre: "Consulter le tableau de bord Qualiopi V10",
+            comment: "Suivre l'état de conformité des 32 indicateurs qui vous concernent selon votre périmètre.",
+            ou: "Menu > Tableau de bord Qualiopi V10 (selon habilitations)" },
+          { titre: "Traiter les demandes de RDV",
+            comment: "Consulter les demandes qui vous sont adressées, planifier les entretiens.",
+            ou: "Menu > Demandes de RDV" },
+          { titre: "Suivre les signalements",
+            comment: "Prendre connaissance des signalements et des réclamations dont vous êtes destinataire.",
+            ou: "Menu > Signalements / Réclamations" }
+        ]
+      }
+    ]
+  },
+  "admin": {
+    icone: "⚙️",
+    titre: "Mode d'emploi — Direction et Secrétariat",
+    accroche: "Vous avez accès à toutes les fonctions de gestion : profils, sécurité, paramétrage institutionnel et pilotage.",
+    sections: [
+      {
+        titre: "👥 Gestion des profils (Apprentis / Familles / Lieux / Salariés)",
+        actions: [
+          { titre: "Créer un profil",
+            comment: "Bouton « + Ajouter ». Un identifiant et un mot de passe sont générés automatiquement. Renseignez toutes les informations utiles, y compris l'OPCO.",
+            ou: "Menu > Profils > sous-onglet du type concerné" },
+          { titre: "Éditer les courriers d'identifiants",
+            comment: "Pour un apprenti : bouton « ✉️ Courriers » génère les 3 courriers institutionnels A4 (apprenti + famille + MA) en un clic. Pour les autres : « ✉️ Courrier ».",
+            ou: "Ligne du profil > bouton ✉️" },
+          { titre: "Réinitialiser un mot de passe",
+            comment: "Bouton « 🔑 MDP » sur la ligne du profil. Un nouveau mot de passe est généré et un courrier est édité automatiquement.",
+            ou: "Ligne du profil > bouton 🔑" },
+          { titre: "Archiver un profil",
+            comment: "Bouton « 📁 Archiver ». Renseignez la date d'archivage et le motif (menu déroulant adapté au type). Le profil est conservé mais désactivé.",
+            ou: "Ligne du profil > bouton 📁" },
+          { titre: "Restaurer un profil archivé",
+            comment: "Filtrer « 📁 Archivés » dans le sélecteur de statut, puis bouton « ↶ Restaurer » sur la ligne.",
+            ou: "Filtre > Archivés > bouton ↶" },
+          { titre: "Suivre les attestations RGPD",
+            comment: "Colonne « RGPD » dans chaque tableau : ✅ + date si attesté, ❌ « Non attesté » sinon. Utile en préparation d'audit.",
+            ou: "Colonne RGPD des tableaux" },
+          { titre: "Reprendre les infos d'une entreprise existante",
+            comment: "Lors de la création d'un nouveau lieu d'apprentissage, cliquez sur « 📋 Reprendre les infos d'une entreprise existante » ou saisissez un SIRET déjà connu : les infos entreprise seront pré-remplies automatiquement.",
+            ou: "Formulaire nouveau lieu > bandeau doré en haut" }
+        ]
+      },
+      {
+        titre: "⚙️ Paramétrage institutionnel",
+        actions: [
+          { titre: "Paramétrer l'année scolaire",
+            comment: "Créer une nouvelle année scolaire (format AAAA-AAAA), définir les plannings M/E/F par classe en cliquant sur les semaines. Import/export CSV possible.",
+            ou: "Menu > ⚙️ Paramétrage année scolaire" },
+          { titre: "Copier un planning d'une année sur l'autre",
+            comment: "Bouton « 📋 Copier depuis... » pour dupliquer un planning existant. À ajuster ensuite selon le calendrier officiel.",
+            ou: "Menu > Paramétrage année scolaire > bouton Copier" }
+        ]
+      },
+      {
+        titre: "🔒 Sécurité et RGPD",
+        actions: [
+          { titre: "Consulter les attestations RGPD",
+            comment: "Les attestations sont horodatées et signées SHA-256, opposables en audit CNIL ou Qualiopi. Empreinte visible sur chaque profil.",
+            ou: "Colonne RGPD des tableaux" },
+          { titre: "Réinitialiser une attestation RGPD",
+            comment: "Dans le profil de l'utilisateur, elle peut demander à renouveler son attestation si les documents évoluent (bouton « ↻ Renouveler »).",
+            ou: "Page RGPD (côté utilisateur) > bouton Renouveler" }
+        ]
+      },
+      {
+        titre: "📊 Pilotage et Qualiopi",
+        actions: [
+          { titre: "Consulter le tableau de bord Qualiopi V10",
+            comment: "Vue complète des 32 indicateurs, statut de conformité, notes, actions à mener.",
+            ou: "Menu > Tableau de bord Qualiopi V10" },
+          { titre: "Exporter les données",
+            comment: "Chaque tableau de profils propose un export CSV pour audit ou reporting externe.",
+            ou: "Bouton « 📊 Exporter CSV » sur chaque tableau" }
+        ]
+      }
+    ]
+  }
+};
+
+function initModeEmploi() {
+  // Ouvrir sur le rôle de l'utilisateur connecté par défaut
+  const u = utilisateurConnecte;
+  let roleParDefaut = "apprenti";
+  if (u) {
+    if (u.role === "parent") roleParDefaut = "famille";
+    else if (u.role === "maitre") roleParDefaut = "maitre";
+    else if (u.role === "mfr") {
+      // Admin ou salarié classique
+      const admins = ["pascale.dauge", "secretariat"];
+      roleParDefaut = admins.indexOf(u.id) >= 0 ? "admin" : "salarie";
+    }
+  }
+  afficherModeEmploi(roleParDefaut);
+}
+
+function afficherModeEmploi(role) {
+  document.querySelectorAll(".me-onglet").forEach(function(o) {
+    o.classList.toggle("active", o.dataset.role === role);
+  });
+
+  const contenu = MODE_EMPLOI_CONTENU[role];
+  const zone = document.getElementById("me-contenu");
+  if (!contenu || !zone) return;
+
+  let html = '<div class="me-role-header">' +
+    '<div class="me-role-icone">' + contenu.icone + '</div>' +
+    '<div>' +
+      '<h3>' + contenu.titre + '</h3>' +
+      '<p class="me-accroche">' + contenu.accroche + '</p>' +
+    '</div>' +
+  '</div>';
+
+  contenu.sections.forEach(function(section) {
+    html += '<div class="me-section">' +
+      '<h4 class="me-section-titre">' + section.titre + '</h4>' +
+      '<div class="me-actions">';
+    section.actions.forEach(function(action) {
+      html += '<div class="me-action">' +
+        '<div class="me-action-titre">' + action.titre + '</div>' +
+        '<div class="me-action-comment">' + action.comment + '</div>' +
+        '<div class="me-action-ou">📍 ' + action.ou + '</div>' +
+      '</div>';
+    });
+    html += '</div></div>';
+  });
+
+  zone.innerHTML = html;
+}
+
+// -----------------------------------------------------------------
 // PARAMÉTRAGE DES ANNÉES SCOLAIRES
 // -----------------------------------------------------------------
 
@@ -26126,6 +28559,12 @@ function afficherRgpd() {
   const pourVous = RGPD_DOCUMENTS.filter(function(d) { return d.pourVous.indexOf(monRole) >= 0; });
   const autres = RGPD_DOCUMENTS.filter(function(d) { return d.pourVous.indexOf(monRole) < 0; });
 
+  // Zone d'attestation en haut de la page
+  const zoneAttestation = document.getElementById("rgpd-zone-attestation");
+  if (zoneAttestation && u) {
+    zoneAttestation.innerHTML = construireZoneAttestation(u, pourVous);
+  }
+
   let html = "";
 
   if (pourVous.length > 0) {
@@ -26139,6 +28578,157 @@ function afficherRgpd() {
   }
 
   conteneur.innerHTML = html;
+}
+
+// Récupère le profil correspondant à l'utilisateur connecté (dans la bonne collection)
+function trouverProfilConnecte(u) {
+  if (!u) return null;
+  if (u.role === "apprenti") return PROFILS_APPRENTIS.find(p => p.username === u.id);
+  if (u.role === "parent") return PROFILS_FAMILLES.find(p => p.username === u.id);
+  if (u.role === "maitre") return PROFILS_LIEUX.find(p => p.username === u.id);
+  if (u.role === "mfr") return PROFILS_SALARIES.find(p => p.username === u.id || p.identifiant === u.id);
+  return null;
+}
+
+function sauvegarderProfilConnecte(u) {
+  if (u.role === "apprenti") localStorage.setItem("mfr_profils_apprentis", JSON.stringify(PROFILS_APPRENTIS));
+  else if (u.role === "parent") localStorage.setItem("mfr_profils_familles", JSON.stringify(PROFILS_FAMILLES));
+  else if (u.role === "maitre") localStorage.setItem("mfr_profils_lieux", JSON.stringify(PROFILS_LIEUX));
+  else if (u.role === "mfr") localStorage.setItem("mfr_profils_salaries", JSON.stringify(PROFILS_SALARIES));
+}
+
+// Construit la zone d'attestation en haut de la page RGPD
+function construireZoneAttestation(u, docsPourVous) {
+  const profil = trouverProfilConnecte(u);
+  const dejaAtteste = profil && profil.attestationRgpd && profil.attestationRgpd.dateAttestation;
+
+  if (dejaAtteste) {
+    const dateAtt = new Date(profil.attestationRgpd.dateAttestation);
+    const dateFmt = dateAtt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+    const heureFmt = dateAtt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+    const hashCourt = (profil.attestationRgpd.hashAttestation || "").substring(0, 16);
+    return '<div class="rgpd-attestation-faite">' +
+      '<div class="rgpd-att-icone">✅</div>' +
+      '<div class="rgpd-att-contenu">' +
+        '<div class="rgpd-att-titre">Vous avez attesté avoir pris connaissance des documents RGPD</div>' +
+        '<div class="rgpd-att-details">' +
+          'Le <strong>' + dateFmt + ' à ' + heureFmt + '</strong>' +
+          ' — Empreinte de traçabilité : <code>' + hashCourt + '…</code>' +
+        '</div>' +
+        '<div class="rgpd-att-actions">' +
+          '<button class="btn-mini" onclick="reAttesterRgpd()" title="Renouveler votre attestation si les documents ont changé">↻ Renouveler l\'attestation</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // Pas encore attesté : zone d'attestation à faire
+  const ids = docsPourVous.map(function(d) { return d.id; });
+  return '<div class="rgpd-attestation-todo">' +
+    '<div class="rgpd-att-icone">📝</div>' +
+    '<div class="rgpd-att-contenu">' +
+      '<div class="rgpd-att-titre">Attestation de prise de connaissance</div>' +
+      '<p class="rgpd-att-texte">' +
+        'Conformément à l\'article 13 du Règlement Général sur la Protection des Données (RGPD), ' +
+        'nous vous demandons de bien vouloir attester avoir pris connaissance des documents qui vous concernent ' +
+        'listés ci-dessous. Cette attestation est horodatée et signée cryptographiquement pour votre sécurité et la nôtre.' +
+      '</p>' +
+      '<div class="rgpd-att-checkbox">' +
+        '<input type="checkbox" id="rgpdCaseAttestation" onchange="majBoutonAttestation()">' +
+        '<label for="rgpdCaseAttestation">' +
+          '<strong>J\'atteste avoir pris connaissance</strong> des ' + docsPourVous.length +
+          ' document' + (docsPourVous.length > 1 ? 's' : '') +
+          ' RGPD qui me concernent (listés ci-dessous), avoir compris comment mes données personnelles sont traitées ' +
+          'par la MFR du Néracais, et connaître mes droits d\'accès, de rectification, d\'opposition et d\'effacement.' +
+        '</label>' +
+      '</div>' +
+      '<div class="rgpd-att-actions">' +
+        '<button id="btnAttesterRgpd" class="btn-primary" disabled onclick="validerAttestationRgpd()">✓ Valider mon attestation</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function majBoutonAttestation() {
+  const btn = document.getElementById("btnAttesterRgpd");
+  const check = document.getElementById("rgpdCaseAttestation");
+  if (btn && check) btn.disabled = !check.checked;
+}
+
+async function validerAttestationRgpd() {
+  const u = utilisateurConnecte;
+  if (!u) return;
+  const check = document.getElementById("rgpdCaseAttestation");
+  if (!check || !check.checked) {
+    alert("Veuillez cocher la case pour valider votre attestation.");
+    return;
+  }
+
+  const profil = trouverProfilConnecte(u);
+  if (!profil) {
+    alert("Impossible de retrouver votre profil. Contactez la Direction.");
+    return;
+  }
+
+  const docsPourVous = RGPD_DOCUMENTS.filter(function(d) { return d.pourVous.indexOf(u.role) >= 0; });
+  const attestation = {
+    dateAttestation: new Date().toISOString(),
+    documentsAttestes: docsPourVous.map(d => d.id),
+    versionApp: APP_VERSION,
+    identifiant: u.id,
+    role: u.role,
+    userAgent: navigator.userAgent,
+    languePage: navigator.language,
+    fuseauHoraire: Intl.DateTimeFormat().resolvedOptions().timeZone
+  };
+
+  // Générer le hash SHA-256 pour opposabilité
+  const contenuHash = attestation.identifiant + "|" +
+    attestation.dateAttestation + "|" +
+    attestation.documentsAttestes.join(",") + "|" +
+    attestation.versionApp + "|" +
+    attestation.userAgent + "|" +
+    attestation.fuseauHoraire;
+  try {
+    const enc = new TextEncoder().encode(contenuHash);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", enc);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    attestation.hashAttestation = hashArray.map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+  } catch (e) {
+    attestation.hashAttestation = "";
+  }
+
+  profil.attestationRgpd = attestation;
+  sauvegarderProfilConnecte(u);
+
+  // Rafraîchir la vue
+  afficherRgpd();
+  majBadgeAttestationRgpd();
+
+  // Feedback
+  alert("✅ Votre attestation a bien été enregistrée.\n\nElle est horodatée et signée cryptographiquement. Vous pouvez continuer à naviguer.");
+}
+
+function reAttesterRgpd() {
+  if (!confirm("Renouveler votre attestation RGPD ?\n\nCela remplacera la précédente. Utile si les documents ont été mis à jour.")) return;
+  const u = utilisateurConnecte;
+  const profil = trouverProfilConnecte(u);
+  if (profil) {
+    delete profil.attestationRgpd;
+    sauvegarderProfilConnecte(u);
+  }
+  afficherRgpd();
+}
+
+// Bannière discrète sur toutes les pages tant que l'attestation n'est pas faite
+function majBadgeAttestationRgpd() {
+  const u = utilisateurConnecte;
+  const banniere = document.getElementById("banniere-rgpd-todo");
+  if (!banniere) return;
+  if (!u) { banniere.style.display = "none"; return; }
+  const profil = trouverProfilConnecte(u);
+  const dejaAtteste = profil && profil.attestationRgpd && profil.attestationRgpd.dateAttestation;
+  banniere.style.display = dejaAtteste ? "none" : "flex";
 }
 
 function carteDocumentRgpd(doc, misEnAvant) {
