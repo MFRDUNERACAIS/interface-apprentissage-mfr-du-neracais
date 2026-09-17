@@ -22745,7 +22745,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.41";
+const APP_VERSION = "4.42";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23462,7 +23462,7 @@ async function connexionFirebase(id, code) {
 // La création d'un compte connecte automatiquement ce compte, ce qui
 // déconnecterait la Direction en pleine opération. On passe donc par une
 // seconde instance Firebase, dédiée, dont la session est jetée ensuite.
-let fbAppCreation = null, fbAuthCreation = null;
+let fbAppCreation = null, fbAuthCreation = null, fbDbCreation = null;
 
 function instanceCreation() {
   if (fbAuthCreation) return fbAuthCreation;
@@ -23470,6 +23470,10 @@ function instanceCreation() {
     fbAppCreation = firebase.apps.find(function(a) { return a.name === "creation"; })
       || firebase.initializeApp(FIREBASE_CONFIG, "creation");
     fbAuthCreation = fbAppCreation.auth();
+    // La fiche d'annuaire doit être écrite par une instance authentifiée
+    // COMME l'utilisateur concerné : c'est ce que vérifient les règles.
+    // Écrire depuis l'instance principale, non authentifiée, était refusé.
+    fbDbCreation = fbAppCreation.firestore();
     return fbAuthCreation;
   } catch (e) { return null; }
 }
@@ -23524,7 +23528,7 @@ async function creerComptesFirebase() {
   msg += "\nL'opération peut prendre une minute. Ne fermez pas la page.";
   if (!confirm(msg)) return;
 
-  let crees = 0;
+  let crees = 0, reprises = 0;
   const echecs = [];
   const nouveauxCodes = [];
 
@@ -23537,28 +23541,55 @@ async function creerComptesFirebase() {
       delete item.profil.passwordHash;
       nouveauxCodes.push(item.identifiant + " : " + code);
     }
+    const adresse = adresseTechnique(item.identifiant);
+    let utilisateur = null, repris = false;
     try {
-      const cred = await auth2.createUserWithEmailAndPassword(adresseTechnique(item.identifiant), code);
-      await fbDb.collection("annuaire").doc(cred.user.uid)
-        .set(ficheAnnuaire(item.profil, item.role, item.identifiant));
-      item.profil.uidFirebase = cred.user.uid;
-      crees++;
+      const cred = await auth2.createUserWithEmailAndPassword(adresse, code);
+      utilisateur = cred.user;
     } catch (e) {
       const c = (e && e.code) ? e.code : "";
       if (c === "auth/email-already-in-use") {
-        echecs.push(item.identifiant + " — compte déjà existant");
+        // Compte déjà créé lors d'une tentative précédente : on s'y reconnecte
+        // pour terminer le travail au lieu d'échouer. L'opération est ainsi
+        // relançable autant de fois que nécessaire.
+        try {
+          const cred2 = await auth2.signInWithEmailAndPassword(adresse, code);
+          utilisateur = cred2.user;
+          repris = true;
+        } catch (e2) {
+          echecs.push(item.identifiant + " — compte existant, code différent : à réinitialiser dans la console Firebase");
+          continue;
+        }
       } else if (c === "auth/weak-password") {
         echecs.push(item.identifiant + " — code trop court (6 caractères minimum)");
+        continue;
       } else {
         echecs.push(item.identifiant + " — " + (c || (e && e.message) || "erreur"));
+        continue;
       }
+    }
+
+    try {
+      await fbDbCreation.collection("annuaire").doc(utilisateur.uid)
+        .set(ficheAnnuaire(item.profil, item.role, item.identifiant));
+      item.profil.uidFirebase = utilisateur.uid;
+      crees++;
+      if (repris) reprises++;
+    } catch (e) {
+      const c = (e && e.code) ? e.code : "";
+      echecs.push(item.identifiant + " — annuaire refusé (" + (c || "erreur") + ")");
     }
   }
 
   try { await auth2.signOut(); } catch (e) {}
   if (crees > 0) sauvegarderProfils();
 
-  let bilan = "✅ " + crees + " compte(s) créé(s) sur " + aCreer.length + ".";
+  let bilan = "✅ " + crees + " compte(s) opérationnel(s) sur " + aCreer.length + ".";
+  if (reprises > 0) bilan += "\n   (dont " + reprises + " repris d'une tentative précédente)";
+  if (echecs.length > 0 && echecs.join(" ").indexOf("annuaire refus") >= 0) {
+    bilan += "\n\n⚠ L'écriture dans l'annuaire est refusée : publiez d'abord les règles " +
+      "de bascule (fichier regles-firestore-bascule.txt), puis relancez cette opération.";
+  }
   if (nouveauxCodes.length > 0) {
     bilan += "\n\n⚠ NOUVEAUX CODES À COMMUNIQUER — notez-les maintenant :\n   " +
       nouveauxCodes.join("\n   ");
