@@ -16156,6 +16156,11 @@
   }
 </style>
 
+<!-- Firebase — socle de partage multi-utilisateurs (lot 1) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <!-- Bibliothèque html2pdf pour l'export PDF du carnet -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
@@ -21884,6 +21889,7 @@
           <button class="btn-primary" onclick="ouvrirFormulaireSalarie()">+ Ajouter un salarié</button>
           <button class="btn-secondary" onclick="genererAccesSalariesManquants()">🔑 Générer les accès manquants</button>
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
+          <button class="btn-secondary" onclick="testerConnexionFirebase()">🔥 Tester la connexion Firebase</button>
           <button class="btn-secondary" onclick="ouvrirImport('salarie')">📥 Importer depuis CSV</button>
           <button class="btn-secondary" onclick="exporterProfils('salarie')">📊 Exporter CSV</button>
           <div class="profils-filtres">
@@ -22738,7 +22744,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.39";
+const APP_VERSION = "4.40";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23251,6 +23257,120 @@ async function trouverProfilConnexion(liste, id, code, champId) {
     if (await motDePasseCorrespond(p, idProfil, code)) return p;
   }
   return null;
+}
+
+// =================================================================
+// FIREBASE — SOCLE DE PARTAGE (lot 1)
+// -----------------------------------------------------------------
+// Projet : apprentissage-mfr-barbaste — hébergement eur3 (Union européenne).
+// Ces valeurs ne sont pas des secrets : elles ont vocation à figurer dans une
+// page web publique et n'ouvrent aucun accès par elles-mêmes. Ce sont les
+// règles de sécurité Firestore qui protègent les données.
+// =================================================================
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAGqcLo9oAFGkF0Rps9g5o0_UMuocMgl2Y",
+  authDomain: "apprentissage-mfr-barbaste.firebaseapp.com",
+  projectId: "apprentissage-mfr-barbaste",
+  storageBucket: "apprentissage-mfr-barbaste.firebasestorage.app",
+  messagingSenderId: "507715079188",
+  appId: "1:507715079188:web:c31910e2db5c96b03b6b01"
+};
+
+// État du socle. Tant que FIREBASE_ACTIF reste à false, l'application
+// fonctionne exactement comme avant : aucune lecture ni écriture distante.
+let FIREBASE_ACTIF = false;
+let fbApp = null, fbDb = null, fbAuth = null;
+
+function initialiserFirebase() {
+  if (fbApp) return true;
+  try {
+    if (typeof firebase === "undefined" || !firebase.initializeApp) return false;
+    fbApp = firebase.initializeApp(FIREBASE_CONFIG);
+    fbDb = firebase.firestore();
+    fbAuth = firebase.auth();
+    return true;
+  } catch (e) {
+    fbApp = null; fbDb = null; fbAuth = null;
+    if (window.console && console.error) console.error("Firebase", e);
+    return false;
+  }
+}
+
+// Diagnostic complet du socle, réservé à la Direction.
+// Vérifie dans l'ordre : chargement des bibliothèques, initialisation,
+// jointure du projet, et réaction des règles de sécurité.
+async function testerConnexionFirebase() {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
+    alert("Ce test est réservé à la Direction et au Secrétariat.");
+    return;
+  }
+  const lignes = [];
+  let bloquant = null;
+
+  // 1. Bibliothèques
+  if (typeof firebase === "undefined") {
+    lignes.push("⛔ Les bibliothèques Firebase ne sont pas chargées.");
+    bloquant = "Vérifiez votre connexion internet. Si vous êtes sur Edge, la protection " +
+      "anti-pistage peut bloquer gstatic.com : autorisez le site dans les paramètres.";
+  } else {
+    lignes.push("✅ Bibliothèques chargées (version " + (firebase.SDK_VERSION || "?") + ").");
+  }
+
+  // 2. Initialisation
+  if (!bloquant) {
+    if (!initialiserFirebase()) {
+      lignes.push("⛔ Initialisation impossible.");
+      bloquant = "La configuration du projet est peut-être incomplète.";
+    } else {
+      lignes.push("✅ Projet initialisé : " + FIREBASE_CONFIG.projectId + ".");
+    }
+  }
+
+  // 3. Dialogue avec la base et réaction des règles
+  if (!bloquant) {
+    try {
+      await fbDb.collection("diagnostic").doc("sonde").get();
+      lignes.push("✅ La base répond, et elle autorise la lecture.");
+      lignes.push("⚠ Attention : des règles de sécurité ouvertes laissent lire vos données");
+      lignes.push("   à quiconque connaît l'adresse du projet. À refermer avant tout chargement.");
+    } catch (e) {
+      const code = (e && e.code) ? e.code : "";
+      if (code === "permission-denied") {
+        lignes.push("✅ La base répond.");
+        lignes.push("✅ Les règles de sécurité sont fermées — c'est le comportement attendu");
+        lignes.push("   à ce stade : la base refuse tout accès tant que les règles définitives");
+        lignes.push("   ne sont pas posées.");
+      } else if (code === "unavailable" || code === "failed-precondition") {
+        lignes.push("⛔ La base ne répond pas (" + code + ").");
+        bloquant = "Vérifiez que Firestore est bien créé et que votre connexion fonctionne.";
+      } else {
+        lignes.push("⛔ Erreur inattendue : " + code + " — " + (e && e.message ? e.message : e));
+        bloquant = "Transmettez ce message pour diagnostic.";
+      }
+    }
+  }
+
+  // 4. Domaine autorisé
+  lignes.push("");
+  lignes.push("Domaine de cette page : " + (location.hostname || "fichier local"));
+  if (location.protocol === "file:") {
+    lignes.push("⚠ Vous ouvrez le fichier en local. Firebase exige un vrai site :");
+    lignes.push("   testez depuis mfrduneracais.github.io.");
+  }
+
+  alert("DIAGNOSTIC FIREBASE — lot 1\n" +
+    "──────────────────────────────\n" +
+    lignes.join("\n") +
+    (bloquant ? "\n\n→ À FAIRE : " + bloquant : "") +
+    "\n\nPartage effectif : " + (FIREBASE_ACTIF ? "ACTIVÉ" : "pas encore — l'application travaille toujours en local") +
+    "\nVersion de l'application : " + (typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"));
+}
+
+// Tentative d'initialisation au chargement, sans conséquence en cas d'échec.
+if (typeof window !== "undefined") {
+  window.addEventListener("load", function() {
+    try { initialiserFirebase(); } catch (e) {}
+  });
 }
 
 function normaliserIdentifiantConnexion(v) {
