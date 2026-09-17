@@ -21890,6 +21890,7 @@
           <button class="btn-secondary" onclick="genererAccesSalariesManquants()">🔑 Générer les accès manquants</button>
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
           <button class="btn-secondary" onclick="testerConnexionFirebase()">🔥 Tester la connexion Firebase</button>
+          <button class="btn-secondary" onclick="creerComptesFirebase()">☁️ Créer les comptes Firebase</button>
           <button class="btn-secondary" onclick="ouvrirImport('salarie')">📥 Importer depuis CSV</button>
           <button class="btn-secondary" onclick="exporterProfils('salarie')">📊 Exporter CSV</button>
           <div class="profils-filtres">
@@ -22744,7 +22745,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.40";
+const APP_VERSION = "4.41";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23373,6 +23374,203 @@ if (typeof window !== "undefined") {
   });
 }
 
+// =================================================================
+// FIREBASE — LOT 2 : AUTHENTIFICATION PARTAGÉE
+// -----------------------------------------------------------------
+// Firebase exige une adresse pour identifier un compte. Les utilisateurs
+// continuent de saisir leur identifiant habituel (prenom.nom) : l'application
+// le convertit en adresse technique, invisible pour eux. Ce domaine n'existe
+// pas et ne reçoit aucun courrier : les mots de passe sont réinitialisés
+// par la Direction, jamais par lien courriel.
+//
+// Principe de sécurité : l'application ne connaît plus les mots de passe.
+// Firebase les conserve hachés et salés, et gère le blocage des tentatives
+// répétées. Rien n'est stocké en clair dans le navigateur.
+//
+// Repli : si Firebase ne répond pas, la connexion locale reprend la main.
+// Personne ne peut se retrouver enfermé dehors par une panne réseau.
+// =================================================================
+const DOMAINE_TECHNIQUE = "@mfr-neracais.fr";
+
+function adresseTechnique(identifiant) {
+  return normaliserIdentifiantConnexion(identifiant) + DOMAINE_TECHNIQUE;
+}
+
+// Fiche d'annuaire écrite dans Firestore à la création d'un compte.
+// C'est elle que lisent les règles de sécurité pour connaître le rôle.
+function ficheAnnuaire(profil, role, identifiant) {
+  return {
+    identifiant: normaliserIdentifiantConnexion(identifiant),
+    role: role,
+    nom: ((profil.prenom || "") + " " + (profil.nom || "")).trim()
+      || (profil.entreprise || "") || identifiant,
+    profilId: profil.id || "",
+    classe: profil.classe || "",
+    statut: profil.statut || "actif",
+    creeLe: new Date().toISOString()
+  };
+}
+
+// Connexion via Firebase. Retourne l'utilisateur, ou null pour laisser
+// la connexion locale prendre le relais.
+async function connexionFirebase(id, code) {
+  if (!initialiserFirebase()) return { user: null, raison: "indisponible" };
+  try {
+    const cred = await fbAuth.signInWithEmailAndPassword(adresseTechnique(id), code);
+    if (!cred || !cred.user) return { user: null, raison: "indisponible" };
+
+    const doc = await fbDb.collection("annuaire").doc(cred.user.uid).get();
+    if (!doc.exists) {
+      // Compte d'authentification sans fiche d'annuaire : anomalie.
+      await fbAuth.signOut();
+      return { user: null, raison: "sans_annuaire" };
+    }
+    const d = doc.data();
+    if ((d.statut || "actif") === "archive") {
+      await fbAuth.signOut();
+      return { user: null, raison: "archive" };
+    }
+    return {
+      user: {
+        id: d.identifiant,
+        code: "",
+        nom: d.nom || d.identifiant,
+        role: d.role,
+        classes: d.classe ? [d.classe] : (d.role === "mfr" ? "TOUTES" : []),
+        uid: cred.user.uid,
+        sourceFirebase: true
+      },
+      raison: "ok"
+    };
+  } catch (e) {
+    const c = (e && e.code) ? e.code : "";
+    // Identifiants refusés : on laisse quand même sa chance au mode local,
+    // le temps que tous les comptes soient créés dans Firebase.
+    if (c === "auth/invalid-credential" || c === "auth/user-not-found"
+        || c === "auth/wrong-password" || c === "auth/invalid-email") {
+      return { user: null, raison: "refuse" };
+    }
+    if (c === "auth/too-many-requests") return { user: null, raison: "trop_de_tentatives" };
+    if (window.console && console.warn) console.warn("connexionFirebase", c, e);
+    return { user: null, raison: "indisponible" };
+  }
+}
+
+// -----------------------------------------------------------------
+// Création des comptes Firebase depuis les profils existants
+// -----------------------------------------------------------------
+// La création d'un compte connecte automatiquement ce compte, ce qui
+// déconnecterait la Direction en pleine opération. On passe donc par une
+// seconde instance Firebase, dédiée, dont la session est jetée ensuite.
+let fbAppCreation = null, fbAuthCreation = null;
+
+function instanceCreation() {
+  if (fbAuthCreation) return fbAuthCreation;
+  try {
+    fbAppCreation = firebase.apps.find(function(a) { return a.name === "creation"; })
+      || firebase.initializeApp(FIREBASE_CONFIG, "creation");
+    fbAuthCreation = fbAppCreation.auth();
+    return fbAuthCreation;
+  } catch (e) { return null; }
+}
+
+// Recense les profils à doter d'un compte Firebase.
+function profilsACreer() {
+  const liste = [];
+  const ajouter = function(collection, role) {
+    (collection || []).forEach(function(p) {
+      const st = p.statut || "actif";
+      if (st === "archive" || st === "parti") return;
+      const identifiant = p.username || p.identifiant || "";
+      if (!identifiant) return;
+      if (!p.password && !p.passwordHash) return;   // pas de code provisoire à transmettre
+      if (p.uidFirebase) return;                    // compte déjà créé
+      liste.push({ profil: p, role: role, identifiant: identifiant });
+    });
+  };
+  ajouter(typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [], "apprenti");
+  ajouter(typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [], "parent");
+  ajouter(typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [], "maitre");
+  ajouter(typeof PROFILS_SALARIES !== "undefined" ? PROFILS_SALARIES : [], "mfr");
+  return liste;
+}
+
+async function creerComptesFirebase() {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
+    alert("Cette opération est réservée à la Direction et au Secrétariat.");
+    return;
+  }
+  if (!initialiserFirebase()) {
+    alert("Firebase n'est pas joignable. Lancez d'abord le test de connexion.");
+    return;
+  }
+  const auth2 = instanceCreation();
+  if (!auth2) { alert("Impossible de préparer l'instance de création."); return; }
+
+  const aCreer = profilsACreer();
+  if (aCreer.length === 0) {
+    alert("Aucun profil à traiter.\n\nTous les comptes actifs disposant d'un identifiant et " +
+      "d'un mot de passe ont déjà leur compte Firebase.");
+    return;
+  }
+  const avecHash = aCreer.filter(function(x) { return x.profil.passwordHash && !x.profil.password; });
+  let msg = "Créer " + aCreer.length + " compte(s) Firebase ?\n\n";
+  msg += "Chaque personne conservera son identifiant actuel et son code d'accès.\n";
+  if (avecHash.length > 0) {
+    msg += "\n⚠ " + avecHash.length + " personne(s) ont déjà personnalisé leur mot de passe. " +
+      "Celui-ci n'est pas relisible : un NOUVEAU code provisoire leur sera attribué et devra " +
+      "leur être communiqué.\n";
+  }
+  msg += "\nL'opération peut prendre une minute. Ne fermez pas la page.";
+  if (!confirm(msg)) return;
+
+  let crees = 0;
+  const echecs = [];
+  const nouveauxCodes = [];
+
+  for (let i = 0; i < aCreer.length; i++) {
+    const item = aCreer[i];
+    let code = item.profil.password;
+    if (!code) {
+      code = genererMotDePasse();
+      item.profil.password = code;
+      delete item.profil.passwordHash;
+      nouveauxCodes.push(item.identifiant + " : " + code);
+    }
+    try {
+      const cred = await auth2.createUserWithEmailAndPassword(adresseTechnique(item.identifiant), code);
+      await fbDb.collection("annuaire").doc(cred.user.uid)
+        .set(ficheAnnuaire(item.profil, item.role, item.identifiant));
+      item.profil.uidFirebase = cred.user.uid;
+      crees++;
+    } catch (e) {
+      const c = (e && e.code) ? e.code : "";
+      if (c === "auth/email-already-in-use") {
+        echecs.push(item.identifiant + " — compte déjà existant");
+      } else if (c === "auth/weak-password") {
+        echecs.push(item.identifiant + " — code trop court (6 caractères minimum)");
+      } else {
+        echecs.push(item.identifiant + " — " + (c || (e && e.message) || "erreur"));
+      }
+    }
+  }
+
+  try { await auth2.signOut(); } catch (e) {}
+  if (crees > 0) sauvegarderProfils();
+
+  let bilan = "✅ " + crees + " compte(s) créé(s) sur " + aCreer.length + ".";
+  if (nouveauxCodes.length > 0) {
+    bilan += "\n\n⚠ NOUVEAUX CODES À COMMUNIQUER — notez-les maintenant :\n   " +
+      nouveauxCodes.join("\n   ");
+  }
+  if (echecs.length > 0) {
+    bilan += "\n\n⛔ ÉCHECS :\n   " + echecs.join("\n   ");
+  }
+  bilan += "\n\nVérifiez dans la console Firebase, onglet Authentication > Utilisateurs.";
+  alert(bilan);
+  if (typeof filtrerSalaries === "function") filtrerSalaries();
+}
+
 function normaliserIdentifiantConnexion(v) {
   return (v || "").toString().trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -23560,7 +23758,27 @@ async function login() {
 
   // Mode local : on cherche d'abord dans la liste codée en dur (comptes de test / historiques),
   // puis dans les profils créés depuis l'application (apprentis, familles, lieux, salariés).
-  let user = UTILISATEURS.find(u => normaliserIdentifiantConnexion(u.id) === id && u.code === code);
+  // 1) Firebase d'abord : c'est la source partagée entre tous les postes.
+  let user = null;
+  if (typeof connexionFirebase === "function") {
+    const tentative = await connexionFirebase(id, code);
+    if (tentative.user) {
+      user = tentative.user;
+    } else if (tentative.raison === "trop_de_tentatives") {
+      errorBox.textContent = "Trop de tentatives. Patientez quelques minutes avant de réessayer.";
+      errorBox.classList.add("show");
+      return;
+    } else if (tentative.raison === "archive") {
+      errorBox.textContent = "Ce compte a été désactivé. Contactez le secrétariat.";
+      errorBox.classList.add("show");
+      return;
+    }
+  }
+
+  // 2) À défaut, comptes intégrés au fichier.
+  if (!user) {
+    user = UTILISATEURS.find(u => normaliserIdentifiantConnexion(u.id) === id && u.code === code);
+  }
 
   if (!user) {
     // Recherche dans les profils créés depuis l'application
