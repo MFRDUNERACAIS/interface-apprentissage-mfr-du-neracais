@@ -22738,7 +22738,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.38";
+const APP_VERSION = "4.39";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23601,6 +23601,9 @@ function changerPage(nomPage) {
   if (nomPage === "mode-emploi" && typeof initModeEmploi === "function") initModeEmploi();
   if (nomPage === "trombinoscope" && typeof afficherTrombinoscope === "function") afficherTrombinoscope();
   if (nomPage === "resultats" && typeof peuplerSelectCompteRenduTests === "function") peuplerSelectCompteRenduTests();
+  if (nomPage === "rgpd" && typeof resoudreDossierRgpd === "function") {
+    resoudreDossierRgpd().then(function() { if (typeof afficherRgpd === "function") afficherRgpd(); });
+  }
   if (nomPage === "bulletins-scolaires" && typeof afficherBulletinsScolaires === "function") afficherBulletinsScolaires();
   if (nomPage === "notifications" && typeof afficherPageNotifications === "function") afficherPageNotifications();
   if (nomPage === "evaluations-competences" && typeof afficherEvaluationsCompetences === "function") afficherEvaluationsCompetences();
@@ -38323,7 +38326,7 @@ function reinitialiserQualiopiV10() {
 const RGPD_DOCUMENTS = [
   {
     id: "notice-apprenants",
-    fichier: "rgpd/rgpd-notice-apprenants-familles.pdf",
+    fichier: "rgpd-notice-apprenants-familles.pdf",
     titre: "Notice d'information — Apprenants et Familles",
     description: "Quelles données nous collectons à votre sujet, pourquoi, qui y a accès, combien de temps nous les conservons et comment exercer vos droits.",
     icone: "👨‍🎓",
@@ -38332,7 +38335,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "notice-salaries",
-    fichier: "rgpd/rgpd-notice-salaries.pdf",
+    fichier: "rgpd-notice-salaries.pdf",
     titre: "Notice d'information — Salariés",
     description: "Notice destinée à l'ensemble des salariés de la MFR — données professionnelles, temps de travail, formation continue, émargement en tant que formateur.",
     icone: "👥",
@@ -38341,7 +38344,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "notice-entreprises",
-    fichier: "rgpd/rgpd-notice-entreprises.pdf",
+    fichier: "rgpd-notice-entreprises.pdf",
     titre: "Notice d'information — Entreprises et Maîtres d'apprentissage",
     description: "Notice destinée à nos partenaires entreprises et aux maîtres d'apprentissage — données professionnelles, suivi de l'alternance, consultation des émargements.",
     icone: "💼",
@@ -38350,7 +38353,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "registre-traitements",
-    fichier: "rgpd/rgpd-registre-traitements.pdf",
+    fichier: "rgpd-registre-traitements.pdf",
     titre: "Registre des activités de traitement",
     description: "Document officiel recensant les 21 traitements de données personnelles mis en œuvre par la MFR (article 30 du RGPD).",
     icone: "📋",
@@ -38359,7 +38362,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "politique-protection",
-    fichier: "rgpd/rgpd-politique-protection.pdf",
+    fichier: "rgpd-politique-protection.pdf",
     titre: "Politique de protection des données",
     description: "Document de référence exposant notre approche, nos engagements et notre gouvernance en matière de protection des données personnelles.",
     icone: "🛡️",
@@ -38368,7 +38371,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "charte-informatique",
-    fichier: "rgpd/rgpd-charte-informatique.pdf",
+    fichier: "rgpd-charte-informatique.pdf",
     titre: "Charte informatique des salariés",
     description: "Règles d'usage des ressources numériques (ordinateurs, applications, internet, courrier électronique) applicables au personnel MFR.",
     icone: "💻",
@@ -38377,7 +38380,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "formulaires-consentement",
-    fichier: "rgpd/rgpd-formulaires-consentement.pdf",
+    fichier: "rgpd-formulaires-consentement.pdf",
     titre: "Formulaires de consentement",
     description: "Modèles de recueil du consentement pour les traitements soumis à consentement (photos, vidéos, données de santé…).",
     icone: "✍️",
@@ -38386,7 +38389,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "procedure-violations",
-    fichier: "rgpd/rgpd-procedure-violations.pdf",
+    fichier: "rgpd-procedure-violations.pdf",
     titre: "Procédure de gestion des violations de données",
     description: "Procédure interne appliquée en cas d'incident de sécurité affectant des données personnelles (notification CNIL sous 72 h, information des personnes concernées).",
     icone: "🚨",
@@ -38395,7 +38398,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "convention-sous-traitance",
-    fichier: "rgpd/rgpd-convention-sous-traitance.pdf",
+    fichier: "rgpd-convention-sous-traitance.pdf",
     titre: "Convention type de sous-traitance RGPD",
     description: "Modèle de convention conforme à l'article 28 du RGPD, utilisé avec chacun de nos sous-traitants traitant des données pour notre compte.",
     icone: "🤝",
@@ -38404,7 +38407,7 @@ const RGPD_DOCUMENTS = [
   },
   {
     id: "note-separation-dpo",
-    fichier: "rgpd/rgpd-note-separation-dpo.pdf",
+    fichier: "rgpd-note-separation-dpo.pdf",
     titre: "Note de séparation Directrice / DPO",
     description: "Note formalisant l'organisation interne garantissant l'indépendance de la fonction de Déléguée à la Protection des Données, malgré le cumul avec la fonction de Directrice.",
     icone: "⚖️",
@@ -38412,6 +38415,32 @@ const RGPD_DOCUMENTS = [
     couleur: "#6E4B8E"
   }
 ];
+
+// =================================================================
+// RÉSOLUTION DU DOSSIER DES DOCUMENTS RGPD
+// -----------------------------------------------------------------
+// Les PDF sont déposés dans un sous-dossier du dépôt. Son nom a été
+// écrit tantôt « RGPD », tantôt « rgpd », et GitHub Pages distingue la
+// casse : un mauvais choix produit une erreur 404 silencieuse.
+// L'application teste donc les deux au chargement et retient celui
+// qui répond. Renommer le dossier plus tard ne cassera rien.
+// =================================================================
+let DOSSIER_RGPD = "RGPD/";
+let dossierRgpdResolu = false;
+
+async function resoudreDossierRgpd() {
+  if (dossierRgpdResolu) return DOSSIER_RGPD;
+  const temoin = "rgpd-notice-salaries.pdf";
+  const candidats = ["RGPD/", "rgpd/", ""];
+  for (let i = 0; i < candidats.length; i++) {
+    try {
+      const r = await fetch(candidats[i] + temoin, { method: "HEAD", cache: "no-store" });
+      if (r && r.ok) { DOSSIER_RGPD = candidats[i]; dossierRgpdResolu = true; return DOSSIER_RGPD; }
+    } catch (e) { /* protocole file:// ou réseau : on passe au suivant */ }
+  }
+  dossierRgpdResolu = true;   // aucun ne répond : on garde le défaut
+  return DOSSIER_RGPD;
+}
 
 function afficherRgpd() {
   const conteneur = document.getElementById("rgpd-documents-liste");
@@ -38797,8 +38826,8 @@ function carteDocumentRgpd(doc, misEnAvant) {
       '<p>' + escapeHTML(doc.description) + '</p>' +
     '</div>' +
     '<div class="rgpd-doc-actions">' +
-      '<a href="' + doc.fichier + '" target="_blank" rel="noopener" class="btn-primary">📄 Consulter</a>' +
-      '<a href="' + doc.fichier + '" download class="btn-secondary">💾 Télécharger</a>' +
+      '<a href="' + DOSSIER_RGPD + doc.fichier + '" target="_blank" rel="noopener" class="btn-primary">📄 Consulter</a>' +
+      '<a href="' + DOSSIER_RGPD + doc.fichier + '" download class="btn-secondary">💾 Télécharger</a>' +
     '</div>' +
   '</div>';
 }
