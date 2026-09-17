@@ -22709,7 +22709,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.34";
+const APP_VERSION = "4.36";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23178,8 +23178,16 @@ function formatDate(d) {
 // =================================================================
 let utilisateurConnecte = null;
 
+// Normalise un identifiant pour la comparaison : minuscules, sans accents,
+// sans espaces. La saisie « oceane.warembourg » doit trouver le compte
+// « Océane.Warembourg » : un accent ne doit pas empêcher quelqu'un d'entrer.
+function normaliserIdentifiantConnexion(v) {
+  return (v || "").toString().trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
 async function login() {
-  const id = document.getElementById("username").value.trim().toLowerCase();
+  const id = normaliserIdentifiantConnexion(document.getElementById("username").value);
   const code = document.getElementById("password").value.trim();
   const errorBox = document.getElementById("errorMsg");
 
@@ -23206,7 +23214,7 @@ async function login() {
 
   // Mode local : on cherche d'abord dans la liste codée en dur (comptes de test / historiques),
   // puis dans les profils créés depuis l'application (apprentis, familles, lieux, salariés).
-  let user = UTILISATEURS.find(u => u.id.toLowerCase() === id && u.code === code);
+  let user = UTILISATEURS.find(u => normaliserIdentifiantConnexion(u.id) === id && u.code === code);
 
   if (!user) {
     // Recherche dans les profils créés depuis l'application
@@ -23218,7 +23226,7 @@ async function login() {
     const salaries = JSON.parse(localStorage.getItem("mfr_profils_salaries") || "[]");
 
     // Vérifier chaque catégorie de profil (uniquement les statuts actifs)
-    const apprenti = apprentis.find(a => (a.username || "").toLowerCase() === id && a.password === code && (a.statut || "actif") !== "archive");
+    const apprenti = apprentis.find(a => normaliserIdentifiantConnexion(a.username) === id && a.password === code && (a.statut || "actif") !== "archive");
     if (apprenti) {
       user = {
         id: apprenti.username,
@@ -23230,7 +23238,7 @@ async function login() {
     }
 
     if (!user) {
-      const famille = familles.find(f => (f.username || "").toLowerCase() === id && f.password === code && (f.statut || "actif") !== "archive");
+      const famille = familles.find(f => normaliserIdentifiantConnexion(f.username) === id && f.password === code && (f.statut || "actif") !== "archive");
       if (famille) {
         // Récupérer les classes des apprentis liés à cette famille
         const classesFamille = apprentis.filter(function(a) {
@@ -23248,7 +23256,7 @@ async function login() {
     }
 
     if (!user) {
-      const lieu = lieux.find(l => (l.username || "").toLowerCase() === id && l.password === code && (l.statut || "actif") !== "archive");
+      const lieu = lieux.find(l => normaliserIdentifiantConnexion(l.username) === id && l.password === code && (l.statut || "actif") !== "archive");
       if (lieu) {
         // Récupérer les classes des apprentis liés à ce lieu
         const classesLieu = apprentis.filter(a => a.lieuId === lieu.id).map(a => a.classe).filter(Boolean);
@@ -23263,7 +23271,7 @@ async function login() {
     }
 
     if (!user) {
-      const salarie = salaries.find(s => ((s.username || s.identifiant) || "").toLowerCase() === id && s.password === code && (s.statut || "actif") !== "archive");
+      const salarie = salaries.find(s => normaliserIdentifiantConnexion(s.username || s.identifiant) === id && s.password === code && (s.statut || "actif") !== "archive");
       if (salarie) {
         user = {
           id: salarie.username || salarie.identifiant,
@@ -37096,53 +37104,116 @@ function construireCarteSalarieTrombino(s, modifiable) {
 
 const MODE_EMPLOI_CONTENU = {
   "apprenti": {
-    icone: "👨‍🎓",
-    titre: "Mode d'emploi — Apprenti(e)",
-    accroche: "Votre application vous accompagne tout au long de votre parcours à la MFR. Voici tout ce que vous pouvez y faire.",
+    icone: "\u{1F468}\u200D\u{1F393}",
+    titre: "Mode d'emploi \u2014 Apprenti\u00b7e",
+    accroche: "Cette application vous accompagne du premier jour \u00e0 l'examen. Elle remplace le carnet papier, centralise vos \u00e9changes avec la MFR et votre entreprise, et vous donne acc\u00e8s \u00e0 vos droits. Prenez dix minutes pour la parcourir : vous en gagnerez beaucoup ensuite.",
     sections: [
       {
-        titre: "🚪 Se connecter et gérer son compte",
+        titre: "\u{1F6AA} Premiers pas",
         actions: [
-          { titre: "Se connecter à l'application",
-            comment: "Depuis la page d'accueil, saisissez votre identifiant (format prenom.nom) et le mot de passe qui vous a été communiqué par la MFR. Cliquez sur « Se connecter ».",
-            ou: "Page d'accueil de l'application" },
-          { titre: "Récupérer un mot de passe oublié",
-            comment: "Cliquez sur le lien « 🔑 Mot de passe oublié ? » sous le bouton de connexion. Suivez la procédure : contactez la MFR par téléphone ou par courriel pour recevoir un nouveau mot de passe.",
-            ou: "Page d'accueil > lien Mot de passe oublié" },
-          { titre: "Attester ma prise de connaissance des documents RGPD",
-            comment: "Une bannière dorée en haut de l'écran vous rappelle cette obligation. Cliquez sur « Y aller », puis cochez la case et validez. Cette attestation est horodatée et signée cryptographiquement.",
-            ou: "Menu > Protection de vos données" }
+          { titre: "Me connecter",
+            comment: "Votre identifiant a la forme <strong>prenom.nom</strong>. Votre code d'acc\u00e8s compte 8 caract\u00e8res, avec un tiret au milieu \u2014 par exemple Dq9-yT4k. Attention : <strong>les majuscules et les minuscules comptent</strong>. Le dernier caract\u00e8re est toujours une minuscule. Recopiez-le exactement tel qu'il figure sur votre courrier d'accueil.",
+            ou: "\u00c9cran de connexion" },
+          { titre: "J'ai perdu mon code d'acc\u00e8s",
+            comment: "Cliquez sur \u00ab \u{1F511} Mot de passe oubli\u00e9 ? \u00bb sous le bouton de connexion, ou passez au secr\u00e9tariat. Un nouveau code vous sera remis \u2014 l'ancien cessera alors de fonctionner.",
+            ou: "\u00c9cran de connexion > Mot de passe oubli\u00e9" },
+          { titre: "Les deux fen\u00eatres qui s'affichent \u00e0 la premi\u00e8re connexion",
+            comment: "Elles ne peuvent pas \u00eatre ferm\u00e9es tant que vous n'avez pas r\u00e9pondu, et c'est voulu. La premi\u00e8re concerne la <strong>protection de vos donn\u00e9es</strong> : vous attestez avoir pris connaissance de ce que la MFR enregistre \u00e0 votre sujet. La seconde est la <strong>Charte de l'apprentissage</strong> : vous vous engagez sur l'assiduit\u00e9, le s\u00e9rieux des missions confi\u00e9es et le respect des r\u00e8glements. Lisez avant de signer : votre attestation est horodat\u00e9e et scell\u00e9e.",
+            ou: "\u00c0 la connexion, automatiquement" },
+          { titre: "Retrouver ce mode d'emploi",
+            comment: "Il est accessible \u00e0 tout moment, juste apr\u00e8s l'accueil dans le menu. Revenez-y d\u00e8s qu'une fonction vous \u00e9chappe.",
+            ou: "Menu > Mode d'emploi" }
         ]
       },
       {
-        titre: "📅 Suivre son parcours de formation",
+        titre: "\u{1F4C5} Mon parcours au quotidien",
         actions: [
-          { titre: "Consulter mon planning d'alternance",
-            comment: "Retrouvez le calendrier des semaines à la MFR et en entreprise pour toute l'année scolaire. Les périodes de cours et de stage sont clairement identifiées.",
+          { titre: "Savoir quand je suis \u00e0 la MFR et quand je suis en entreprise",
+            comment: "Le planning d'alternance affiche toute l'ann\u00e9e, semaine par semaine : <strong>M</strong> pour les semaines \u00e0 la MFR, <strong>E</strong> pour les semaines en entreprise, <strong>F</strong> pour les p\u00e9riodes de fermeture. Consultez-le avant de poser un rendez-vous ou d'organiser un d\u00e9placement.",
             ou: "Menu > Planning d'alternance" },
-          { titre: "Consulter mon carnet de liaison",
-            comment: "Toutes les échanges entre vous, votre famille, votre maître d'apprentissage et l'équipe pédagogique sont centralisés ici.",
+          { titre: "Tenir mon carnet de liaison",
+            comment: "C'est le lien entre vous, votre famille, votre ma\u00eetre d'apprentissage et l'\u00e9quipe. Vous y consignez ce que vous faites en entreprise, vos progr\u00e8s et vos difficult\u00e9s. Chacun peut y \u00e9crire et tout le monde le lit : soignez ce que vous y \u00e9crivez.",
             ou: "Menu > Mon carnet de liaison" },
-          { titre: "Consulter mes évaluations",
-            comment: "Suivez vos notes et appréciations pour chaque module. Vos évaluations en entreprise sont également consultables.",
-            ou: "Menu > Mes évaluations" },
-          { titre: "Passer les tests de positionnement",
-            comment: "En début de formation, l'équipe pédagogique vous invite à passer les tests de positionnement pour évaluer vos acquis. Suivez le lien fourni par votre formateur.",
-            ou: "Sur invitation de l'équipe pédagogique" }
+          { titre: "Compl\u00e9ter mon livret d'apprentissage",
+            comment: "Le livret suit l'acquisition de vos comp\u00e9tences professionnelles tout au long de la formation. Il est renseign\u00e9 avec votre ma\u00eetre d'apprentissage et votre r\u00e9f\u00e9rent. C'est une pi\u00e8ce attendue \u00e0 l'examen : ne le laissez pas pour la fin.",
+            ou: "Menu > Livret d'apprentissage" },
+          { titre: "Consulter mes absences",
+            comment: "Vos absences et retards sont enregistr\u00e9s ici, avec leur motif et leur justification. V\u00e9rifiez r\u00e9guli\u00e8rement : une erreur se corrige d'autant plus facilement qu'elle est signal\u00e9e t\u00f4t. Toute absence doit \u00eatre justifi\u00e9e aupr\u00e8s de la MFR <strong>et</strong> de votre employeur.",
+            ou: "Menu > Mes absences" },
+          { titre: "\u00c9marger en cours",
+            comment: "Votre pr\u00e9sence est saisie par le formateur en d\u00e9but de s\u00e9ance. L'\u00e9margement est horodat\u00e9 et sign\u00e9 \u00e9lectroniquement : il sert de justificatif aupr\u00e8s de l'OPCO qui finance votre formation. Vous pouvez consulter votre historique et votre taux de pr\u00e9sence.",
+            ou: "Menu > \u00c9margement" },
+          { titre: "Demander un rendez-vous",
+            comment: "Choisissez un motif, proposez jusqu'\u00e0 trois cr\u00e9neaux, ajoutez un message si besoin. L'application vous indique \u00e0 qui votre demande est transmise. Vous recevez la r\u00e9ponse \u00e0 votre connexion suivante.",
+            ou: "Menu > Demandes de RDV" }
         ]
       },
       {
-        titre: "✍️ Émarger et signaler",
+        titre: "\u{1F4CA} Mes r\u00e9sultats et mon positionnement",
         actions: [
-          { titre: "Émarger ma présence",
-            comment: "Selon les modalités définies par votre formateur : soit collectivement en début de cours, soit via un code de session communiqué à l'oral. Votre émargement est horodaté et infalsifiable.",
-            ou: "Menu > Émargement" },
-          { titre: "Demander un rendez-vous",
-            comment: "Pour toute question, rencontre ou entretien souhaité, utilisez la fonction de demande de rendez-vous. Précisez le motif et vos disponibilités.",
-            ou: "Menu > Demandes de RDV" },
-          { titre: "Signaler une difficulté",
-            comment: "Si vous rencontrez un problème (santé, harcèlement, difficulté personnelle...), utilisez la procédure de signalement pour alerter l'équipe. Votre signalement peut rester confidentiel.",
-            ou: "Menu > Signalement" }
+          { titre: "Passer les tests de positionnement",
+            comment: "En d\u00e9but de formation, ces tests \u00e9valuent vos acquis en fran\u00e7ais, math\u00e9matiques, anglais, num\u00e9rique et dans votre domaine professionnel. <strong>Ce n'est pas un examen et il n'y a pas de note \u00e0 obtenir.</strong> Ils servent \u00e0 adapter l'accompagnement \u00e0 vos besoins r\u00e9els : r\u00e9pondez sinc\u00e8rement, c'est votre int\u00e9r\u00eat.",
+            ou: "Menu > Tests de positionnement" },
+          { titre: "Consulter mes r\u00e9sultats et mes \u00e9valuations",
+            comment: "Notes, appr\u00e9ciations des formateurs, \u00e9valuations de vos comp\u00e9tences en entreprise : tout est regroup\u00e9. Votre moniteur peut \u00e9diter un compte rendu d\u00e9taill\u00e9 de votre positionnement, avec vos points d'appui et vos priorit\u00e9s de travail. Demandez-le lors de votre entretien.",
+            ou: "Menu > Mes \u00e9valuations" },
+          { titre: "Consulter mes bulletins",
+            comment: "Les bulletins scolaires de chaque p\u00e9riode sont consultables et t\u00e9l\u00e9chargeables.",
+            ou: "Menu > Bulletins scolaires" }
+        ]
+      },
+      {
+        titre: "\u{1F4DD} Donner mon avis \u2014 c'est attendu de vous",
+        actions: [
+          { titre: "R\u00e9pondre aux enqu\u00eates de satisfaction",
+            comment: "Plusieurs fois dans l'ann\u00e9e, un questionnaire vous est adress\u00e9 : accueil, qualit\u00e9 des cours, alternance, conditions de vie. Une fen\u00eatre s'affiche \u00e0 votre connexion et vous pouvez la reporter \u2014 mais elle revient, \u00e0 intervalles de plus en plus rapproch\u00e9s : 24 h, puis 12 h, puis 6 h, puis 3 h. Le plus simple est de r\u00e9pondre tout de suite : comptez trois minutes.",
+            ou: "Menu > Enqu\u00eates, ou via la fen\u00eatre de rappel" },
+          { titre: "\u00c9valuer les enseignements",
+            comment: "Distinct des enqu\u00eates de satisfaction, ce dispositif porte sur les <strong>contenus et les cours eux-m\u00eames</strong>, mati\u00e8re par mati\u00e8re. Les r\u00e9sultats sont pr\u00e9sent\u00e9s \u00e0 l'\u00e9quipe p\u00e9dagogique en r\u00e9union et donnent lieu \u00e0 des am\u00e9liorations concr\u00e8tes. C'est le levier le plus direct dont vous disposez pour faire \u00e9voluer votre formation.",
+            ou: "Menu > \u00c9valuation des enseignements" },
+          { titre: "\u00c0 quoi servent mes r\u00e9ponses",
+            comment: "Elles sont analys\u00e9es de fa\u00e7on group\u00e9e, pr\u00e9sent\u00e9es au conseil de perfectionnement et servent \u00e0 corriger ce qui doit l'\u00eatre. La MFR est certifi\u00e9e Qualiopi : ce recueil est une obligation, et les taux de r\u00e9ponse sont v\u00e9rifi\u00e9s lors des audits.",
+            ou: "\u2014" }
+        ]
+      },
+      {
+        titre: "\u{1F6E1}\uFE0F En cas de difficult\u00e9 \u2014 ne restez pas seul\u00b7e",
+        actions: [
+          { titre: "Signaler une violence, un harc\u00e8lement ou une discrimination",
+            comment: "\u00c0 la MFR, en entreprise, sur le trajet ou en ligne. Le signalement <strong>peut \u00eatre anonyme</strong> et il est trait\u00e9 par la direction sans d\u00e9lai. La page affiche aussi les num\u00e9ros d'\u00e9coute gratuits et confidentiels : 3919, 3018, 30 20, et le 119 si vous \u00eates mineur\u00b7e.",
+            ou: "Menu > Signalement" },
+          { titre: "D\u00e9poser une r\u00e9clamation",
+            comment: "Une r\u00e9clamation, ce n'est pas un signalement : elle porte sur l'organisation, la p\u00e9dagogie, la restauration, l'internat ou tout autre aspect du service. Elle est enregistr\u00e9e, suivie et re\u00e7oit une r\u00e9ponse. C'est un droit, et son traitement est contr\u00f4l\u00e9 en audit.",
+            ou: "Menu > R\u00e9clamations" },
+          { titre: "Conna\u00eetre mes droits d'apprenti\u00b7e",
+            comment: "Temps de travail, repos, r\u00e9mun\u00e9ration minimale, travail de nuit, m\u00e9diateur de l'apprentissage : la page rassemble l'essentiel, avec des r\u00e8gles renforc\u00e9es si vous \u00eates mineur\u00b7e. Un guide imprimable est t\u00e9l\u00e9chargeable \u2014 gardez-le.",
+            ou: "Menu > Mes droits" },
+          { titre: "Savoir quoi faire en cas d'accident du travail",
+            comment: "La page Sant\u00e9 et s\u00e9curit\u00e9 explique la conduite \u00e0 tenir, les obligations de votre employeur en mati\u00e8re de s\u00e9curit\u00e9, et ce que vous ne devez jamais accepter de faire. \u00c0 lire <strong>avant</strong> d'en avoir besoin.",
+            ou: "Menu > Sant\u00e9 et s\u00e9curit\u00e9 au travail" },
+          { titre: "Demander un am\u00e9nagement li\u00e9 \u00e0 un handicap",
+            comment: "Un trouble de l'apprentissage, une maladie, une situation de handicap reconnue ou non : des am\u00e9nagements existent, en formation comme \u00e0 l'examen. La r\u00e9f\u00e9rente handicap de la MFR est votre interlocutrice, et la d\u00e9marche reste confidentielle. N'attendez pas d'\u00eatre en difficult\u00e9.",
+            ou: "Menu > Accessibilit\u00e9 et handicap" },
+          { titre: "Savoir qui contacter",
+            comment: "L'annuaire indique le bon interlocuteur selon votre question, et le trombinoscope met un visage sur chaque nom.",
+            ou: "Menu > Contacts \u00b7 Menu > Trombinoscope" }
+        ]
+      },
+      {
+        titre: "\u{1F30D} Aller plus loin",
+        actions: [
+          { titre: "Partir en mobilit\u00e9 Erasmus+",
+            comment: "La MFR organise un s\u00e9jour europ\u00e9en. La page pr\u00e9sente la destination, les dates, le d\u00e9roul\u00e9 de la pr\u00e9paration et la r\u00e9f\u00e9rente mobilit\u00e9. Une convention est sign\u00e9e par votre famille, votre entreprise et la MFR : <strong>c'est la MFR qui vous contacte</strong>, vous n'avez aucune d\u00e9marche \u00e0 engager. Anticipez en revanche votre pi\u00e8ce d'identit\u00e9, elle prend du temps.",
+            ou: "Menu > Erasmus+" },
+          { titre: "Pr\u00e9parer la suite de mon parcours",
+            comment: "Poursuite d'\u00e9tudes ou entr\u00e9e dans l'emploi : la page pr\u00e9sente les passerelles possibles apr\u00e8s votre dipl\u00f4me et les r\u00e9sultats des promotions pr\u00e9c\u00e9dentes. Parlez-en \u00e0 votre r\u00e9f\u00e9rent d\u00e8s le deuxi\u00e8me trimestre.",
+            ou: "Menu > Poursuites d'\u00e9tudes" },
+          { titre: "Comprendre le financement de ma formation",
+            comment: "Votre formation ne vous co\u00fbte rien : elle est financ\u00e9e par l'OPCO de votre entreprise. La page d\u00e9taille ce qui reste \u00e0 la charge de votre famille \u2014 restauration, h\u00e9bergement \u2014 et pr\u00e9cise que ces frais sont <strong>r\u00e9gularis\u00e9s fin juillet</strong>.",
+            ou: "Menu > Tarifs et financement" },
+          { titre: "Suivre les actualit\u00e9s de la MFR",
+            comment: "\u00c9v\u00e9nements, \u00e9ch\u00e9ances, informations pratiques sont publi\u00e9s sur la page d'accueil. Les notifications vous alertent de ce qui vous concerne directement.",
+            ou: "Accueil \u00b7 Menu > Notifications" }
         ]
       }
     ]
