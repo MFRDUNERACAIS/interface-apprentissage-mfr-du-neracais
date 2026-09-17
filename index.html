@@ -9651,6 +9651,33 @@
     text-transform: uppercase; letter-spacing: 0.03em;
   }
   .appr-familles-vide { font-size: 0.88rem; color: var(--text-muted); font-style: italic; padding: 0.5rem; }
+  /* Personnalisation du mot de passe */
+  .mdp-champ { margin-bottom: 0.8rem; }
+  .mdp-champ label {
+    display: block; font-size: 0.85rem; font-weight: 600;
+    color: var(--olive-dark); margin-bottom: 0.25rem;
+  }
+  .mdp-champ input {
+    width: 100%; padding: 0.55rem 0.7rem; font: inherit;
+    border: 1px solid var(--border); border-radius: 6px;
+  }
+  .mdp-champ input:focus { outline: 2px solid var(--olive); outline-offset: 1px; }
+  .mdp-jauge {
+    height: 6px; background: #E8E8E0; border-radius: 3px;
+    overflow: hidden; margin-bottom: 0.3rem;
+  }
+  .mdp-jauge-barre { height: 100%; width: 0%; background: var(--mfr-red); transition: width 0.2s, background 0.2s; }
+  .mdp-force { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.9rem; }
+  .mdp-voir { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.9rem; }
+  .mdp-conseils {
+    background: #FFF8E1; border-left: 4px solid var(--or);
+    padding: 0.7rem 0.9rem; border-radius: 6px; font-size: 0.85rem; line-height: 1.5;
+  }
+  .mdp-erreur {
+    display: none; margin-top: 0.8rem; background: #FCE8E8;
+    border-left: 4px solid var(--mfr-red); padding: 0.6rem 0.9rem;
+    border-radius: 6px; font-size: 0.88rem; color: #8E4A28; font-weight: 600;
+  }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -16187,6 +16214,7 @@
     </div>
     <div class="user-info">
       <span id="userGreeting"></span>
+      <button class="btn-logout" onclick="afficherPopupMotDePasse(true)" title="Changer mon mot de passe">🔑</button>
       <button class="btn-logout" onclick="logout()">Déconnexion</button>
     </div>
   </header>
@@ -22709,7 +22737,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.36";
+const APP_VERSION = "4.37";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23181,9 +23209,206 @@ let utilisateurConnecte = null;
 // Normalise un identifiant pour la comparaison : minuscules, sans accents,
 // sans espaces. La saisie « oceane.warembourg » doit trouver le compte
 // « Océane.Warembourg » : un accent ne doit pas empêcher quelqu'un d'entrer.
+// =================================================================
+// MOT DE PASSE PERSONNEL
+// -----------------------------------------------------------------
+// À la première connexion, chacun remplace le code provisoire remis par
+// la MFR par un mot de passe qu'il choisit. Ce mot de passe personnel
+// n'est PAS conservé en clair : seule son empreinte SHA-256, salée par
+// l'identifiant, est enregistrée. Personne — pas même la Direction —
+// ne peut le relire. En cas d'oubli, il faut en générer un nouveau.
+// =================================================================
+
+async function hacherMotDePasse(identifiant, motDePasse) {
+  try {
+    if (!window.crypto || !crypto.subtle) return "";
+    const base = normaliserIdentifiantConnexion(identifiant) + "|mfr-neracais|" + motDePasse;
+    const tampon = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(base));
+    return Array.from(new Uint8Array(tampon))
+      .map(function(b) { return b.toString(16).padStart(2, "0"); }).join("");
+  } catch (e) { return ""; }
+}
+
+// Vrai si le code saisi correspond au profil : empreinte si le mot de passe
+// a été personnalisé, code provisoire en clair sinon.
+async function motDePasseCorrespond(profil, identifiant, code) {
+  if (!profil) return false;
+  if (profil.passwordHash) {
+    const h = await hacherMotDePasse(identifiant, code);
+    return !!h && h === profil.passwordHash;
+  }
+  return profil.password === code;
+}
+
+// Recherche asynchrone d'un profil par identifiant puis vérification du code.
+async function trouverProfilConnexion(liste, id, code, champId) {
+  for (let i = 0; i < liste.length; i++) {
+    const p = liste[i];
+    const idProfil = champId ? champId(p) : p.username;
+    if (normaliserIdentifiantConnexion(idProfil) !== id) continue;
+    if ((p.statut || "actif") === "archive") continue;
+    if (await motDePasseCorrespond(p, idProfil, code)) return p;
+  }
+  return null;
+}
+
 function normaliserIdentifiantConnexion(v) {
   return (v || "").toString().trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+// -----------------------------------------------------------------
+// Personnalisation du mot de passe à la première connexion
+// -----------------------------------------------------------------
+
+function doitPersonnaliserMotDePasse(profil) {
+  if (!profil) return false;
+  return !profil.passwordHash;
+}
+
+// Affiche la fenêtre de personnalisation si nécessaire. Retourne true si
+// elle est affichée : les autres fenêtres bloquantes attendent leur tour.
+function majPopupMotDePasse() {
+  const u = utilisateurConnecte;
+  if (!u) return false;
+  const profil = (typeof trouverProfilConnecte === "function") ? trouverProfilConnecte(u) : null;
+  if (!doitPersonnaliserMotDePasse(profil)) return false;
+  afficherPopupMotDePasse(false);
+  return true;
+}
+
+function afficherPopupMotDePasse(volontaire) {
+  const existant = document.getElementById("popup-mdp");
+  if (existant) existant.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "popup-mdp";
+  overlay.className = "popup-rgpd-overlay no-print";
+  overlay.style.display = "flex";
+  overlay.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header">' +
+        '<span class="popup-rgpd-icone">\u{1F511}</span>' +
+        '<h2>' + (volontaire ? "Changer mon mot de passe" : "Choisissez votre mot de passe") + '</h2>' +
+      '</div>' +
+      '<div class="popup-rgpd-body">' +
+        (volontaire
+          ? '<p>Choisissez un nouveau mot de passe. Il remplacera imm\u00e9diatement le pr\u00e9c\u00e9dent.</p>'
+          : '<p>Le code que la MFR vous a remis \u00e9tait <strong>provisoire</strong>. Choisissez maintenant ' +
+            'un mot de passe personnel, que vous serez seul\u00b7e \u00e0 conna\u00eetre.</p>') +
+        '<div class="mdp-champ"><label for="mdp-nouveau">Nouveau mot de passe</label>' +
+          '<input type="password" id="mdp-nouveau" autocomplete="new-password" oninput="evaluerForceMotDePasse()"></div>' +
+        '<div class="mdp-jauge"><div class="mdp-jauge-barre" id="mdp-jauge-barre"></div></div>' +
+        '<div class="mdp-force" id="mdp-force">8 caract\u00e8res minimum.</div>' +
+        '<div class="mdp-champ"><label for="mdp-confirme">Confirmez le mot de passe</label>' +
+          '<input type="password" id="mdp-confirme" autocomplete="new-password"></div>' +
+        '<label class="mdp-voir"><input type="checkbox" onchange="basculerVisibiliteMdp(this.checked)"> Afficher les mots de passe</label>' +
+        '<div class="mdp-conseils"><strong>Conseils.</strong> Prenez quelque chose que vous retiendrez sans l\'\u00e9crire : ' +
+          'trois mots accol\u00e9s font un excellent mot de passe. <strong>N\'utilisez pas</strong> un mot de passe que vous ' +
+          'employez d\u00e9j\u00e0 ailleurs \u2014 messagerie, r\u00e9seaux sociaux, banque.</div>' +
+        '<div class="mdp-erreur" id="mdp-erreur"></div>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="validerNouveauMotDePasse(' + (volontaire ? "true" : "false") + ')">\u2713 Enregistrer</button>' +
+        (volontaire ? ' <button class="btn-secondaire" onclick="fermerPopupMotDePasse()">Annuler</button>' : '') +
+      '</div>' +
+      '<div class="popup-rgpd-footer"><small>' +
+        (volontaire ? "" : "Cette \u00e9tape est obligatoire \u00e0 la premi\u00e8re connexion. ") +
+        "Votre mot de passe est enregistr\u00e9 sous forme d'empreinte chiffr\u00e9e : personne ne peut le relire, " +
+        "pas m\u00eame la Direction. En cas d'oubli, un nouveau code provisoire vous sera remis." +
+      '</small></div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+  setTimeout(function() { const c = document.getElementById("mdp-nouveau"); if (c) c.focus(); }, 100);
+}
+
+function fermerPopupMotDePasse() {
+  const p = document.getElementById("popup-mdp");
+  if (p) p.remove();
+}
+
+function basculerVisibiliteMdp(visible) {
+  ["mdp-nouveau", "mdp-confirme"].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.type = visible ? "text" : "password";
+  });
+}
+
+function forceMotDePasse(mdp) {
+  const v = mdp || "";
+  let score = 0;
+  if (v.length >= 8) score++;
+  if (v.length >= 12) score++;
+  if (/[a-z]/.test(v) && /[A-Z]/.test(v)) score++;
+  if (/[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  if (v.length >= 16) score++;
+  // La longueur prime sur la variété des caractères : une phrase de passe
+  // vaut mieux qu'un mot court truffé de symboles (recommandation ANSSI).
+  if (v.length >= 20) score += 2;
+  if (score <= 1) return { niveau: 1, libelle: "Tr\u00e8s faible", couleur: "#C97A4F" };
+  if (score === 2) return { niveau: 2, libelle: "Faible", couleur: "#C97A4F" };
+  if (score === 3) return { niveau: 3, libelle: "Correct", couleur: "#C9A23E" };
+  if (score === 4) return { niveau: 4, libelle: "Bon", couleur: "#5C6F3E" };
+  return { niveau: 5, libelle: "Tr\u00e8s bon", couleur: "#2E5B31" };
+}
+
+function evaluerForceMotDePasse() {
+  const el = document.getElementById("mdp-nouveau");
+  const barre = document.getElementById("mdp-jauge-barre");
+  const texte = document.getElementById("mdp-force");
+  if (!el || !barre || !texte) return;
+  const v = el.value;
+  if (!v) { barre.style.width = "0%"; texte.textContent = "8 caract\u00e8res minimum."; texte.style.color = ""; return; }
+  const f = forceMotDePasse(v);
+  barre.style.width = (f.niveau * 20) + "%";
+  barre.style.background = f.couleur;
+  texte.textContent = "Robustesse : " + f.libelle + (v.length < 8 ? " \u2014 encore " + (8 - v.length) + " caract\u00e8re(s)" : "");
+  texte.style.color = f.couleur;
+}
+
+async function validerNouveauMotDePasse(volontaire) {
+  const u = utilisateurConnecte;
+  const err = document.getElementById("mdp-erreur");
+  const afficherErreur = function(m) { if (err) { err.textContent = m; err.style.display = "block"; } };
+  if (err) err.style.display = "none";
+
+  if (!u) { afficherErreur("Session expir\u00e9e. Reconnectez-vous."); return; }
+  const nouveau = (document.getElementById("mdp-nouveau") || {}).value || "";
+  const confirme = (document.getElementById("mdp-confirme") || {}).value || "";
+
+  if (nouveau.length < 8) { afficherErreur("Le mot de passe doit comporter au moins 8 caract\u00e8res."); return; }
+  if (nouveau !== confirme) { afficherErreur("Les deux saisies ne correspondent pas."); return; }
+  if (normaliserIdentifiantConnexion(nouveau) === normaliserIdentifiantConnexion(u.id)) {
+    afficherErreur("Le mot de passe ne peut pas \u00eatre votre identifiant."); return;
+  }
+  if (u.code && nouveau === u.code) { afficherErreur("Choisissez un mot de passe diff\u00e9rent du code provisoire."); return; }
+
+  const profil = trouverProfilConnecte(u);
+  if (!profil) { afficherErreur("Votre profil est introuvable. Signalez-le au secr\u00e9tariat."); return; }
+
+  const identifiant = profil.username || profil.identifiant || u.id;
+  const empreinte = await hacherMotDePasse(identifiant, nouveau);
+  if (!empreinte) {
+    afficherErreur("Le chiffrement n'est pas disponible sur ce navigateur. Contactez le secr\u00e9tariat.");
+    return;
+  }
+
+  profil.passwordHash = empreinte;
+  delete profil.password;  // le code provisoire en clair dispara\u00eet d\u00e9finitivement
+  profil.dateChangementMdp = new Date().toISOString();
+  sauvegarderProfilConnecte(u);
+  utilisateurConnecte.code = "";
+
+  fermerPopupMotDePasse();
+  alert("\u2705 Votre mot de passe a \u00e9t\u00e9 enregistr\u00e9.\n\n" +
+    "Utilisez-le \u00e0 vos prochaines connexions. Personne ne peut le relire : " +
+    "en cas d'oubli, demandez un nouveau code provisoire au secr\u00e9tariat.");
+
+  if (!volontaire) {
+    if (typeof majBadgeAttestationRgpd === "function") majBadgeAttestationRgpd();
+    if (typeof majPopupCharte === "function") majPopupCharte();
+  }
 }
 
 async function login() {
@@ -23226,7 +23451,7 @@ async function login() {
     const salaries = JSON.parse(localStorage.getItem("mfr_profils_salaries") || "[]");
 
     // Vérifier chaque catégorie de profil (uniquement les statuts actifs)
-    const apprenti = apprentis.find(a => normaliserIdentifiantConnexion(a.username) === id && a.password === code && (a.statut || "actif") !== "archive");
+    const apprenti = await trouverProfilConnexion(apprentis, id, code);
     if (apprenti) {
       user = {
         id: apprenti.username,
@@ -23238,7 +23463,7 @@ async function login() {
     }
 
     if (!user) {
-      const famille = familles.find(f => normaliserIdentifiantConnexion(f.username) === id && f.password === code && (f.statut || "actif") !== "archive");
+      const famille = await trouverProfilConnexion(familles, id, code);
       if (famille) {
         // Récupérer les classes des apprentis liés à cette famille
         const classesFamille = apprentis.filter(function(a) {
@@ -23256,7 +23481,7 @@ async function login() {
     }
 
     if (!user) {
-      const lieu = lieux.find(l => normaliserIdentifiantConnexion(l.username) === id && l.password === code && (l.statut || "actif") !== "archive");
+      const lieu = await trouverProfilConnexion(lieux, id, code);
       if (lieu) {
         // Récupérer les classes des apprentis liés à ce lieu
         const classesLieu = apprentis.filter(a => a.lieuId === lieu.id).map(a => a.classe).filter(Boolean);
@@ -23271,7 +23496,7 @@ async function login() {
     }
 
     if (!user) {
-      const salarie = salaries.find(s => normaliserIdentifiantConnexion(s.username || s.identifiant) === id && s.password === code && (s.statut || "actif") !== "archive");
+      const salarie = await trouverProfilConnexion(salaries, id, code, function(p) { return p.username || p.identifiant; });
       if (salarie) {
         user = {
           id: salarie.username || salarie.identifiant,
@@ -23302,6 +23527,7 @@ async function login() {
     try { afficherAlertesSuivi(); } catch(e){}
   }
   if (typeof migrerRattachementsFamille === "function") migrerRattachementsFamille();
+  if (typeof majPopupMotDePasse === "function" && majPopupMotDePasse()) return;
   if (typeof majBadgeAttestationRgpd === "function") majBadgeAttestationRgpd();
   if (typeof majPopupCharte === "function") majPopupCharte();
   if (typeof chargerAlertes === "function" && utilisateurConnecte && utilisateurConnecte.role === "mfr") {
@@ -31224,6 +31450,8 @@ function reinitMotDePasse(type, id) {
   if (!confirm(`Réinitialiser le mot de passe de "${nomAffiche}" ?\n\nL'ancien mot de passe ne fonctionnera plus. Vous obtiendrez une nouvelle fiche d'accès à transmettre.`)) return;
 
   profil.password = genererMotDePasse();
+  delete profil.passwordHash;   // le mot de passe personnel est annulé
+  delete profil.dateChangementMdp;
   profil.dateReinitMdp = new Date().toISOString();
   sauvegarderProfils();
   afficherFicheAcces(type, profil, true);
@@ -31698,6 +31926,8 @@ function reinitMotDePasseSalarie(id) {
   const nomAffiche = (salarie.prenom || "") + " " + (salarie.nom || "");
   if (!confirm("Réinitialiser le mot de passe de " + nomAffiche.trim() + " ?\n\nUn nouveau mot de passe sera généré et un courrier vous sera proposé à l'impression.")) return;
   salarie.password = genererMotDePasse();
+  delete salarie.passwordHash;   // le mot de passe personnel est annulé
+  delete salarie.dateChangementMdp;
   if (!salarie.username && salarie.identifiant) salarie.username = salarie.identifiant;
   salarie.dateReinitMdp = new Date().toISOString();
   localStorage.setItem("mfr_profils_salaries", JSON.stringify(PROFILS_SALARIES));
