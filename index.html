@@ -21891,6 +21891,7 @@
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
           <button class="btn-secondary" onclick="testerConnexionFirebase()">🔥 Tester la connexion Firebase</button>
           <button class="btn-secondary" onclick="creerComptesFirebase()">☁️ Créer les comptes Firebase</button>
+          <button class="btn-secondary" onclick="reparerCompteFirebase()">🔧 Réparer un compte Firebase</button>
           <button class="btn-secondary" onclick="ouvrirImport('salarie')">📥 Importer depuis CSV</button>
           <button class="btn-secondary" onclick="exporterProfils('salarie')">📊 Exporter CSV</button>
           <div class="profils-filtres">
@@ -22745,7 +22746,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.43";
+const APP_VERSION = "4.44";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23497,6 +23498,88 @@ function profilsACreer() {
   ajouter(typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [], "maitre");
   ajouter(typeof PROFILS_SALARIES !== "undefined" ? PROFILS_SALARIES : [], "mfr");
   return liste;
+}
+
+// Répare un compte désynchronisé : le compte existe dans Firebase avec un
+// code, la fiche locale en porte un autre, et plus rien ne se recoupe.
+// On demande le code réellement accepté par Firebase, on s'y connecte, on
+// écrit la fiche d'annuaire manquante, puis on aligne la fiche locale.
+async function reparerCompteFirebase(identifiantParDefaut) {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
+    alert("Cette opération est réservée à la Direction et au Secrétariat.");
+    return;
+  }
+  if (!initialiserFirebase()) { alert("Firebase n'est pas joignable."); return; }
+  const auth2 = instanceCreation();
+  if (!auth2) { alert("Impossible de préparer l'instance de réparation."); return; }
+
+  const idSaisi = prompt(
+    "RÉPARER UN COMPTE\n\n" +
+    "Identifiant du compte à réparer :",
+    identifiantParDefaut || "");
+  if (!idSaisi) return;
+  const id = normaliserIdentifiantConnexion(idSaisi).replace(/^\.+|\.+$/g, "");
+  if (!id) { alert("Identifiant inexploitable."); return; }
+
+  // Retrouver le profil local correspondant
+  let profil = null, role = null;
+  const recherche = [
+    [typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [], "apprenti"],
+    [typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [], "parent"],
+    [typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [], "maitre"],
+    [typeof PROFILS_SALARIES !== "undefined" ? PROFILS_SALARIES : [], "mfr"]
+  ];
+  recherche.forEach(function(paire) {
+    if (profil) return;
+    const p = paire[0].find(function(x) {
+      return normaliserIdentifiantConnexion(x.username || x.identifiant) === id;
+    });
+    if (p) { profil = p; role = paire[1]; }
+  });
+  if (!profil) {
+    alert("Aucune fiche locale ne porte l'identifiant « " + id + " ».");
+    return;
+  }
+
+  const code = prompt(
+    "Code d'accès ACCEPTÉ PAR FIREBASE pour " + id + ".\n\n" +
+    "Si vous ne le connaissez plus, annulez : supprimez le compte dans la console\n" +
+    "Firebase puis relancez ☁️ Créer les comptes.\n\n" +
+    "Code :", profil.password || "");
+  if (!code) return;
+
+  try {
+    const cred = await auth2.signInWithEmailAndPassword(id + DOMAINE_TECHNIQUE, code);
+    await fbDbCreation.collection("annuaire").doc(cred.user.uid)
+      .set(ficheAnnuaire(profil, role, id));
+    profil.uidFirebase = cred.user.uid;
+    profil.password = code;              // la fiche locale s'aligne sur Firebase
+    delete profil.passwordHash;
+    profil.username = id;
+    profil.identifiant = id;
+    sauvegarderProfils();
+    try { await auth2.signOut(); } catch (e) {}
+    alert("✅ Compte réparé : " + id + "\n\n" +
+      "La fiche d'annuaire est écrite et la fiche locale alignée.\n" +
+      "Code d'accès : " + code + "\n\n" +
+      "N'oubliez pas de republier les règles normales.");
+    if (typeof filtrerSalaries === "function") filtrerSalaries();
+  } catch (e) {
+    const c = (e && e.code) ? e.code : "";
+    try { await auth2.signOut(); } catch (e2) {}
+    if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found") {
+      alert("⛔ Firebase refuse ce code pour " + id + ".\n\n" +
+        "Le compte existe peut-être avec un autre code, ou n'existe pas du tout.\n\n" +
+        "Remède sûr : console Firebase > Authentication > Utilisateurs >\n" +
+        "supprimez " + id + DOMAINE_TECHNIQUE + " > puis relancez ☁️ Créer les comptes.");
+    } else if (c === "permission-denied") {
+      alert("⛔ L'écriture dans l'annuaire est refusée.\n\n" +
+        "Publiez les règles de bascule, relancez cette réparation,\n" +
+        "puis republiez les règles normales.");
+    } else {
+      alert("⛔ Échec : " + (c || (e && e.message) || e));
+    }
+  }
 }
 
 async function creerComptesFirebase() {
