@@ -22349,6 +22349,15 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v4.32 (17/09/2026) — Fiche famille : liste des liens de rattachement
+//        élargie — tutrice légale, éducateur référent, éducatrice
+//        référente, structure d'accueil.
+//        LIMITE CONNUE, non corrigée à ce stade : un apprenti ne peut
+//        être rattaché qu'à UNE seule fiche famille (champ familleId,
+//        27 points d'usage dans le code). Les contacts supplémentaires
+//        peuvent être créés mais n'obtiennent ni accès au carnet de
+//        liaison, ni enquête de satisfaction, ni notification.
+//        Refonte en famillesIds[] à prévoir.
 //   v4.31 (17/09/2026) — Accès des salariés : trois corrections :
 //        (1) aucun identifiant ni mot de passe n'était généré à la
 //        création d'une fiche salarié, contrairement aux apprentis, aux
@@ -22666,8 +22675,8 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.31";
-const APP_DATE_BUILD = "16 septembre 2026";
+const APP_VERSION = "4.32";
+const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
 document.addEventListener("DOMContentLoaded", function() {
@@ -22675,7 +22684,11 @@ document.addEventListener("DOMContentLoaded", function() {
   if (el) el.textContent = new Date().getFullYear();
   // Injection version sur la page de connexion
   const v = document.getElementById("loginVersion");
-  if (v) v.textContent = "Version " + APP_VERSION + " · " + APP_DATE_BUILD;
+  if (v) {
+    v.textContent = "Version " + APP_VERSION + " · " + APP_DATE_BUILD;
+    v.title = "Si ce numéro ne correspond pas à la dernière version livrée, "
+      + "le navigateur affiche une copie en cache : rechargez avec Ctrl+Maj+R.";
+  }
 });
 
 // =================================================================
@@ -30929,7 +30942,11 @@ function ouvrirFormulaireFamille(idExistant) {
                 <option value="Mère" ${famille?.lien === 'Mère' ? 'selected' : ''}>Mère</option>
                 <option value="Père" ${famille?.lien === 'Père' ? 'selected' : ''}>Père</option>
                 <option value="Tuteur légal" ${famille?.lien === 'Tuteur légal' ? 'selected' : ''}>Tuteur légal</option>
+                <option value="Tutrice légale" ${famille?.lien === 'Tutrice légale' ? 'selected' : ''}>Tutrice légale</option>
                 <option value="Famille d'accueil" ${famille?.lien === "Famille d'accueil" ? 'selected' : ''}>Famille d'accueil</option>
+                <option value="Éducateur référent" ${famille?.lien === 'Éducateur référent' ? 'selected' : ''}>Éducateur référent</option>
+                <option value="Éducatrice référente" ${famille?.lien === 'Éducatrice référente' ? 'selected' : ''}>Éducatrice référente</option>
+                <option value="Structure d'accueil" ${famille?.lien === "Structure d'accueil" ? 'selected' : ''}>Structure d'accueil</option>
                 <option value="Autre" ${famille?.lien === 'Autre' ? 'selected' : ''}>Autre</option>
               </select>
             </div>
