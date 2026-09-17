@@ -9629,6 +9629,28 @@
     padding: 0.7rem 0.9rem; border-radius: 6px; font-size: 0.9rem;
   }
   .popup-charte-role:empty { display: none; }
+  /* Rattachement multiple apprenti / familles */
+  .appr-familles-liste {
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.5rem; max-height: 200px; overflow-y: auto; background: #FFFDF5;
+  }
+  .appr-famille-item {
+    display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;
+    padding: 0.4rem 0.6rem; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+  }
+  .appr-famille-item:hover { background: var(--beige); }
+  .appr-famille-item.est-coche { background: #F1F8E9; }
+  .appr-famille-nom { font-weight: 600; color: var(--olive-dark); }
+  .appr-famille-lien {
+    background: var(--beige-dark); border-radius: 999px;
+    padding: 0.05rem 0.5rem; font-size: 0.76rem; color: var(--text-muted);
+  }
+  .appr-famille-principal {
+    background: var(--or); color: var(--olive-dark); border-radius: 999px;
+    padding: 0.05rem 0.5rem; font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .appr-familles-vide { font-size: 0.88rem; color: var(--text-muted); font-style: italic; padding: 0.5rem; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -22349,15 +22371,20 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v4.33 (17/09/2026) — Rattachement de plusieurs contacts famille à un
+//        même apprenti :
+//        (1) nouveau champ famillesIds[] ; familleId est conservé et désigne
+//        désormais le contact principal, destinataire des courriers nominatifs,
+//        (2) migration automatique des fiches existantes au démarrage,
+//        (3) six fonctions centralisent les accès (famillesDeApprenti,
+//        apprentisDeFamille…) et les 27 points d'usage y sont ramenés :
+//        connexion des parents, carnet de liaison, enquêtes, notifications,
+//        rendez-vous, signalements, courriers, exports,
+//        (4) formulaire apprenti : cases à cocher au lieu d'une liste unique,
+//        avec rappel du lien et repérage du contact principal.
 //   v4.32 (17/09/2026) — Fiche famille : liste des liens de rattachement
 //        élargie — tutrice légale, éducateur référent, éducatrice
 //        référente, structure d'accueil.
-//        LIMITE CONNUE, non corrigée à ce stade : un apprenti ne peut
-//        être rattaché qu'à UNE seule fiche famille (champ familleId,
-//        27 points d'usage dans le code). Les contacts supplémentaires
-//        peuvent être créés mais n'obtiennent ni accès au carnet de
-//        liaison, ni enquête de satisfaction, ni notification.
-//        Refonte en famillesIds[] à prévoir.
 //   v4.31 (17/09/2026) — Accès des salariés : trois corrections :
 //        (1) aucun identifiant ni mot de passe n'était généré à la
 //        création d'une fiche salarié, contrairement aux apprentis, aux
@@ -22675,7 +22702,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.32";
+const APP_VERSION = "4.33";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -22803,6 +22830,77 @@ const CLASSES = {
   "CAP_EPC_2": "CAP EPC — 2ème année",
   "CAP_AEPE_1": "CAP AEPE — 1ère année",
 };
+
+// =================================================================
+// RATTACHEMENT APPRENTI <-> FAMILLES (plusieurs contacts par apprenti)
+// -----------------------------------------------------------------
+// Historique : un apprenti ne pouvait être rattaché qu'à une seule fiche
+// famille (champ familleId). Le modèle accepte désormais une liste
+// famillesIds. L'ancien champ est conservé et tenu à jour : il désigne le
+// CONTACT PRINCIPAL, celui à qui s'adressent les courriers nominatifs.
+// Toutes les familles rattachées ont les mêmes droits d'accès.
+// =================================================================
+
+// Identifiants des familles rattachées à un apprenti, contact principal en tête.
+function famillesIdsDeApprenti(apprenti) {
+  if (!apprenti) return [];
+  const liste = Array.isArray(apprenti.famillesIds) ? apprenti.famillesIds.slice() : [];
+  if (apprenti.familleId && liste.indexOf(apprenti.familleId) < 0) liste.unshift(apprenti.familleId);
+  return liste.filter(Boolean);
+}
+
+// Fiches famille rattachées à un apprenti.
+function famillesDeApprenti(apprenti) {
+  const ids = famillesIdsDeApprenti(apprenti);
+  return ids.map(function(id) {
+    return PROFILS_FAMILLES.find(function(f) { return f.id === id; });
+  }).filter(Boolean);
+}
+
+// Contact principal (compatibilité avec le code qui n'en attend qu'un).
+function familleDeApprenti(apprenti) {
+  const l = famillesDeApprenti(apprenti);
+  return l.length > 0 ? l[0] : null;
+}
+
+// Vrai si cette famille est rattachée à cet apprenti.
+function familleEstRattachee(apprenti, familleId) {
+  return famillesIdsDeApprenti(apprenti).indexOf(familleId) >= 0;
+}
+
+// Apprentis rattachés à une fiche famille.
+function apprentisDeFamille(famille) {
+  if (!famille) return [];
+  return PROFILS_APPRENTIS.filter(function(a) { return familleEstRattachee(a, famille.id); });
+}
+
+// Premier apprenti rattaché (compatibilité : un parent a le plus souvent un enfant ici).
+function apprentiDeFamille(famille) {
+  const l = apprentisDeFamille(famille);
+  return l.length > 0 ? l[0] : null;
+}
+
+// Normalise la fiche apprenti : garantit famillesIds et un familleId cohérent.
+function normaliserRattachementsFamille(apprenti) {
+  if (!apprenti) return apprenti;
+  const ids = famillesIdsDeApprenti(apprenti);
+  apprenti.famillesIds = ids;
+  apprenti.familleId = ids.length > 0 ? ids[0] : null;
+  return apprenti;
+}
+
+// Migration au chargement : les fiches antérieures n'ont que familleId.
+function migrerRattachementsFamille() {
+  let modifie = 0;
+  (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : []).forEach(function(a) {
+    if (!Array.isArray(a.famillesIds)) {
+      a.famillesIds = a.familleId ? [a.familleId] : [];
+      modifie++;
+    }
+  });
+  if (modifie > 0 && typeof sauvegarderProfils === "function") sauvegarderProfils();
+  return modifie;
+}
 
 // Classes non ouvertes à la rentrée en cours : aucune promotion n'y est
 // constituée cette année. La classe reste connue de l'application pour que
@@ -23128,7 +23226,10 @@ async function login() {
       const famille = familles.find(f => (f.username || "").toLowerCase() === id && f.password === code && (f.statut || "actif") !== "archive");
       if (famille) {
         // Récupérer les classes des apprentis liés à cette famille
-        const classesFamille = apprentis.filter(a => a.familleId === famille.id).map(a => a.classe).filter(Boolean);
+        const classesFamille = apprentis.filter(function(a) {
+          const ids = Array.isArray(a.famillesIds) ? a.famillesIds : (a.familleId ? [a.familleId] : []);
+          return ids.indexOf(famille.id) >= 0 || a.familleId === famille.id;
+        }).map(a => a.classe).filter(Boolean);
         user = {
           id: famille.username,
           code: famille.password,
@@ -23185,6 +23286,7 @@ async function login() {
   if (typeof afficherAlertesSuivi === "function" && utilisateurConnecte && utilisateurConnecte.role === "mfr") {
     try { afficherAlertesSuivi(); } catch(e){}
   }
+  if (typeof migrerRattachementsFamille === "function") migrerRattachementsFamille();
   if (typeof majBadgeAttestationRgpd === "function") majBadgeAttestationRgpd();
   if (typeof majPopupCharte === "function") majPopupCharte();
   if (typeof chargerAlertes === "function" && utilisateurConnecte && utilisateurConnecte.role === "mfr") {
@@ -24625,8 +24727,10 @@ function resoudreDestinataires(typesDestinataires, apprenti) {
       destinataires.push({ userId: "pascale.dauge", role: "mfr", type: "direction", nom: "Direction" });
     } else if (type === "administratif") {
       destinataires.push({ userId: "secretariat", role: "mfr", type: "administratif", nom: "Administratif" });
-    } else if (type === "famille" && apprenti && apprenti.familleId) {
-      const f = PROFILS_FAMILLES.find(function(x) { return x.id === apprenti.familleId; });
+    } else if (type === "famille" && apprenti && famillesIdsDeApprenti(apprenti).length > 0) {
+      // Toutes les familles rattachées sont destinataires, pas seulement la première.
+      const fs = famillesDeApprenti(apprenti);
+      const f = fs.length > 0 ? fs[0] : null;
       if (f) destinataires.push({ userId: f.username, role: "parent", type: "famille", nom: "Famille " + f.nom });
     } else if (type === "maitre" && apprenti && apprenti.lieuId) {
       const l = PROFILS_LIEUX.find(function(x) { return x.id === apprenti.lieuId; });
@@ -24862,7 +24966,7 @@ function apprentisAccessiblesPour(u) {
   if (u.role === "parent") {
     const famille = PROFILS_FAMILLES.find(function(f) { return f.username === u.id; });
     if (!famille) return [];
-    return PROFILS_APPRENTIS.filter(function(a) { return a.familleId === famille.id; }).map(function(a) { return a.id; });
+    return apprentisDeFamille(famille).map(function(a) { return a.id; });
   }
   if (u.role === "maitre") {
     const lieu = PROFILS_LIEUX.find(function(l) { return l.username === u.id; });
@@ -30177,7 +30281,7 @@ function filtrerApprentis() {
 
   tbody.innerHTML = apprentisPage.map(a => {
     const lieu = PROFILS_LIEUX.find(l => l.id === a.lieuId);
-    const famille = PROFILS_FAMILLES.find(f => f.id === a.familleId);
+    const famille = familleDeApprenti(a);
     const estArchive = (a.statut === "archive" || a.dateSortieFormation);
     let statutLabel = a.statut;
     let statutClass = "actif";
@@ -30230,8 +30334,22 @@ function ouvrirFormulaireApprenti(idExistant) {
   // Options des lieux et familles
   const optionsLieux = PROFILS_LIEUX.filter(l => l.statut === "actif")
     .map(l => `<option value="${l.id}" ${apprenti && apprenti.lieuId === l.id ? 'selected' : ''}>${l.entreprise} (MA : ${l.prenomMA} ${l.nomMA})</option>`).join("");
-  const optionsFamilles = PROFILS_FAMILLES.filter(f => f.statut === "actif")
-    .map(f => `<option value="${f.id}" ${apprenti && apprenti.familleId === f.id ? 'selected' : ''}>${f.prenom} ${f.nom}</option>`).join("");
+  // Rattachement multiple : un apprenti peut avoir plusieurs contacts famille
+  // (père, mère, tuteur, éducateur référent, structure d'accueil…).
+  const idsFamillesApprenti = apprenti ? famillesIdsDeApprenti(apprenti) : [];
+  const famillesActives = PROFILS_FAMILLES.filter(f => f.statut === "actif");
+  const optionsFamilles = famillesActives.length === 0
+    ? '<p class="appr-familles-vide">Aucune fiche famille active. Créez-les d\'abord dans la sous-page Familles.</p>'
+    : famillesActives.map(f => {
+        const coche = idsFamillesApprenti.indexOf(f.id) >= 0;
+        const principal = idsFamillesApprenti.length > 0 && idsFamillesApprenti[0] === f.id;
+        return `<label class="appr-famille-item${coche ? ' est-coche' : ''}">` +
+          `<input type="checkbox" data-famille-id="${f.id}" ${coche ? 'checked' : ''}> ` +
+          `<span class="appr-famille-nom">${escapeHTML(f.prenom || '')} ${escapeHTML(f.nom || '')}</span>` +
+          (f.lien ? `<span class="appr-famille-lien">${escapeHTML(f.lien)}</span>` : '') +
+          (principal ? '<span class="appr-famille-principal">contact principal</span>' : '') +
+          `</label>`;
+      }).join("");
 
   const modal = document.createElement("div");
   modal.className = "formulaire-overlay";
@@ -30322,11 +30440,13 @@ function ouvrirFormulaireApprenti(idExistant) {
               <div class="formulaire-help">Vous pourrez le rattacher plus tard si pas encore créé.</div>
             </div>
             <div class="formulaire-field">
-              <label>Famille</label>
-              <select id="apprFamilleId">
-                <option value="">-- Aucune pour l'instant --</option>
+              <label>Contacts famille</label>
+              <div class="appr-familles-liste" id="apprFamillesListe">
                 ${optionsFamilles}
-              </select>
+              </div>
+              <div class="formulaire-help">Cochez tous les contacts à rattacher : père, mère, tuteur, éducateur référent, structure d'accueil.
+              Chacun aura accès au carnet de liaison et recevra les enquêtes. Le <strong>premier coché</strong> est le contact principal,
+              destinataire des courriers nominatifs.</div>
             </div>
           </div>
         </div>
@@ -30380,8 +30500,10 @@ function enregistrerApprenti(idExistant) {
     email: document.getElementById("apprEmail").value.trim(),
     telephone: document.getElementById("apprTelephone").value.trim(),
     lieuId: document.getElementById("apprLieuId").value || null,
-    familleId: document.getElementById("apprFamilleId").value || null
+    famillesIds: Array.from(document.querySelectorAll('#apprFamillesListe input[data-famille-id]:checked'))
+      .map(function(el) { return el.dataset.familleId; })
   };
+  data.familleId = data.famillesIds.length > 0 ? data.famillesIds[0] : null;
 
   if (idExistant) {
     // Modification
@@ -30877,7 +30999,7 @@ function filtrerFamilles() {
   document.querySelector("#souspage-familles .profils-tableau-wrapper").style.display = "block";
 
   tbody.innerHTML = familles.map(f => {
-    const apprentisRattaches = PROFILS_APPRENTIS.filter(a => a.familleId === f.id);
+    const apprentisRattaches = apprentisDeFamille(f);
     const statutClass = f.statut === "actif" ? "actif" : "desactive";
     const contact = [f.email, f.telephone].filter(Boolean).join(" / ") || "<em style='color:var(--text-muted)'>—</em>";
     const apprentisTexte = apprentisRattaches.length === 0
@@ -31381,7 +31503,7 @@ function editerCourrier(type, id) {
   } else if (type === "famille") {
     profil = PROFILS_FAMILLES.find(p => p.id === id);
     // Trouver un apprenti rattaché pour le contexte
-    contexte = PROFILS_APPRENTIS.find(a => a.familleId === id);
+    contexte = apprentiDeFamille(PROFILS_FAMILLES.find(f => f.id === id));
   } else if (type === "lieu") {
     profil = PROFILS_LIEUX.find(p => p.id === id);
     contexte = PROFILS_APPRENTIS.find(a => a.lieuId === id);
@@ -31475,7 +31597,7 @@ function editerCourriersTrio(apprentiId) {
     return;
   }
 
-  const famille = apprenti.familleId ? PROFILS_FAMILLES.find(f => f.id === apprenti.familleId) : null;
+  const famille = familleDeApprenti(apprenti);
   const lieu = apprenti.lieuId ? PROFILS_LIEUX.find(l => l.id === apprenti.lieuId) : null;
 
   let manquants = [];
@@ -31648,7 +31770,7 @@ function exporterProfils(type) {
     headers = ["Nom", "Prénom", "Date naissance", "Classe", "Date entrée", "Adresse", "E-mail", "Téléphone", "Identifiant", "Lieu apprentissage", "Famille", "Statut", "Date création"];
     mapFn = a => {
       const lieu = PROFILS_LIEUX.find(l => l.id === a.lieuId);
-      const famille = PROFILS_FAMILLES.find(f => f.id === a.familleId);
+      const famille = familleDeApprenti(a);
       return [a.nom, a.prenom, a.dateNaissance, CLASSES[a.classe] || a.classe, a.dateEntree, a.adresse, a.email, a.telephone, a.username, lieu?.entreprise || '', famille ? `${famille.prenom} ${famille.nom}` : '', a.statut, a.dateCreation];
     };
     nomFichier = "apprentis";
@@ -31661,7 +31783,7 @@ function exporterProfils(type) {
     collection = PROFILS_FAMILLES;
     headers = ["Nom", "Prénom", "Lien", "Adresse", "E-mail", "Téléphone", "Identifiant", "Apprenti(s) rattaché(s)", "Statut", "Date création"];
     mapFn = f => {
-      const apprentisRattaches = PROFILS_APPRENTIS.filter(a => a.familleId === f.id).map(a => `${a.prenom} ${a.nom}`).join(", ");
+      const apprentisRattaches = apprentisDeFamille(f).map(a => `${a.prenom} ${a.nom}`).join(", ");
       return [f.nom, f.prenom, f.lien, f.adresse, f.email, f.telephone, f.username, apprentisRattaches, f.statut, f.dateCreation];
     };
     nomFichier = "familles";
@@ -33497,7 +33619,7 @@ function envoyerAbsence() {
     apprentiConcerne = PROFILS_APPRENTIS.find(function(a) { return a.username === u.id; });
   } else if (u.role === "parent") {
     const f = PROFILS_FAMILLES.find(function(f) { return f.username === u.id; });
-    if (f) apprentiConcerne = PROFILS_APPRENTIS.find(function(a) { return a.familleId === f.id; });
+    if (f) apprentiConcerne = apprentiDeFamille(f);
   } else if (u.role === "maitre") {
     const l = PROFILS_LIEUX.find(function(l) { return l.username === u.id; });
     if (l) apprentiConcerne = PROFILS_APPRENTIS.find(function(a) { return a.lieuId === l.id; });
@@ -33597,8 +33719,8 @@ function trouverEmailFamille(u) {
   if (u.role === "apprenti") {
     const apprentis = JSON.parse(localStorage.getItem("mfr_profils_apprentis") || "[]");
     const apprenti = apprentis.find(a => a.username === u.id);
-    if (apprenti && apprenti.familleId) {
-      const famille = familles.find(f => f.id === apprenti.familleId);
+    if (apprenti && famillesIdsDeApprenti(apprenti).length > 0) {
+      const famille = familles.find(f => famillesIdsDeApprenti(apprenti).indexOf(f.id) >= 0);
       return famille ? famille.email : null;
     }
   }
@@ -33714,7 +33836,10 @@ function enregistrerAbsenceLocale(absence) {
     const familles = JSON.parse(localStorage.getItem("mfr_profils_familles") || "[]");
     const famille = familles.find(f => f.username === u.id);
     if (famille) {
-      const lien = apprentis.find(a => a.familleId === famille.id);
+      const lien = apprentis.find(function(a) {
+        const ids = Array.isArray(a.famillesIds) ? a.famillesIds : (a.familleId ? [a.familleId] : []);
+        return ids.indexOf(famille.id) >= 0 || a.familleId === famille.id;
+      });
       if (lien) apprentiId = lien.username;
     }
     // Si aucun apprenti lié n'est trouvé, on ne lie pas l'absence au carnet.
@@ -33806,7 +33931,10 @@ function determinerApprentiId() {
       const familles = JSON.parse(localStorage.getItem("mfr_profils_familles") || "[]");
       const famille = familles.find(f => f.username === u.id);
       if (famille) {
-        const lien = apprentis.find(a => a.familleId === famille.id);
+        const lien = apprentis.find(function(a) {
+        const ids = Array.isArray(a.famillesIds) ? a.famillesIds : (a.familleId ? [a.familleId] : []);
+        return ids.indexOf(famille.id) >= 0 || a.familleId === famille.id;
+      });
         if (lien) return lien.username;
       }
     } else if (u.role === "maitre") {
@@ -35857,7 +35985,7 @@ function ouvrirSignalementAmenagement() {
       if (f) {
         nomSaisi = f.prenom + " " + f.nom;
         identifiantSaisi = f.username;
-        apprentiConcerne = PROFILS_APPRENTIS.find(x => x.familleId === f.id);
+        apprentiConcerne = apprentiDeFamille(f);
       }
     } else if (u.role === "maitre") {
       const l = PROFILS_LIEUX.find(x => x.username === u.id);
@@ -35937,7 +36065,7 @@ function envoyerSignalementAmenagement() {
     apprentiConcerne = PROFILS_APPRENTIS.find(x => x.username === u.id);
   } else if (u.role === "parent") {
     const f = PROFILS_FAMILLES.find(x => x.username === u.id);
-    if (f) apprentiConcerne = PROFILS_APPRENTIS.find(x => x.familleId === f.id);
+    if (f) apprentiConcerne = apprentiDeFamille(f);
   } else if (u.role === "maitre") {
     const l = PROFILS_LIEUX.find(x => x.username === u.id);
     if (l) apprentiConcerne = PROFILS_APPRENTIS.find(x => x.lieuId === l.id);
@@ -36350,8 +36478,8 @@ function lancerCampagneEnquete(codeEnquete) {
     });
   }
   if (enq.cibles.indexOf("famille") >= 0) {
-    PROFILS_APPRENTIS.filter(a => a.statut === "actif" && !a.dateSortieFormation && a.familleId).forEach(a => {
-      const f = PROFILS_FAMILLES.find(x => x.id === a.familleId);
+    PROFILS_APPRENTIS.filter(a => a.statut === "actif" && !a.dateSortieFormation && famillesIdsDeApprenti(a).length > 0).forEach(a => {
+      const f = familleDeApprenti(a);
       if (f) lignes.push(["Famille", f.nom, f.prenom, f.email || "", f.telephone || "", a.prenom + " " + a.nom, CLASSES[a.classe] || a.classe]);
     });
   }
@@ -38247,7 +38375,10 @@ function afficherEmargement() {
       const familles = JSON.parse(localStorage.getItem("mfr_profils_familles") || "[]");
       const famille = familles.find(function(f) { return f.username === u.id; });
       if (famille) {
-        const lien = apprentis.find(function(a) { return a.familleId === famille.id; });
+        const lien = apprentis.find(function(a) {
+        const ids = Array.isArray(a.famillesIds) ? a.famillesIds : (a.familleId ? [a.familleId] : []);
+        return ids.indexOf(famille.id) >= 0 || a.familleId === famille.id;
+      });
         if (lien) apprentiUsername = lien.username;
       }
     } else if (u.role === "maitre") {
@@ -38804,7 +38935,7 @@ function envoyerDemandeRdv() {
     apprentiConcerne = PROFILS_APPRENTIS.find(function(a) { return a.username === u.id; });
   } else if (u.role === "parent") {
     const f = PROFILS_FAMILLES.find(function(f) { return f.username === u.id; });
-    if (f) apprentiConcerne = PROFILS_APPRENTIS.find(function(a) { return a.familleId === f.id; });
+    if (f) apprentiConcerne = apprentiDeFamille(f);
   } else if (u.role === "maitre") {
     const l = PROFILS_LIEUX.find(function(l) { return l.username === u.id; });
     if (l) apprentiConcerne = PROFILS_APPRENTIS.find(function(a) { return a.lieuId === l.id; });
@@ -39421,7 +39552,10 @@ function determinerApprentiIdActeurs() {
       const familles = JSON.parse(localStorage.getItem("mfr_profils_familles") || "[]");
       const famille = familles.find(f => f.username === u.id);
       if (famille) {
-        const lien = apprentis.find(a => a.familleId === famille.id);
+        const lien = apprentis.find(function(a) {
+        const ids = Array.isArray(a.famillesIds) ? a.famillesIds : (a.familleId ? [a.familleId] : []);
+        return ids.indexOf(famille.id) >= 0 || a.familleId === famille.id;
+      });
         if (lien) return lien.username;
       }
     } else if (u.role === "maitre") {
@@ -42240,7 +42374,7 @@ function imprimerFicheApprenti(apprentiId) {
   const apprenti = PROFILS_APPRENTIS.find(a => a.id === apprentiId);
   if (!apprenti) return;
   const lieu = PROFILS_LIEUX.find(l => l.id === apprenti.lieuId);
-  const famille = PROFILS_FAMILLES.find(f => f.id === apprenti.familleId);
+  const famille = familleDeApprenti(apprenti);
   const histo = apprenti.historiqueEvenements || [];
   const histoTrie = [...histo].sort((a, b) => (a.date || "").localeCompare(b.date || ""));
 
