@@ -22371,6 +22371,13 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v4.34 (17/09/2026) — Diagnostic d'accès salarié (bouton 🩺 sur
+//        chaque fiche). Reproduit les contrôles exacts de login(), y
+//        compris la lecture depuis localStorage et non depuis la mémoire,
+//        et signale : fiche non enregistrée, identifiant ou mot de passe
+//        absent, fiche archivée, collision d'identifiant avec un apprenti,
+//        une famille, un lieu ou un compte intégré. Affiche le mot de
+//        passe réellement stocké et simule la connexion.
 //   v4.33 (17/09/2026) — Rattachement de plusieurs contacts famille à un
 //        même apprenti :
 //        (1) nouveau champ famillesIds[] ; familleId est conservé et désigne
@@ -22702,7 +22709,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.33";
+const APP_VERSION = "4.34";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -31573,6 +31580,109 @@ function genererAccesSalariesManquants() {
   if (typeof filtrerSalaries === "function") filtrerSalaries();
 }
 
+// Diagnostic d'accès d'un salarié. Reproduit exactement les contrôles de la
+// fonction login(), y compris la lecture depuis localStorage — la connexion
+// ne lit PAS le tableau en mémoire, ce qui rend les écarts invisibles autrement.
+function diagnostiquerAccesSalarie(id) {
+  const memoire = PROFILS_SALARIES.find(function(x) { return x.id === id; });
+  if (!memoire) { alert("Fiche introuvable."); return; }
+  const nom = ((memoire.prenom || "") + " " + (memoire.nom || "")).trim() || "(sans nom)";
+
+  let stockes = [];
+  try { stockes = JSON.parse(localStorage.getItem("mfr_profils_salaries") || "[]"); }
+  catch (e) { stockes = []; }
+  const enregistre = stockes.find(function(x) { return x.id === id; });
+
+  const lignes = [];
+  let bloquant = null;
+
+  // 1. La fiche est-elle réellement écrite dans le navigateur ?
+  if (!enregistre) {
+    lignes.push("⛔ La fiche n'est PAS enregistrée dans le navigateur.");
+    bloquant = "La fiche existe à l'écran mais n'a pas été sauvegardée. " +
+      "La mémoire du navigateur est probablement saturée : supprimez des photos, puis réenregistrez.";
+  } else {
+    lignes.push("✅ Fiche enregistrée dans le navigateur.");
+  }
+  const ref = enregistre || memoire;
+
+  // 2. Identifiant
+  const identifiant = (ref.username || ref.identifiant || "").trim();
+  if (!identifiant) {
+    lignes.push("⛔ Aucun identifiant.");
+    if (!bloquant) bloquant = "Cette fiche n'a pas d'identifiant. Utilisez « Générer les accès manquants », " +
+      "ou saisissez-le dans la fiche. Sans prénom, il ne peut pas être généré automatiquement.";
+  } else {
+    lignes.push("✅ Identifiant : " + identifiant);
+  }
+
+  // 3. Mot de passe
+  if (!ref.password) {
+    lignes.push("⛔ Aucun mot de passe enregistré.");
+    if (!bloquant) bloquant = "Cette fiche n'a pas de mot de passe. Cliquez sur 🔑 pour en générer un.";
+  } else {
+    lignes.push("✅ Mot de passe enregistré : " + ref.password);
+    if (ref.password !== ref.password.trim()) {
+      lignes.push("⚠ Il contient un espace en début ou fin : source d'erreur à la saisie.");
+    }
+  }
+
+  // 4. Statut
+  const statut = ref.statut || "actif";
+  if (statut === "archive" || statut === "parti") {
+    lignes.push("⛔ Fiche archivée (statut : " + statut + ") — la connexion est refusée.");
+    if (!bloquant) bloquant = "Réactivez la fiche pour autoriser la connexion.";
+  } else {
+    lignes.push("✅ Statut : " + statut);
+  }
+
+  // 5. Collision d'identifiant avec un autre profil, qui serait trouvé en premier
+  if (identifiant) {
+    const idBas = identifiant.toLowerCase();
+    const collisions = [];
+    [["apprenti", PROFILS_APPRENTIS], ["famille", PROFILS_FAMILLES], ["lieu d'apprentissage", PROFILS_LIEUX]]
+      .forEach(function(paire) {
+        (paire[1] || []).forEach(function(x) {
+          if ((x.username || "").toLowerCase() === idBas) collisions.push(paire[0]);
+        });
+      });
+    (typeof UTILISATEURS !== "undefined" ? UTILISATEURS : []).forEach(function(x) {
+      if ((x.id || "").toLowerCase() === idBas) collisions.push("compte intégré à l'application");
+    });
+    const doublonsSalaries = stockes.filter(function(x) {
+      return x.id !== id && ((x.username || x.identifiant || "").toLowerCase() === idBas);
+    }).length;
+    if (doublonsSalaries > 0) collisions.push("autre fiche salarié");
+
+    if (collisions.length > 0) {
+      lignes.push("⚠ Identifiant déjà utilisé par : " + collisions.join(", ") + ".");
+      lignes.push("   La connexion examine les apprentis, puis les familles, les lieux, et les salariés en dernier.");
+      if (!bloquant) bloquant = "Changez l'identifiant de cette fiche pour lever l'ambiguïté.";
+    } else {
+      lignes.push("✅ Identifiant unique.");
+    }
+  }
+
+  // 6. Simulation stricte de la connexion
+  let simulation = "";
+  if (identifiant && ref.password) {
+    const trouve = stockes.find(function(x) {
+      return ((x.username || x.identifiant) || "").toLowerCase() === identifiant.toLowerCase()
+        && x.password === ref.password && (x.statut || "actif") !== "archive";
+    });
+    simulation = trouve
+      ? "✅ SIMULATION : la connexion réussit avec ces identifiants."
+      : "⛔ SIMULATION : la connexion échoue malgré des données apparemment correctes.";
+  }
+
+  alert("DIAGNOSTIC D'ACCÈS — " + nom + "\n" +
+    "─────────────────────────────\n" +
+    lignes.join("\n") +
+    (simulation ? "\n\n" + simulation : "") +
+    (bloquant ? "\n\n→ À FAIRE : " + bloquant : "") +
+    "\n\nVersion de l'application : " + (typeof APP_VERSION !== "undefined" ? APP_VERSION : "?"));
+}
+
 // Réinitialisation mot de passe salarié
 function reinitMotDePasseSalarie(id) {
   const salarie = PROFILS_SALARIES.find(s => s.id === id);
@@ -33170,6 +33280,8 @@ function filtrerSalaries() {
               ? '<button class="btn-mini action-primary" onclick="restaurerProfil(\'salarie\',\'' + s.id + '\')" title="Restaurer">↶ Restaurer</button> ' +
                 '<button class="btn-mini" onclick="ouvrirFormulaireSalarie(\'' + s.id + '\')" title="Consulter">👁</button>'
               : '<button class="btn-mini action-primary" onclick="editerCourrier(\'salarie\',\'' + s.id + '\')" title="Éditer le courrier d\'identifiants">✉️</button> ' +
+                '<button class="btn-mini" onclick="diagnostiquerAccesSalarie(\'' + s.id + '\')" title="Vérifier l’accès de ce salarié">🩺</button> '
+                +
                 '<button class="btn-mini" onclick="reinitMotDePasseSalarie(\'' + s.id + '\')" title="Réinitialiser le mot de passe">🔑</button> ' +
                 '<button class="btn-mini" onclick="ouvrirFormulaireSalarie(\'' + s.id + '\')" title="Modifier">✏️</button> ' +
                 '<button class="btn-mini" onclick="archiverProfil(\'salarie\',\'' + s.id + '\')" title="Archiver (départ retraite, démission…)">📁</button>'
