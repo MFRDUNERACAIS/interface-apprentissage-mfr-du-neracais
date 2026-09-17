@@ -21883,6 +21883,7 @@
         <div class="profils-toolbar">
           <button class="btn-primary" onclick="ouvrirFormulaireSalarie()">+ Ajouter un salarié</button>
           <button class="btn-secondary" onclick="genererAccesSalariesManquants()">🔑 Générer les accès manquants</button>
+          <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
           <button class="btn-secondary" onclick="ouvrirImport('salarie')">📥 Importer depuis CSV</button>
           <button class="btn-secondary" onclick="exporterProfils('salarie')">📊 Exporter CSV</button>
           <div class="profils-filtres">
@@ -22737,7 +22738,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.37";
+const APP_VERSION = "4.38";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -37028,6 +37029,92 @@ const TROMBINOSCOPE_2026_2027 = [
 // Crée les fiches manquantes sans jamais écraser une fiche existante.
 // Le rapprochement se fait sur le nom, complété de la fonction secondaire
 // pour distinguer les homonymes (deux Durosier dans l'équipe).
+// Associe les portraits du trombinoscope 2026-2027 aux fiches salarié DEJÀ
+// créées, par rapprochement sur le nom de famille. Complémentaire du
+// pré-remplissage : celui-ci crée des fiches, celle-là photographie
+// les fiches existantes. N'écrase jamais une photo déjà présente.
+function associerPhotosTrombinoscope() {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
+    alert("Cette opération est réservée à la Direction et au Secrétariat.");
+    return;
+  }
+  if (typeof TROMBINOSCOPE_2026_2027 === "undefined") {
+    alert("Le jeu de portraits est introuvable : le fichier index.html chargé n'est pas à jour.\n\n" +
+      "Rechargez la page avec Ctrl+Maj+R.");
+    return;
+  }
+
+  const norm = function(v) {
+    return (v || "").toString().toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z]/g, "");
+  };
+
+  // Index des portraits par nom de famille. Les homonymes (deux Durosier)
+  // sont regroupés : ils ne seront traités qu'avec la fonction secondaire.
+  const parNom = {};
+  TROMBINOSCOPE_2026_2027.forEach(function(t) {
+    const cle = norm(t.nom);
+    if (!parNom[cle]) parNom[cle] = [];
+    parNom[cle].push(t);
+  });
+
+  const actifs = PROFILS_SALARIES.filter(function(sa) {
+    const st = sa.statut || "actif";
+    return st !== "archive" && st !== "parti";
+  });
+  const sansPhoto = actifs.filter(function(sa) { return !sa.photo; });
+
+  if (sansPhoto.length === 0) {
+    alert("Toutes les fiches salarié actives ont déjà un portrait.");
+    return;
+  }
+
+  // Simulation avant confirmation
+  const trouves = [], ambigus = [], absents = [];
+  sansPhoto.forEach(function(sa) {
+    const candidats = parNom[norm(sa.nom)] || [];
+    if (candidats.length === 0) { absents.push(sa); return; }
+    if (candidats.length === 1) { trouves.push([sa, candidats[0]]); return; }
+    // Homonymes : on départage sur la fonction secondaire
+    const affine = candidats.filter(function(c) {
+      return norm(c.fonctionSec).indexOf(norm(sa.fonctionSec)) >= 0
+          || norm(sa.fonctionSec).indexOf(norm(c.fonctionSec)) >= 0;
+    });
+    if (affine.length === 1) trouves.push([sa, affine[0]]);
+    else ambigus.push(sa);
+  });
+
+  let msg = "Associer les portraits du trombinoscope 2026-2027 ?\n\n";
+  msg += "• " + trouves.length + " fiche(s) recevront leur portrait\n";
+  if (ambigus.length > 0) msg += "• " + ambigus.length + " homonyme(s) non départageable(s), laissé(s) de côté\n";
+  if (absents.length > 0) msg += "• " + absents.length + " nom(s) absent(s) de l'affiche\n";
+  msg += "\nLes photos déjà présentes ne seront pas remplacées.";
+  if (!confirm(msg)) return;
+
+  trouves.forEach(function(paire) {
+    paire[0].photo = paire[1].photo;
+    paire[0].sourceTrombinoscope = "2026-2027";
+  });
+
+  if (trouves.length > 0) {
+    if (sauvegarderProfils() === false) return;
+  }
+
+  let bilan = "✅ " + trouves.length + " portrait(s) associé(s).";
+  if (absents.length > 0) {
+    bilan += "\n\nNON TROUVÉ(S) sur l'affiche — à photographier à la main :\n   " +
+      absents.map(function(sa) { return ((sa.prenom || "") + " " + (sa.nom || "")).trim() || "(sans nom)"; }).join("\n   ");
+  }
+  if (ambigus.length > 0) {
+    bilan += "\n\nHOMONYMES à traiter manuellement :\n   " +
+      ambigus.map(function(sa) { return ((sa.prenom || "") + " " + (sa.nom || "")).trim(); }).join("\n   ");
+  }
+  alert(bilan);
+
+  if (typeof filtrerSalaries === "function") filtrerSalaries();
+  if (typeof afficherTrombinoscope === "function") afficherTrombinoscope();
+}
+
 function preremplirSalariesDepuisTrombinoscope() {
   try {
     preremplirSalariesDepuisTrombinoscopeInterne();
