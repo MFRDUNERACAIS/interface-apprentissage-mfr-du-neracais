@@ -9822,6 +9822,7 @@
     font-size: 0.88rem;
   }
   .acteurs-reprise > div { flex: 1; min-width: 16rem; }
+  .dup-intro { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.8rem; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -22917,7 +22918,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.68";
+const APP_VERSION = "4.72";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -25394,6 +25395,7 @@ function afficherPlanningHebdo() {
     footer.innerHTML =
       '<div class="planhebdo-actions-secondaires">' +
         '<button class="btn-secondary" onclick="reinitCreneauxDefaut()">↺ Réinitialiser</button>' +
+        '<button class="btn-secondary" onclick="ouvrirDuplicationPlanning()" title="Recopier cette grille vers une autre classe">📋 Dupliquer vers une classe</button>' +
         btnPdf +
       '</div>' +
       '<div class="planhebdo-actions-principales">' +
@@ -25538,6 +25540,139 @@ function reinitCreneauxDefaut() {
   planhebdoCourant.jours = jours;
   sauverPlanningHebdo(planhebdoCourant);
   afficherPlanningHebdo();
+}
+
+// -----------------------------------------------------------------
+// DUPLICATION D'UN PLANNING VERS UNE AUTRE CLASSE
+// -----------------------------------------------------------------
+// Les CAP EPC 1 et 2 partagent souvent la même grille hebdomadaire, sauf
+// pour les créneaux dédoublés. La duplication recopie donc la grille en
+// une fois, puis les deux plannings vivent leur vie : modifier un créneau
+// dans l'un ne touche jamais l'autre.
+//
+// Ce qui n'est PAS recopié : le statut de publication, qui se décide classe
+// par classe, et les liens vers les séances d'émargement, propres à chaque
+// groupe. Un émargement partagé entre deux classes n'aurait aucun sens.
+
+function classesCibleDuplication(classeSource) {
+  const dispo = (typeof classesOuvertes === "function") ? classesOuvertes() : Object.keys(CLASSES);
+  return dispo.filter(function(c) { return c !== classeSource; });
+}
+
+function ouvrirDuplicationPlanning() {
+  const p = planningHebdoEnCours;
+  if (!p) return;
+  const cibles = classesCibleDuplication(p.classe);
+  if (cibles.length === 0) { alert("Aucune autre classe ouverte vers laquelle dupliquer."); return; }
+
+  const ancien = document.getElementById("modale-dup-planning");
+  if (ancien) ancien.remove();
+
+  let options = "";
+  cibles.forEach(function(c) {
+    const existant = chargerPlanningsHebdo().find(function(x) {
+      return x.id === idSemaineMFR(c, p.numeroSemaine, p.anneeScolaire);
+    });
+    const rempli = existant && JOURS_SEMAINE.some(function(j) {
+      return (existant.jours[j.code] || []).some(function(cr) { return cr.matiere; });
+    });
+    options += '<option value="' + c + '">' + escapeHTML(CLASSES[c] || c) +
+      (rempli ? " \u2014 planning d\u00e9j\u00e0 renseign\u00e9" : "") + '</option>';
+  });
+
+  const m = document.createElement("div");
+  m.id = "modale-dup-planning";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F4CB}</span>' +
+        '<h2>Dupliquer cette semaine vers une autre classe</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<p class="dup-intro">Semaine <strong>' + p.numeroSemaine + '</strong> de <strong>' +
+          escapeHTML(CLASSES[p.classe] || p.classe) + '</strong>.</p>' +
+        '<div class="impr-champ"><label>Classe de destination</label>' +
+          '<select id="dup-cible">' + options + '</select></div>' +
+        '<div class="impr-champ"><label>Que faire des cr\u00e9neaux de la classe de destination ?</label>' +
+          '<select id="dup-mode">' +
+            '<option value="vides">Ne remplir que les cr\u00e9neaux vides \u2014 conserve ce qui est d\u00e9j\u00e0 saisi</option>' +
+            '<option value="tout">Tout remplacer \u2014 la grille de destination est \u00e9cras\u00e9e</option>' +
+          '</select></div>' +
+        '<p class="impr-aide">Apr\u00e8s la duplication, les deux plannings sont <strong>ind\u00e9pendants</strong> : ' +
+          'modifier un cr\u00e9neau d\'une classe ne touche pas l\'autre. Vous pouvez donc ajuster librement ' +
+          'les cr\u00e9neaux d\u00e9doubl\u00e9s.</p>' +
+        '<div class="mdp-erreur" id="dup-erreur"></div>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="lancerDuplicationPlanning()">\u{1F4CB} Dupliquer</button> ' +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-dup-planning\').remove()">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function lancerDuplicationPlanning() {
+  const p = planningHebdoEnCours;
+  if (!p) return;
+  const cible = (document.getElementById("dup-cible") || {}).value;
+  const mode = (document.getElementById("dup-mode") || {}).value || "vides";
+  if (!cible) return;
+
+  if (typeof peutEditerPlanningClasse === "function" && !peutEditerPlanningClasse(cible)) {
+    const err = document.getElementById("dup-erreur");
+    if (err) {
+      err.textContent = "Vous n'\u00eates pas habilit\u00e9\u00b7e \u00e0 modifier le planning de cette classe.";
+      err.style.display = "block";
+    }
+    return;
+  }
+
+  const dest = chargerOuInitPlanningHebdo(cible, p.numeroSemaine, p.dateDebut, p.anneeScolaire);
+  let copies = 0, conserves = 0;
+
+  JOURS_SEMAINE.forEach(function(j) {
+    const source = p.jours[j.code] || [];
+    const arrivee = dest.jours[j.code] || [];
+    const nouveau = [];
+    source.forEach(function(cr, i) {
+      const existant = arrivee[i];
+      const dejaRempli = existant && existant.matiere;
+      if (mode === "vides" && dejaRempli) {
+        nouveau.push(existant);
+        conserves++;
+        return;
+      }
+      // Recopie de la grille, sans le lien vers la séance d'émargement
+      nouveau.push({
+        heureDebut: cr.heureDebut,
+        heureFin: cr.heureFin,
+        matiere: cr.matiere || "",
+        moniteurId: cr.moniteurId || "",
+        seanceEmargId: null
+      });
+      if (cr.matiere) copies++;
+    });
+    // Les créneaux supplémentaires de la destination sont conservés
+    for (let k = source.length; k < arrivee.length; k++) {
+      nouveau.push(arrivee[k]);
+      if (arrivee[k] && arrivee[k].matiere) conserves++;
+    }
+    dest.jours[j.code] = nouveau;
+  });
+
+  // Le statut de publication ne se duplique pas : il se décide classe par classe.
+  dest.statut = "brouillon";
+  dest.publieLe = null;
+  dest.publiePar = null;
+  sauverPlanningHebdo(dest);
+
+  const modale = document.getElementById("modale-dup-planning");
+  if (modale) modale.remove();
+
+  alert("\u2705 " + copies + " cr\u00e9neau(x) recopi\u00e9(s) vers " + (CLASSES[cible] || cible) + "." +
+    (conserves > 0 ? "\n" + conserves + " cr\u00e9neau(x) d\u00e9j\u00e0 renseign\u00e9(s) ont \u00e9t\u00e9 conserv\u00e9s." : "") +
+    "\n\nLe planning de destination est en BROUILLON : ouvrez-le, ajustez les cr\u00e9neaux d\u00e9doubl\u00e9s, " +
+    "puis publiez-le.\n\nLes deux plannings sont maintenant ind\u00e9pendants.");
 }
 
 function publierPlanningHebdo() {
@@ -28253,9 +28388,13 @@ const MATIERES_DISPONIBLES = {
     "Français", "Histoire-Géographie", "EMC",
     "Mathématiques", "Sciences physiques et chimiques",
     "Anglais", "EPS", "Arts appliqués",
-    "PSE (Prévention Santé Environnement)"
+    "PSE (Prévention Santé Environnement)",
+    "Informatique"
   ],
   "Enseignements professionnels — CAP EPC": [
+    "EP1 — Recevoir et suivre les commandes",
+    "EP2 — Mettre en valeur et approvisionner",
+    "EP3 — Conseiller et accompagner le client dans son parcours d'achat",
     "Vente et relation client",
     "Réception et suivi des commandes",
     "Analyse et exploitation d'informations",
@@ -28273,7 +28412,8 @@ const MATIERES_DISPONIBLES = {
     "Visite d'étude",
     "Mise en commun",
     "Thème",
-    "Bilan"
+    "Bilan",
+    "Erasmus+ (mobilité européenne)"
   ],
   "Autre": ["Autre (à préciser)"]
 };
@@ -30829,8 +30969,8 @@ function imprimerCompteRenduTests() {
 
   const fen = window.open("", "_blank");
   if (!fen) { alert("L\'impression a \u00e9t\u00e9 bloqu\u00e9e par le navigateur. Autorisez les fen\u00eatres surgissantes."); return; }
-  fen.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Positionnement \u2014 ' +
-    escapeHTML(profil.nom) + '</title><style>' + styles + '</style></head><body>' + corps + '</body></html>');
+  fen.document.write(avecLogoImpression('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Positionnement \u2014 ' +
+    escapeHTML(profil.nom) + '</title><style>' + styles + '</style></head><body>' + corps + '</body></html>'));
   fen.document.close();
   setTimeout(function() { fen.print(); }, 400);
 }
@@ -42105,7 +42245,10 @@ function stylesImpressionEmarg() {
 }
 
 function documentImpressionEmarg(titre, debut, fin, corps) {
-  let html = '<div class="entete">';
+  // Cette fonction sert aux deux sorties : fenêtre d'impression et PDF
+  // téléchargé. Le logo est donc posé ici, et non par avecLogoImpression(),
+  // qui ne s'applique qu'aux documents écrits dans une fenêtre.
+  let html = '<div class="entete">' + logoImpressionHTML();
   html += '<h1>' + titre + '</h1>';
   html += '<div class="etab">MFR du N\u00e9racais \u2014 200 route de Bordeaux, 47230 Barbaste \u2014 ' +
     'N\u00b0 de d\u00e9claration d\'activit\u00e9 75470139547 \u2014 SIRET 78219893100027</div>';
@@ -42133,7 +42276,7 @@ function telechargerEmargementsPDF(titre, debut, fin, corps, nomFichier) {
 
   const conteneur = document.createElement("div");
   conteneur.style.cssText = "position:fixed;left:-10000px;top:0;width:210mm;background:#fff;";
-  conteneur.innerHTML = '<style>' + stylesImpressionEmarg() + '</style>' +
+  conteneur.innerHTML = '<style>' + stylesImpressionEmarg() + stylesLogoImpression() + '</style>' +
     documentImpressionEmarg(titre, debut, fin, corps);
   document.body.appendChild(conteneur);
 
@@ -42258,6 +42401,65 @@ function blocSignatures(individuel) {
     '</tr></tbody></table>';
 }
 
+// -----------------------------------------------------------------
+// LOGO SUR LES DOCUMENTS IMPRIMABLES
+// -----------------------------------------------------------------
+// Les fenêtres d'impression s'ouvrent sur about:blank : un chemin relatif
+// n'y résout pas. On construit donc une adresse absolue à partir de celle
+// de l'application, et on pose une balise <base> pour les autres ressources.
+// Si le fichier manque, l'image s'efface d'elle-même : un document sans
+// logo vaut mieux qu'un document orné d'une icône brisée.
+
+function baseImpressionMFR() {
+  try { return location.origin + location.pathname.replace(/[^/]*$/, ""); }
+  catch (e) { return ""; }
+}
+
+function logoImpressionHTML() {
+  return '<div class="mfr-doc-logo">' +
+    '<img src="' + baseImpressionMFR() + 'logo_mfr_print.png" alt="MFR du N\u00e9racais" ' +
+    'onerror="this.parentNode.style.display=\'none\'">' +
+    '</div>';
+}
+
+function stylesLogoImpression() {
+  return '.mfr-doc-logo{margin:0 0 0.5rem;}' +
+    '.mfr-doc-logo img{max-height:1.5cm;max-width:6cm;height:auto;}' +
+    '@media print{.mfr-doc-logo img{max-height:1.4cm;}}';
+}
+
+// Insère le logo et la balise <base> dans un document d'impression complet.
+// Opération idempotente : un document qui porte déjà le logo n'est pas modifié.
+function avecLogoImpression(html) {
+  try {
+    if (typeof html !== "string") return html;
+    let out = html;
+    const dejaLogo = out.indexOf("mfr-doc-logo") >= 0;
+
+    // La balise <base> et les styles sont pos\u00e9s dans tous les cas : un
+    // document qui porte d\u00e9j\u00e0 le logo en a besoin tout autant, sans quoi
+    // l'image s'afficherait \u00e0 sa taille d'origine, en pleine page.
+    const base = baseImpressionMFR();
+    if (base && out.indexOf("<base ") < 0) {
+      out = out.replace(/<head>/i, '<head><base href="' + base + '">');
+    }
+    if (out.indexOf("mfr-doc-logo img") < 0) {
+      if (out.indexOf("</style>") >= 0) {
+        out = out.replace("</style>", stylesLogoImpression() + "</style>");
+      } else {
+        out = out.replace(/<\/head>/i, "<style>" + stylesLogoImpression() + "</style></head>");
+      }
+    }
+    // Seul le logo lui-m\u00eame n'est pas doubl\u00e9.
+    if (!dejaLogo) {
+      out = out.replace(/<body([^>]*)>/i, "<body$1>" + logoImpressionHTML());
+    }
+    return out;
+  } catch (e) { return html; }
+}
+
+function baseImpressionMFR_fin() {}
+
 function ouvrirFenetreImpressionEmarg(titre, debut, fin, corps) {
   const styles = stylesImpressionEmarg();
   const stylesInutilises =
@@ -42293,8 +42495,8 @@ function ouvrirFenetreImpressionEmarg(titre, debut, fin, corps) {
     alert("L\'impression a \u00e9t\u00e9 bloqu\u00e9e par le navigateur.\n\nAutorisez les fen\u00eatres surgissantes pour ce site, puis r\u00e9essayez.");
     return;
   }
-  fen.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>' +
-    titre + '</title><style>' + styles + '</style></head><body>' + html + '</body></html>');
+  fen.document.write(avecLogoImpression('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>' +
+    titre + '</title><style>' + styles + '</style></head><body>' + html + '</body></html>'));
   fen.document.close();
   const modale = document.getElementById("modale-impr-emarg");
   if (modale) modale.remove();
@@ -46166,7 +46368,7 @@ function imprimerFicheApprenti(apprentiId) {
     + '</body></html>';
 
   const w = window.open("", "_blank");
-  w.document.write(ficheHtml);
+  w.document.write(avecLogoImpression(ficheHtml));
   w.document.close();
 }
 
@@ -46273,7 +46475,7 @@ function imprimerTableauAnnuelRuptures() {
     + '</body></html>';
 
   const w = window.open("", "_blank");
-  w.document.write(ficheHtml);
+  w.document.write(avecLogoImpression(ficheHtml));
   w.document.close();
 }
 
@@ -46443,7 +46645,7 @@ function genererGuideDroitsPDF() {
     + '</body></html>';
 
   const w = window.open("", "_blank");
-  w.document.write(guideHtml);
+  w.document.write(avecLogoImpression(guideHtml));
   w.document.close();
 }
 
@@ -47300,7 +47502,7 @@ function imprimerFicheSignalement(idSig) {
     '</body></html>';
 
   const w = window.open("", "_blank");
-  w.document.write(html);
+  w.document.write(avecLogoImpression(html));
   w.document.close();
 }
 
@@ -48506,9 +48708,9 @@ function imprimerCompteRenduReunion(id) {
 
   const fen = window.open("", "_blank");
   if (!fen) { alert("L\'impression a \u00e9t\u00e9 bloqu\u00e9e par le navigateur. Autorisez les fen\u00eatres surgissantes."); return; }
-  fen.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">' +
+  fen.document.write(avecLogoImpression('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">' +
     '<title>Compte-rendu de r\u00e9union p\u00e9dagogique \u2014 ' + formatDateCourte(r.dateReunion) + '</title>' +
-    '<style>' + styles + '</style></head><body>' + corps + '</body></html>');
+    '<style>' + styles + '</style></head><body>' + corps + '</body></html>'));
   fen.document.close();
   setTimeout(function() { fen.print(); }, 350);
 }
@@ -49655,7 +49857,7 @@ function imprimerFicheReclam(idRec) {
     + '</body></html>';
 
   const w = window.open("", "_blank");
-  w.document.write(html);
+  w.document.write(avecLogoImpression(html));
   w.document.close();
 }
 
@@ -50132,7 +50334,7 @@ function imprimerCompteRenduSeance(id) {
     + '</body></html>';
 
   const w = window.open("", "_blank");
-  w.document.write(html);
+  w.document.write(avecLogoImpression(html));
   w.document.close();
 }
 
@@ -50838,7 +51040,7 @@ function imprimerFicheVisite(id) {
     + '</body></html>';
 
   const w = window.open("", "_blank");
-  w.document.write(html);
+  w.document.write(avecLogoImpression(html));
   w.document.close();
 }
 
@@ -52252,10 +52454,10 @@ function footerRapport() {
 
 function ouvrirRapport(html) {
   const w = window.open("", "_blank");
-  w.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport MFR</title>' + styleRapportPDF() + '</head><body>');
-  w.document.write('<button class="bouton-imprimer" onclick="window.print()">🖨️ Imprimer / PDF</button>');
-  w.document.write(html);
-  w.document.write('</body></html>');
+  w.document.write(avecLogoImpression('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Rapport MFR</title>' + styleRapportPDF() + '</head><body>'));
+  w.document.write(avecLogoImpression('<button class="bouton-imprimer" onclick="window.print()">🖨️ Imprimer / PDF</button>'));
+  w.document.write(avecLogoImpression(html));
+  w.document.write(avecLogoImpression('</body></html>'));
   w.document.close();
 }
 
