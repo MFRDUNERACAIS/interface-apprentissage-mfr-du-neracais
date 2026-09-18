@@ -22762,7 +22762,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.47";
+const APP_VERSION = "4.48";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23495,17 +23495,21 @@ function instanceCreation() {
   } catch (e) { return null; }
 }
 
-// Recense les profils à doter d'un compte Firebase.
-function profilsACreer() {
-  const liste = [];
+// Recense les profils à doter d'un compte Firebase, et rend compte de
+// ceux qui sont écartés ainsi que du motif : un « aucun profil à traiter »
+// sans explication ne permet pas de comprendre ce qui bloque.
+function profilsACreer(inclureDejaRattaches) {
+  const liste = [], ecartes = { archives: [], sansIdentifiant: [], sansCode: [], dejaRattaches: [] };
   const ajouter = function(collection, role) {
     (collection || []).forEach(function(p) {
+      const nom = ((p.prenom || "") + " " + (p.nom || "")).trim()
+        || p.entreprise || p.username || p.identifiant || "(sans nom)";
       const st = p.statut || "actif";
-      if (st === "archive" || st === "parti") return;
+      if (st === "archive" || st === "parti") { ecartes.archives.push(nom); return; }
       const identifiant = p.username || p.identifiant || "";
-      if (!identifiant) return;
-      if (!p.password && !p.passwordHash) return;   // pas de code provisoire à transmettre
-      if (p.uidFirebase) return;                    // compte déjà créé
+      if (!identifiant) { ecartes.sansIdentifiant.push(nom); return; }
+      if (!p.password && !p.passwordHash) { ecartes.sansCode.push(nom); return; }
+      if (p.uidFirebase && !inclureDejaRattaches) { ecartes.dejaRattaches.push(nom); return; }
       liste.push({ profil: p, role: role, identifiant: identifiant });
     });
   };
@@ -23513,6 +23517,7 @@ function profilsACreer() {
   ajouter(typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [], "parent");
   ajouter(typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [], "maitre");
   ajouter(typeof PROFILS_SALARIES !== "undefined" ? PROFILS_SALARIES : [], "mfr");
+  liste.ecartes = ecartes;
   return liste;
 }
 
@@ -23610,11 +23615,21 @@ async function creerComptesFirebase() {
   const auth2 = instanceCreation();
   if (!auth2) { alert("Impossible de préparer l'instance de création."); return; }
 
-  const aCreer = profilsACreer();
+  let aCreer = profilsACreer(false);
   if (aCreer.length === 0) {
-    alert("Aucun profil à traiter.\n\nTous les comptes actifs disposant d'un identifiant et " +
-      "d'un mot de passe ont déjà leur compte Firebase.");
-    return;
+    const e = aCreer.ecartes;
+    let d = "Aucun profil à créer.\n\nProfils écartés :\n";
+    d += "  • " + e.dejaRattaches.length + " déjà rattaché(s) à un compte Firebase\n";
+    if (e.sansIdentifiant.length > 0) d += "  • " + e.sansIdentifiant.length + " sans identifiant\n";
+    if (e.sansCode.length > 0) d += "  • " + e.sansCode.length + " sans code d'accès\n";
+    if (e.archives.length > 0) d += "  • " + e.archives.length + " archivé(s)\n";
+    d += "\nSi vous avez supprimé un compte dans la console Firebase, l'application\n";
+    d += "en garde la trace et l'écarte : il faut alors forcer le retraitement.\n\n";
+    d += "Retraiter TOUS les profils déjà rattachés ?\n";
+    d += "Les comptes intacts seront simplement repris, sans dommage.";
+    if (!confirm(d)) return;
+    aCreer = profilsACreer(true);
+    if (aCreer.length === 0) { alert("Aucun profil exploitable."); return; }
   }
   const avecHash = aCreer.filter(function(x) { return x.profil.passwordHash && !x.profil.password; });
   let msg = "Créer " + aCreer.length + " compte(s) Firebase ?\n\n";
