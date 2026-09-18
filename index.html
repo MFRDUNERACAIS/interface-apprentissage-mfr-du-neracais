@@ -22120,6 +22120,7 @@
       <div id="souspage-documents" class="souspage-profil">
         <div class="profils-toolbar">
           <button class="btn-primary" onclick="ouvrirFormulaireDocument()">+ Publier un document</button>
+          <button class="btn-secondary" onclick="installerCharteApprentissage()" title="Publier la charte de l'apprentissage, dont le texte intégral est embarqué dans l'application">📜 Installer la charte de l'apprentissage</button>
           <div class="profils-filtres">
             <input type="text" id="rechercheDocument" placeholder="🔍 Rechercher..." oninput="filtrerDocuments()">
             <select id="filtreCategorieDocument" onchange="filtrerDocuments()">
@@ -22921,7 +22922,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.77";
+const APP_VERSION = "4.78";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
