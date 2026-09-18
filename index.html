@@ -22064,6 +22064,8 @@
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
           <button class="btn-secondary" onclick="testerConnexionFirebase()">🔥 Tester la connexion Firebase</button>
           <button class="btn-secondary" onclick="creerComptesFirebase()">☁️ Créer les comptes Firebase</button>
+          <button class="btn-secondary" onclick="lancerEnvoiFirestore()">⬆️ Envoyer les données vers la base partagée</button>
+          <button class="btn-secondary" onclick="lancerReceptionFirestore()">⬇️ Récupérer les données partagées</button>
           <button class="btn-secondary" onclick="reparerCompteFirebase()">🔧 Réparer un compte Firebase</button>
           <button class="btn-secondary" onclick="ouvrirImport('salarie')">📥 Importer depuis CSV</button>
           <button class="btn-secondary" onclick="exporterProfils('salarie')">📊 Exporter CSV</button>
@@ -22919,7 +22921,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.73";
+const APP_VERSION = "4.74";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24030,6 +24032,193 @@ async function creerComptesFirebase() {
   if (typeof filtrerSalaries === "function") filtrerSalaries();
 }
 
+// =================================================================
+// FIREBASE — LOT 3 : SYNCHRONISATION DES DONNÉES
+// -----------------------------------------------------------------
+// Principe : chaque clé de stockage local devient un document Firestore.
+// C'est volontairement simple. Modéliser chaque entité en collection
+// demanderait de réécrire les 73 points d'écriture de l'application ;
+// un document par clé permet de partager les données sans y toucher.
+//
+// Deux espaces, parce que tout ne se lit pas par tout le monde :
+//   • equipe/    — lu et écrit par l'équipe MFR seulement : profils,
+//                   évaluations, qualiopi, réclamations, signalements.
+//   • partage/   — lu par tout compte authentifié, écrit par l'équipe :
+//                   plannings, documents institutionnels, paramétrage.
+//
+// Ce que ce lot ne couvre PAS encore : les carnets de liaison, les
+// émargements et les réponses aux enquêtes, qui demandent une écriture
+// par l'apprenti lui-même et donc un modèle par utilisateur. Lot 4.
+// =================================================================
+
+const CLES_SYNC_EQUIPE = [
+  "mfr_profils_apprentis", "mfr_profils_familles", "mfr_profils_lieux",
+  "mfr_profils_salaries", "mfr_profils_attestations",
+  "mfr_absences", "mfr_evaluations", "mfr_eval_competences",
+  "mfr_qualiopi", "mfr_reclamations", "mfr_signalements",
+  "mfr_ruptures", "mfr_visites", "mfr_rdv", "mfr_messages_entreprises",
+  "mfr_emargements", "mfr_emarg_vie_residentielle",
+  "mfr_eval_enseignements", "mfr_eval_reunions", "mfr_conseil_perf"
+];
+
+const CLES_SYNC_PARTAGE = [
+  "mfr_plannings_hebdo", "mfr_annees_scolaires", "mfr_documents",
+  "mfr_enquetes_calendrier", "mfr_indicateurs", "mfr_contacts",
+  "mfr_alertes", "mfr_notifications"
+];
+
+function espaceDeLaCle(cle) {
+  if (CLES_SYNC_PARTAGE.indexOf(cle) >= 0) return "partage";
+  if (CLES_SYNC_EQUIPE.indexOf(cle) >= 0) return "equipe";
+  return null;
+}
+
+function toutesClesSynchronisees() {
+  return CLES_SYNC_EQUIPE.concat(CLES_SYNC_PARTAGE);
+}
+
+// Un document Firestore est plafonné à 1 Mo. Les portraits du trombinoscope
+// pèsent à eux seuls 254 Ko : la vérification n'est pas théorique.
+const LIMITE_DOCUMENT_FIRESTORE = 900 * 1024;
+
+function tailleUtf8(txt) {
+  try { return new TextEncoder().encode(txt).length; }
+  catch (e) { return (txt || "").length * 2; }
+}
+
+// --- Envoi : local → Firestore -----------------------------------------
+async function envoyerVersFirestore(silencieux) {
+  if (!initialiserFirebase()) {
+    if (!silencieux) alert("Firebase n'est pas joignable.");
+    return { envoyees: 0, echecs: ["Firebase indisponible"] };
+  }
+  if (!fbAuth.currentUser) {
+    if (!silencieux) alert("Connectez-vous avec votre compte Firebase pour synchroniser.\n\n" +
+      "Le compte de secours ne permet pas d'\u00e9crire dans la base partag\u00e9e.");
+    return { envoyees: 0, echecs: ["non authentifi\u00e9"] };
+  }
+
+  const cles = toutesClesSynchronisees();
+  let envoyees = 0, vides = 0;
+  const echecs = [];
+
+  for (let i = 0; i < cles.length; i++) {
+    const cle = cles[i];
+    let brut = null;
+    try { brut = localStorage.getItem(cle); } catch (e) {}
+    if (brut === null || brut === "" || brut === "[]" || brut === "{}") { vides++; continue; }
+
+    const poids = tailleUtf8(brut);
+    if (poids > LIMITE_DOCUMENT_FIRESTORE) {
+      echecs.push(cle + " \u2014 trop volumineux (" + Math.round(poids / 1024) + " Ko)");
+      continue;
+    }
+    try {
+      await fbDb.collection(espaceDeLaCle(cle)).doc(cle).set({
+        contenu: brut,
+        octets: poids,
+        modifieLe: new Date().toISOString(),
+        modifiePar: utilisateurConnecte ? utilisateurConnecte.id : ""
+      });
+      envoyees++;
+    } catch (e) {
+      echecs.push(cle + " \u2014 " + ((e && e.code) || "erreur"));
+    }
+  }
+  return { envoyees: envoyees, vides: vides, echecs: echecs };
+}
+
+// --- Réception : Firestore → local -------------------------------------
+// Chaque clé reçue écrase la version locale. C'est assumé : la base
+// partagée fait autorité, sinon deux postes divergent sans arbitre.
+async function recevoirDepuisFirestore(silencieux) {
+  if (!initialiserFirebase() || !fbAuth.currentUser) {
+    if (!silencieux) alert("Connectez-vous avec votre compte Firebase pour synchroniser.");
+    return { recues: 0, echecs: ["non authentifi\u00e9"] };
+  }
+  const estEquipe = utilisateurConnecte && utilisateurConnecte.role === "mfr";
+  const cles = estEquipe ? toutesClesSynchronisees() : CLES_SYNC_PARTAGE;
+
+  let recues = 0, absentes = 0;
+  const echecs = [];
+  for (let i = 0; i < cles.length; i++) {
+    const cle = cles[i];
+    try {
+      const doc = await fbDb.collection(espaceDeLaCle(cle)).doc(cle).get();
+      if (!doc.exists) { absentes++; continue; }
+      const d = doc.data();
+      if (!d || typeof d.contenu !== "string") { absentes++; continue; }
+      try { JSON.parse(d.contenu); } catch (e) {
+        echecs.push(cle + " \u2014 contenu illisible, non appliqu\u00e9");
+        continue;
+      }
+      localStorage.setItem(cle, d.contenu);
+      recues++;
+    } catch (e) {
+      const c = (e && e.code) || "erreur";
+      if (c !== "permission-denied") echecs.push(cle + " \u2014 " + c);
+    }
+  }
+  return { recues: recues, absentes: absentes, echecs: echecs };
+}
+
+// --- Commandes de la Direction ------------------------------------------
+async function lancerEnvoiFirestore() {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
+    alert("Op\u00e9ration r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat."); return;
+  }
+  if (!confirm("Envoyer les donn\u00e9es de ce poste vers la base partag\u00e9e ?\n\n" +
+      "Elles \u00e9craseront la version en ligne. \u00c0 lancer depuis le poste qui fait r\u00e9f\u00e9rence, " +
+      "et apr\u00e8s avoir v\u00e9rifi\u00e9 que vos donn\u00e9es locales sont \u00e0 jour.")) return;
+
+  const r = await envoyerVersFirestore(false);
+  let msg = "\u2705 " + r.envoyees + " jeu(x) de donn\u00e9es envoy\u00e9(s).";
+  if (r.vides) msg += "\n" + r.vides + " cl\u00e9(s) vide(s), ignor\u00e9e(s).";
+  if (r.echecs.length) msg += "\n\n\u26D4 \u00c9CHECS :\n   " + r.echecs.join("\n   ");
+  msg += "\n\nVos coll\u00e8gues recevront ces donn\u00e9es \u00e0 leur prochaine connexion.";
+  alert(msg);
+}
+
+async function lancerReceptionFirestore() {
+  if (!confirm("R\u00e9cup\u00e9rer les donn\u00e9es de la base partag\u00e9e ?\n\n" +
+      "\u26A0 Les donn\u00e9es de ce poste seront REMPLAC\u00c9ES par celles de la base.\n" +
+      "Sauvegardez d'abord si vous avez saisi quelque chose ici sans l'envoyer.")) return;
+
+  const r = await recevoirDepuisFirestore(false);
+  let msg = "\u2705 " + r.recues + " jeu(x) de donn\u00e9es r\u00e9cup\u00e9r\u00e9(s).";
+  if (r.absentes) msg += "\n" + r.absentes + " cl\u00e9(s) absente(s) de la base.";
+  if (r.echecs.length) msg += "\n\n\u26D4 \u00c9CHECS :\n   " + r.echecs.join("\n   ");
+  msg += "\n\nLa page va se recharger pour appliquer les donn\u00e9es.";
+  alert(msg);
+  location.reload();
+}
+
+// --- Réception automatique à la connexion -------------------------------
+// Silencieuse et sans rechargement : elle prépare le stockage local avant
+// que les écrans ne le lisent. Un échec ne bloque jamais la connexion.
+async function synchroniserALaConnexion() {
+  try {
+    const u = utilisateurConnecte;
+    if (!u || !u.sourceFirebase) return;
+    const r = await recevoirDepuisFirestore(true);
+    if (r.recues > 0 && typeof rechargerDonneesEnMemoire === "function") {
+      rechargerDonneesEnMemoire();
+    }
+  } catch (e) { if (window.console) console.warn("sync", e); }
+}
+
+// Recharge les tableaux en mémoire après une réception.
+function rechargerDonneesEnMemoire() {
+  const lire = function(cle, defaut) {
+    try { return JSON.parse(localStorage.getItem(cle) || defaut); } catch (e) { return JSON.parse(defaut); }
+  };
+  if (typeof PROFILS_APPRENTIS !== "undefined") PROFILS_APPRENTIS = lire("mfr_profils_apprentis", "[]");
+  if (typeof PROFILS_FAMILLES !== "undefined") PROFILS_FAMILLES = lire("mfr_profils_familles", "[]");
+  if (typeof PROFILS_LIEUX !== "undefined") PROFILS_LIEUX = lire("mfr_profils_lieux", "[]");
+  if (typeof PROFILS_SALARIES !== "undefined") PROFILS_SALARIES = lire("mfr_profils_salaries", "[]");
+  if (typeof PROFILS_EMARGEMENTS !== "undefined") PROFILS_EMARGEMENTS = lire("mfr_emargements", "[]");
+}
+
 function normaliserIdentifiantConnexion(v) {
   return (v || "").toString().trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -24332,6 +24521,7 @@ async function login() {
     try { afficherAlertesSuivi(); } catch(e){}
   }
   if (typeof migrerRattachementsFamille === "function") migrerRattachementsFamille();
+  if (typeof synchroniserALaConnexion === "function") { synchroniserALaConnexion(); }
   if (typeof majPopupMotDePasse === "function" && majPopupMotDePasse()) return;
   if (typeof majBadgeAttestationRgpd === "function") majBadgeAttestationRgpd();
   if (typeof majPopupCharte === "function") majPopupCharte();
