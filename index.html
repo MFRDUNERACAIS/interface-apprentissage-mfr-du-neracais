@@ -22060,6 +22060,7 @@
         <div class="profils-toolbar">
           <button class="btn-primary" onclick="ouvrirFormulaireSalarie()">+ Ajouter un salarié</button>
           <button class="btn-secondary" onclick="genererAccesSalariesManquants()">🔑 Générer les accès manquants</button>
+          <button class="btn-secondary" onclick="ouvrirEnvoiGroupe()">✉️ Remettre les identifiants à un groupe</button>
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
           <button class="btn-secondary" onclick="testerConnexionFirebase()">🔥 Tester la connexion Firebase</button>
           <button class="btn-secondary" onclick="creerComptesFirebase()">☁️ Créer les comptes Firebase</button>
@@ -22918,7 +22919,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.72";
+const APP_VERSION = "4.73";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -32505,6 +32506,155 @@ function copierFicheAcces(username, password, url) {
 // COURRIERS INSTITUTIONNELS D'IDENTIFIANTS
 // Ouverture dans une nouvelle fenêtre au format A4, prêt à imprimer
 // =================================================================
+
+// -----------------------------------------------------------------
+// ENVOI GROUPÉ DES IDENTIFIANTS
+// -----------------------------------------------------------------
+// Pour une mise en service, éditer les courriers un par un n'est pas tenable.
+// Ces deux fonctions produisent, pour une population entière :
+//   • un document imprimable, un courrier par page,
+//   • un fichier CSV de publipostage, pour un envoi par messagerie.
+//
+// Le CSV contient des mots de passe en clair : il est destiné à un usage
+// immédiat puis à la suppression. Il ne doit ni être archivé, ni transiter
+// par une messagerie personnelle.
+
+const POPULATIONS_COURRIERS = {
+  famille: { libelle: "Familles et responsables l\u00e9gaux", type: "famille" },
+  apprenti: { libelle: "Apprentis", type: "apprenti" },
+  maitre: { libelle: "Ma\u00eetres d'apprentissage", type: "maitre" },
+  salarie: { libelle: "\u00c9quipe de la MFR", type: "salarie" }
+};
+
+function profilsPourCourriers(population) {
+  const actif = function(x) { const st = x.statut || "actif"; return st !== "archive" && st !== "parti"; };
+  if (population === "famille") return (PROFILS_FAMILLES || []).filter(actif);
+  if (population === "apprenti") return (PROFILS_APPRENTIS || []).filter(actif);
+  if (population === "maitre") return (PROFILS_LIEUX || []).filter(actif);
+  if (population === "salarie") return (PROFILS_SALARIES || []).filter(actif);
+  return [];
+}
+
+function ouvrirEnvoiGroupe() {
+  if (typeof peutGererProfils === "function" && !peutGererProfils()) {
+    alert("Cette op\u00e9ration est r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat.");
+    return;
+  }
+  const ancien = document.getElementById("modale-envoi-groupe");
+  if (ancien) ancien.remove();
+
+  let options = "";
+  Object.keys(POPULATIONS_COURRIERS).forEach(function(k) {
+    const liste = profilsPourCourriers(k);
+    const avecAcces = liste.filter(function(x) { return (x.username || x.identifiant) && x.password; }).length;
+    options += '<option value="' + k + '">' + POPULATIONS_COURRIERS[k].libelle +
+      " \u2014 " + avecAcces + " sur " + liste.length + " pr\u00eat(s)</option>";
+  });
+
+  const m = document.createElement("div");
+  m.id = "modale-envoi-groupe";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u2709\uFE0F</span>' +
+        '<h2>Remettre les identifiants \u00e0 tout un groupe</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<div class="impr-champ"><label>Population</label>' +
+          '<select id="eg-population">' + options + '</select></div>' +
+        '<p class="impr-aide">Deux sorties possibles. Le <strong>document imprimable</strong> produit un ' +
+          'courrier par page, \u00e0 remettre en main propre. Le <strong>fichier de publipostage</strong> ' +
+          'permet un envoi par messagerie depuis votre logiciel habituel.</p>' +
+        '<div class="mdp-erreur" id="eg-erreur" style="display:block;background:#FDF4EF;border-left-color:#C97A4F;">' +
+          '\u26A0 Le fichier de publipostage contient les mots de passe en clair. ' +
+          'Supprimez-le d\u00e8s l\'envoi effectu\u00e9, et ne le faites transiter par aucune messagerie personnelle.' +
+        '</div>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="imprimerCourriersGroupe()">\u{1F5A8}\uFE0F Document imprimable</button> ' +
+        '<button class="btn-secondaire" onclick="exporterPublipostage()">\u{1F4CA} Fichier de publipostage</button> ' +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-envoi-groupe\').remove()">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function imprimerCourriersGroupe() {
+  const pop = (document.getElementById("eg-population") || {}).value;
+  const liste = profilsPourCourriers(pop);
+  const prets = liste.filter(function(x) { return (x.username || x.identifiant) && x.password; });
+  const sansAcces = liste.length - prets.length;
+
+  if (prets.length === 0) {
+    alert("Aucun profil de cette population ne dispose \u00e0 la fois d\'un identifiant et d\'un code.\n\n" +
+      "Utilisez d\'abord \u00ab \u{1F511} G\u00e9n\u00e9rer les acc\u00e8s manquants \u00bb.");
+    return;
+  }
+  if (sansAcces > 0 && !confirm(sansAcces + " profil(s) sans identifiant ou sans code seront omis.\n\nContinuer ?")) return;
+
+  const type = POPULATIONS_COURRIERS[pop].type;
+  let html = "";
+  prets.forEach(function(profil, i) {
+    if (i > 0) html += '<div style="page-break-before:always;"></div>';
+    html += genererCourrierInstitutionnel(type, profil, null);
+  });
+  const modale = document.getElementById("modale-envoi-groupe");
+  if (modale) modale.remove();
+  ouvrirCourriers(html, "Courriers \u2014 " + POPULATIONS_COURRIERS[pop].libelle);
+}
+
+function exporterPublipostage() {
+  const pop = (document.getElementById("eg-population") || {}).value;
+  const liste = profilsPourCourriers(pop);
+  const prets = liste.filter(function(x) { return (x.username || x.identifiant) && x.password; });
+  if (prets.length === 0) { alert("Aucun profil exploitable."); return; }
+
+  const lignes = [["Civilite_nom", "Prenom", "Nom", "Email", "Telephone",
+                   "Identifiant", "Code_acces", "Rattachement"]];
+  prets.forEach(function(x) {
+    let rattachement = "";
+    if (pop === "famille" && typeof apprentisDeFamille === "function") {
+      rattachement = apprentisDeFamille(x).map(function(a) {
+        return ((a.prenom || "") + " " + (a.nom || "")).trim();
+      }).join(" / ");
+    } else if (pop === "apprenti") {
+      rattachement = libelleClasseCourte(x.classe) || "";
+    } else if (pop === "maitre") {
+      rattachement = x.entreprise || "";
+    } else if (pop === "salarie") {
+      rattachement = x.fonction || "";
+    }
+    lignes.push([
+      ((x.prenom || x.prenomMA || "") + " " + (x.nom || x.nomMA || x.entreprise || "")).trim(),
+      x.prenom || x.prenomMA || "",
+      x.nom || x.nomMA || "",
+      x.email || x.emailMA || "",
+      x.telephone || x.telephoneMA || "",
+      x.username || x.identifiant || "",
+      x.password || "",
+      rattachement
+    ]);
+  });
+
+  const csv = lignes.map(function(l) {
+    return l.map(function(c) { return '"' + String(c || "").replace(/"/g, '""') + '"'; }).join(";");
+  }).join("\n");
+
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Publipostage_" + pop + "_" + isoDeDate(new Date()) + ".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+
+  const modale = document.getElementById("modale-envoi-groupe");
+  if (modale) modale.remove();
+  const sansMail = prets.filter(function(x) { return !(x.email || x.emailMA); }).length;
+  alert("\u2705 " + prets.length + " ligne(s) export\u00e9e(s)." +
+    (sansMail > 0 ? "\n\n\u26A0 " + sansMail + " profil(s) sans adresse \u00e9lectronique : " +
+      "ceux-l\u00e0 devront recevoir leur courrier en main propre." : "") +
+    "\n\nSupprimez ce fichier d\u00e8s l\'envoi effectu\u00e9 : il contient les mots de passe en clair.");
+}
 
 function genererCourrierInstitutionnel(type, profil, contexteApprenti) {
   const urlApp = window.location.origin + window.location.pathname;
