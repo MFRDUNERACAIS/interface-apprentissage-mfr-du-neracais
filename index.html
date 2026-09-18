@@ -9814,6 +9814,14 @@
     width: 100%; padding: 0.6rem 0.8rem; font: inherit;
     border: 1px solid var(--border); border-radius: 8px; resize: vertical;
   }
+  /* Reprise des informations depuis les fiches */
+  .acteurs-reprise {
+    display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+    background: #FFF8E1; border-left: 4px solid var(--or);
+    border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 1.1rem;
+    font-size: 0.88rem;
+  }
+  .acteurs-reprise > div { flex: 1; min-width: 16rem; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -16858,6 +16866,15 @@
       <!-- IDENTITÉ DES ACTEURS -->
       <h2 class="carnet-section-titre">👥 Identité des acteurs</h2>
 
+      <div class="acteurs-reprise no-print" id="acteursReprise" style="display:none;">
+        <div>
+          <strong>Les fiches de l'application contiennent déjà ces informations.</strong>
+          Les champs vides sont complétés automatiquement à l'ouverture de la page.
+          Utilisez ce bouton si une fiche a été mise à jour depuis.
+        </div>
+        <button class="btn-secondaire btn-mini" onclick="boutonReprendreInfos()">↻ Reprendre les informations des fiches</button>
+      </div>
+
       <div class="carnet-acteur-grid">
         <!-- Apprenti -->
         <div class="carnet-acteur-card" id="acteurs-card-apprenti">
@@ -18816,7 +18833,7 @@
       <!-- TABLEAU CAP EPC -->
       <h3 class="indicateurs-formation-titre">CAP Équipier Polyvalent du Commerce — RNCP 40994</h3>
       <p class="indicateurs-effectifs">
-        Effectifs concernés : <strong>Session 2024</strong> — N&nbsp;=&nbsp;<span class="placeholder-n">à compléter</span> · <strong>Session 2025</strong> — N&nbsp;=&nbsp;<span class="placeholder-n">à compléter</span> <br><strong>Session 2026</strong> — <strong>16 inscrits</strong> en début d'année · <strong>13 apprentis sous contrat</strong> (1<sup>re</sup> et 2<sup>e</sup> année) · <strong>4 candidats présentés</strong> à l'examen (2<sup>e</sup> année, seuls certifiables)
+        Effectifs concernés, toutes années de formation confondues :<br><strong>Session 2024</strong> — <strong>17 inscrits</strong> (10 en 1<sup>re</sup> année dont 2 sans contrat, 7 en 2<sup>e</sup> année) · <strong>15 sous contrat</strong> · <strong>7 candidats présentés</strong> à l'examen<br><strong>Session 2025</strong> — <strong>13 inscrits</strong> (9 en 1<sup>re</sup> année, 4 en 2<sup>e</sup> année) dont 3 sans contrat · <strong>10 sous contrat</strong> · <strong>4 candidats présentés</strong> à l'examen (2<sup>e</sup> année)<br><strong>Session 2026</strong> — <strong>16 inscrits</strong> · <strong>13 sous contrat</strong> · <strong>4 candidats présentés</strong> à l'examen (2<sup>e</sup> année, seuls certifiables)
       </p>
 
       <div class="tableau-indicateurs-wrapper">
@@ -18848,23 +18865,23 @@
             <tr>
               <td>Taux d'insertion — autre métier</td>
               <td><span class="ind-valeur">29&nbsp;%</span></td>
-              <td><span class="ind-valeur">20&nbsp;%</span></td>
               <td><span class="ind-valeur neutre">0&nbsp;%</span></td>
-              <td><span class="ind-evolution negative">↓ -20 pts</span></td>
+              <td><span class="ind-valeur neutre">0&nbsp;%</span></td>
+              <td><span class="ind-evolution stable">Stable</span></td>
             </tr>
             <tr>
-              <td>En recherche d'emploi dans le métier visé <span class="ind-note">(situation à la sortie)</span></td>
-              <td><span class="ind-valeur secondaire">—</span></td>
+              <td>Sans emploi ou en recherche d'emploi <span class="ind-note">(2025 : 1 sur 4 · 2026 : 1 sur 4, dans le métier visé)</span></td>
               <td><span class="ind-valeur secondaire">—</span></td>
               <td><span class="ind-valeur">25&nbsp;%</span></td>
-              <td><span class="ind-evolution stable">Nouveau</span></td>
+              <td><span class="ind-valeur">25&nbsp;%</span></td>
+              <td><span class="ind-evolution stable">Stable</span></td>
             </tr>
             <tr class="ligne-positive">
-              <td>Taux de poursuite d'études</td>
+              <td>Taux de poursuite d'études <span class="ind-note">(2025 : 2 sur 4 · 2026 : 3 sur 4)</span></td>
               <td><span class="ind-valeur positif">57&nbsp;%</span></td>
-              <td><span class="ind-valeur positif">40&nbsp;%</span></td>
+              <td><span class="ind-valeur positif">50&nbsp;%</span></td>
               <td><span class="ind-valeur positif">75&nbsp;%</span></td>
-              <td><span class="ind-evolution positive">↑ +35 pts</span></td>
+              <td><span class="ind-evolution positive">↑ +25 pts</span></td>
             </tr>
             <tr>
               <td>Taux de rupture de contrat <span class="ind-note">(2026 : 2 ruptures sur 13 apprentis sous contrat)</span></td>
@@ -18881,11 +18898,11 @@
               <td><span class="ind-evolution negative">↑ +19 pts</span></td>
             </tr>
             <tr class="ligne-secondaire">
-              <td>Taux sans réponse à l'enquête</td>
+              <td>Taux sans réponse à l'enquête <span class="ind-note">(2025 : 1 sur 4)</span></td>
               <td><span class="ind-valeur secondaire">14&nbsp;%</span></td>
-              <td><span class="ind-valeur secondaire">20&nbsp;%</span></td>
+              <td><span class="ind-valeur secondaire">25&nbsp;%</span></td>
               <td><span class="ind-valeur secondaire positif">0&nbsp;%</span></td>
-              <td><span class="ind-evolution positive">↓ -20 pts</span></td>
+              <td><span class="ind-evolution positive">↓ -25 pts</span></td>
             </tr>
           </tbody>
         </table>
@@ -18894,7 +18911,10 @@
       <!-- TABLEAU CAP AEPE -->
       <h3 class="indicateurs-formation-titre">CAP Accompagnant Éducatif Petite Enfance — RNCP 38565</h3>
       <p class="indicateurs-effectifs">
-        Effectifs concernés : <strong>Session 2024</strong> — N&nbsp;=&nbsp;<span class="placeholder-n">à compléter</span> · <strong>Session 2025</strong> — N&nbsp;=&nbsp;<span class="placeholder-n">à compléter</span><br><strong>Session 2026</strong> — <strong>aucune session</strong> : aucun candidat présenté à l'examen au titre de l'année scolaire 2025-2026. Les indicateurs sont donc sans objet pour cette session.
+        Effectifs concernés :<br>
+        <strong>Session 2024</strong> — <strong>7 inscrits</strong> dont 2 sans contrat · <strong>5 sous contrat</strong><br>
+        <strong>Session 2025</strong> — <strong>7 inscrits</strong> dont 3 sans contrat · <strong>4 sous contrat</strong><br>
+        <strong>Session 2026</strong> — <strong>aucune session</strong> : aucun candidat présenté à l'examen au titre de l'année scolaire 2025-2026. Les indicateurs sont sans objet pour cette session.
       </p>
 
       <div class="tableau-indicateurs-wrapper">
@@ -18980,7 +19000,10 @@
 
       <h3 class="indicateurs-formation-titre">CAP AEPE — Stagiaires de la formation professionnelle</h3>
       <p class="indicateurs-effectifs">
-        Effectifs concernés : <strong>Session 2024</strong> — N&nbsp;=&nbsp;<span class="placeholder-n">à compléter</span> · <strong>Session 2025</strong> — N&nbsp;=&nbsp;<span class="placeholder-n">à compléter</span><br><strong>Session 2026</strong> — <strong>aucune session</strong> : aucun candidat présenté à l'examen au titre de l'année scolaire 2025-2026. Les indicateurs sont donc sans objet pour cette session.
+        Effectifs concernés :<br>
+        <strong>Session 2024</strong> — <strong>7 inscrits</strong> dont 2 sans contrat · <strong>5 sous contrat</strong><br>
+        <strong>Session 2025</strong> — <strong>7 inscrits</strong> dont 3 sans contrat · <strong>4 sous contrat</strong><br>
+        <strong>Session 2026</strong> — <strong>aucune session</strong> : aucun candidat présenté à l'examen au titre de l'année scolaire 2025-2026. Les indicateurs sont sans objet pour cette session.
       </p>
 
       <div class="tableau-indicateurs-wrapper">
@@ -22893,7 +22916,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.61";
+const APP_VERSION = "4.66";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -35266,13 +35289,26 @@ function afficherBannerDroits() {
 }
 
 function remplirChampsIdentite() {
-  // Les champs d'identité dans le carnet sont alimentés par la page "Acteurs et identité".
-  // On lit donc dans le stockage "acteurs_<id>" au lieu du carnet lui-même.
+  // Les champs d'identité du carnet reflètent la page « Acteurs et identité » :
+  // on lit dans le stockage "acteurs_<id>", jamais dans le carnet lui-même.
   const cleActeurs = "acteurs_" + carnetApprentiId;
   const stockage = localStorage.getItem(cleActeurs);
   let donneesActeurs = {};
   if (stockage) {
     try { donneesActeurs = JSON.parse(stockage); } catch (e) {}
+  }
+
+  // Complément depuis les fiches de l'application.
+  // Sans cela, un carnet dont la page Acteurs n'a jamais été ouverte affichait
+  // une identité vide, alors que les profils contenaient déjà tout.
+  if (typeof donneesActeursDepuisFiches === "function") {
+    try {
+      const auto = donneesActeursDepuisFiches(carnetApprentiId);
+      Object.keys(auto).forEach(function(k) {
+        const v = donneesActeurs[k];
+        if (v === undefined || v === null || v === "") donneesActeurs[k] = auto[k];
+      });
+    } catch (e) {}
   }
 
   document.querySelectorAll("#page-carnet [data-carnet]").forEach(el => {
@@ -43071,6 +43107,13 @@ function initPageActeurs() {
   // Charger les données et remplir les champs
   chargerDonneesActeurs(acteursApprentiCourant);
 
+  // L'encart de reprise ne concerne que l'équipe, seule à pouvoir éditer.
+  const encart = document.getElementById("acteursReprise");
+  if (encart) {
+    const u = utilisateurConnecte;
+    encart.style.display = (u && u.role === "mfr") ? "flex" : "none";
+  }
+
   // Appliquer les verrous d'édition (seule la MFR peut écrire)
   appliquerVerrousActeurs();
 
@@ -43188,6 +43231,106 @@ function appliquerVisibiliteActeurs() {
   }
 }
 
+// -----------------------------------------------------------------
+// REPRISE DES INFORMATIONS DEPUIS LES FICHES
+// -----------------------------------------------------------------
+// Les identités des quatre acteurs existent déjà dans les profils :
+// apprenti, responsables légaux, lieu d'apprentissage. Les faire ressaisir
+// à la main est une perte de temps et une source d'écarts entre les deux
+// enregistrements. Cette fonction les recopie — sans jamais écraser une
+// valeur déjà saisie sur la page, sauf demande explicite.
+
+function donneesActeursDepuisFiches(apprentiId) {
+  const d = {};
+  const a = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(x) { return x.username === apprentiId; });
+  if (!a) return d;
+
+  // L'apprenti
+  if (a.nom) d.apprenti_nom = a.nom;
+  if (a.prenom) d.apprenti_prenom = a.prenom;
+  if (a.dateNaissance) d.apprenti_naissance = a.dateNaissance;
+  if (a.adresse) d.apprenti_adresse = a.adresse;
+  if (a.telephone) d.apprenti_tel = a.telephone;
+  if (a.email) d.apprenti_mail = a.email;
+
+  // Le responsable légal : le contact principal de l'apprenti
+  const familles = (typeof famillesDeApprenti === "function") ? famillesDeApprenti(a) : [];
+  const f = familles.length > 0 ? familles[0] : null;
+  if (f) {
+    if (f.nom) d.famille_nom = f.nom;
+    if (f.prenom) d.famille_prenom = f.prenom;
+    if (f.adresse) d.famille_adresse = f.adresse;
+    if (f.telephone) d.famille_tel = f.telephone;
+    if (f.email) d.famille_mail = f.email;
+    const lien = (f.lien || "").toLowerCase();
+    if (lien.indexOf("père") === 0) d.famille_qualite = "pere";
+    else if (lien.indexOf("mère") === 0) d.famille_qualite = "mere";
+    else if (lien) d.famille_qualite = "tuteur";
+  }
+  // Second responsable → contact d'urgence, s'il existe
+  if (familles.length > 1) {
+    const u2 = familles[1];
+    if (u2.prenom) d.urgence_prenom = u2.prenom;
+    if (u2.nom) d.urgence_nom = u2.nom;
+    if (u2.telephone) d.urgence_tel = u2.telephone;
+    if (u2.lien) d.urgence_lien = u2.lien;
+  }
+
+  // L'entreprise et le maître d'apprentissage
+  const l = (typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [])
+    .find(function(x) { return x.id === a.lieuId; });
+  if (l) {
+    if (l.entreprise) d.entreprise_nom = l.entreprise;
+    if (l.adresse) d.entreprise_adresse = l.adresse;
+    if (l.telephone) d.entreprise_tel = l.telephone;
+    if (l.email) d.entreprise_mail = l.email;
+    const nomMA = ((l.prenomMA || "") + " " + (l.nomMA || "")).trim();
+    if (nomMA) d.ma_nom = nomMA;
+    if (l.fonctionMA) d.ma_fonction = l.fonctionMA;
+    if (l.telephoneMA) d.ma_tel = l.telephoneMA;
+    if (l.emailMA) d.ma_mail = l.emailMA;
+  }
+  return d;
+}
+
+// Recopie les informations des fiches dans les champs vides de la page.
+// ecraser = true : remplace aussi ce qui est déjà saisi.
+function reprendreInfosDepuisFiches(ecraser) {
+  if (!acteursApprentiCourant) return 0;
+  const auto = donneesActeursDepuisFiches(acteursApprentiCourant);
+  let remplis = 0;
+  document.querySelectorAll("[data-acteurs]").forEach(function(el) {
+    const cle = el.dataset.acteurs;
+    const val = auto[cle];
+    if (val === undefined || val === null || val === "") return;
+    if (el.type === "radio") {
+      if (ecraser || !document.querySelector('[data-acteurs="' + cle + '"]:checked')) {
+        if (el.value === val) { el.checked = true; remplis++; }
+      }
+    } else {
+      if (ecraser || !el.value || !el.value.trim()) { el.value = val; remplis++; }
+    }
+  });
+  if (remplis > 0 && typeof sauverActeurs === "function") sauverActeurs();
+  return remplis;
+}
+
+function boutonReprendreInfos() {
+  const n = reprendreInfosDepuisFiches(false);
+  if (n === 0) {
+    if (confirm("Tous les champs renseignables depuis les fiches sont d\u00e9j\u00e0 remplis.\n\n" +
+        "Voulez-vous les REMPLACER par les valeurs actuelles des fiches ?\n" +
+        "Ce que vous avez saisi \u00e0 la main sur cette page sera \u00e9cras\u00e9.")) {
+      const m = reprendreInfosDepuisFiches(true);
+      alert("\u2705 " + m + " champ(s) mis \u00e0 jour depuis les fiches.");
+    }
+    return;
+  }
+  alert("\u2705 " + n + " champ(s) compl\u00e9t\u00e9(s) depuis les fiches.\n\n" +
+    "Les champs que vous aviez d\u00e9j\u00e0 saisis n'ont pas \u00e9t\u00e9 touch\u00e9s.");
+}
+
 function chargerDonneesActeurs(apprentiId) {
   const cle = "acteurs_" + apprentiId;
   const stockage = localStorage.getItem(cle);
@@ -43211,6 +43354,12 @@ function chargerDonneesActeurs(apprentiId) {
     else if (el.type === "checkbox") el.checked = !!val;
     else el.value = val;
   });
+
+  // Compléter automatiquement ce qui reste vide à partir des fiches.
+  // Rien de ce qui a été saisi sur la page n'est modifié.
+  if (typeof reprendreInfosDepuisFiches === "function") {
+    try { reprendreInfosDepuisFiches(false); } catch (e) {}
+  }
 }
 
 function sauverActeurs() {
