@@ -22921,7 +22921,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.76";
+const APP_VERSION = "4.77";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24144,13 +24144,13 @@ async function envoyerVersFirestore(silencieux) {
 
   const cles = toutesClesSynchronisees();
   let envoyees = 0, vides = 0;
-  const echecs = [];
+  const echecs = [], detail = [], clesVides = [];
 
   for (let i = 0; i < cles.length; i++) {
     const cle = cles[i];
     let brut = null;
     try { brut = localStorage.getItem(cle); } catch (e) {}
-    if (brut === null || brut === "" || brut === "[]" || brut === "{}") { vides++; continue; }
+    if (brut === null || brut === "" || brut === "[]" || brut === "{}") { vides++; clesVides.push(cle); continue; }
 
     const poids = tailleUtf8(brut);
     if (poids > LIMITE_DOCUMENT_FIRESTORE) {
@@ -24165,11 +24165,18 @@ async function envoyerVersFirestore(silencieux) {
         modifiePar: utilisateurConnecte ? utilisateurConnecte.id : ""
       });
       envoyees++;
+      let nb = "";
+      try {
+        const v = JSON.parse(brut);
+        if (Array.isArray(v)) nb = v.length + " \u00e9l\u00e9ment(s)";
+        else if (v && typeof v === "object") nb = Object.keys(v).length + " entr\u00e9e(s)";
+      } catch (e) {}
+      detail.push(cle + " \u2014 " + (nb ? nb + ", " : "") + Math.round(poids / 1024) + " Ko");
     } catch (e) {
       echecs.push(cle + " \u2014 " + ((e && e.code) || "erreur"));
     }
   }
-  return { envoyees: envoyees, vides: vides, echecs: echecs };
+  return { envoyees: envoyees, vides: vides, echecs: echecs, detail: detail, clesVides: clesVides };
 }
 
 // --- Réception : Firestore → local -------------------------------------
@@ -24216,8 +24223,14 @@ async function lancerEnvoiFirestore() {
       "et apr\u00e8s avoir v\u00e9rifi\u00e9 que vos donn\u00e9es locales sont \u00e0 jour.")) return;
 
   const r = await envoyerVersFirestore(false);
-  let msg = "\u2705 " + r.envoyees + " jeu(x) de donn\u00e9es envoy\u00e9(s).";
-  if (r.vides) msg += "\n" + r.vides + " cl\u00e9(s) vide(s), ignor\u00e9e(s).";
+  let msg = "\u2705 " + r.envoyees + " jeu(x) de donn\u00e9es envoy\u00e9(s) :\n   " +
+    (r.detail || []).join("\n   ");
+  if (r.vides) {
+    msg += "\n\n\u2139 " + r.vides + " cl\u00e9(s) sans donn\u00e9e, ignor\u00e9e(s) :\n   " +
+      (r.clesVides || []).join("\n   ") +
+      "\n\nParcourez cette liste : un module que vous savez renseign\u00e9 et qui y figure " +
+      "signalerait une anomalie.";
+  }
   if (r.echecs.length) msg += "\n\n\u26D4 \u00c9CHECS :\n   " + r.echecs.join("\n   ");
   msg += "\n\nVos coll\u00e8gues recevront ces donn\u00e9es \u00e0 leur prochaine connexion.";
   alert(msg);
