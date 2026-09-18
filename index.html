@@ -9693,6 +9693,84 @@
     padding: 0.55rem 0.8rem; border-radius: 5px; margin: 0.6rem 0;
   }
   .impr-case { display: flex; align-items: center; gap: 0.45rem; font-size: 0.88rem; }
+  /* Vie residentielle */
+  .vr-entete h3 { color: var(--olive-dark); margin-bottom: 0.3rem; }
+  .vr-entete p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; }
+  .vr-info { background: var(--beige); border-radius: 8px; padding: 1rem 1.2rem; font-size: 0.93rem; }
+  .vr-liste { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .vr-jour {
+    background: var(--olive); color: #fff; padding: 0.4rem 0.9rem;
+    font-weight: 600; font-size: 0.88rem;
+  }
+  .vr-ligne {
+    display: flex; align-items: center; gap: 0.7rem;
+    padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); background: #fff;
+  }
+  .vr-ligne.est-signe { background: #F1F8E9; }
+  .vr-icone { font-size: 1.2rem; }
+  .vr-libelle { flex: 1; font-size: 0.93rem; }
+  .vr-signe { color: #2E5B31; font-weight: 600; font-size: 0.85rem; }
+  .vr-ferme { color: var(--text-muted); font-size: 0.82rem; font-style: italic; }
+  .vr-pied { font-size: 0.83rem; color: var(--text-muted); margin-top: 0.8rem; font-style: italic; }
+  .vr-filtres { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1rem; }
+  .vr-filtres label { font-size: 0.85rem; color: var(--olive-dark); font-weight: 600; }
+  .vr-filtres select, .vr-filtres input {
+    display: block; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font: inherit;
+  }
+  .vr-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  .vr-table th {
+    background: var(--olive); color: #fff; padding: 0.35rem 0.25rem;
+    text-align: center; font-weight: 600;
+  }
+  .vr-table th:first-child { text-align: left; padding-left: 0.6rem; }
+  .vr-table td { border: 1px solid var(--border); padding: 0.3rem; text-align: center; }
+  .vr-nom { text-align: left !important; padding-left: 0.6rem !important; font-weight: 600; color: var(--olive-dark); }
+  .vr-case.vr-ok { color: #2E5B31; font-weight: 700; }
+  .vr-case.vr-suspect { background: #FFF3E0; color: #8E4A28; font-weight: 700; cursor: help; }
+  .vr-total { font-weight: 700; color: var(--olive-dark); }
+  .vr-bilan {
+    margin: 0.8rem 0; padding: 0.6rem 0.9rem; background: #F1F8E9;
+    border-left: 4px solid var(--olive); border-radius: 6px; font-size: 0.9rem;
+  }
+  .vr-alerte { color: #8E4A28; font-weight: 600; }
+  .vr-valide {
+    background: #F1F8E9; border: 1px solid #4C7A34; border-radius: 8px;
+    padding: 0.7rem 1rem; font-size: 0.9rem;
+  }
+  /* Rattachement des responsables legaux */
+  .ctc-liste { display: grid; gap: 0.5rem; margin-bottom: 0.7rem; }
+  .ctc-carte {
+    display: flex; align-items: center; gap: 0.7rem;
+    background: #fff; border: 1px solid var(--border);
+    border-left: 4px solid var(--border); border-radius: 8px; padding: 0.6rem 0.8rem;
+  }
+  .ctc-carte.est-principal { border-left-color: var(--or); background: #FFFDF5; }
+  .ctc-rang {
+    width: 1.5rem; height: 1.5rem; border-radius: 50%;
+    background: var(--beige-dark); color: var(--olive-dark);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
+  }
+  .ctc-carte.est-principal .ctc-rang { background: var(--or); color: #fff; }
+  .ctc-corps { flex: 1; min-width: 0; }
+  .ctc-nom { font-weight: 600; color: var(--olive-dark); font-size: 0.93rem; }
+  .ctc-lien {
+    display: inline-block; background: var(--beige); border-radius: 999px;
+    padding: 0.05rem 0.5rem; font-size: 0.74rem; font-weight: 400; color: var(--text-muted);
+  }
+  .ctc-coord { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.1rem; }
+  .ctc-badge { font-size: 0.73rem; color: #8E6B14; font-weight: 600; margin-top: 0.15rem; }
+  .ctc-actions { display: flex; gap: 0.25rem; flex-shrink: 0; }
+  .ctc-retirer { color: var(--mfr-red); }
+  .ctc-vide { font-size: 0.86rem; color: var(--text-muted); font-style: italic; }
+  .ctc-ajout {
+    display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap;
+    border-top: 1px dashed var(--border); padding-top: 0.6rem;
+  }
+  .ctc-ajout select {
+    flex: 1; min-width: 12rem; padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border); border-radius: 6px; font: inherit;
+  }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -21682,6 +21760,7 @@
       <div class="emarg-tabs">
         <button class="emarg-tab active" data-emarg-tab="active" onclick="changerOngletEmarg('active')">🟢 Séance en cours</button>
         <button class="emarg-tab" data-emarg-tab="historique" onclick="changerOngletEmarg('historique')">📋 Historique</button>
+        <button class="emarg-tab" data-emarg-tab="vr" onclick="changerOngletEmarg('vr')">🍽️ Repas et nuitées</button>
       </div>
 
       <!-- ONGLET SÉANCE EN COURS -->
@@ -21696,6 +21775,11 @@
       </div>
 
       <!-- ONGLET HISTORIQUE -->
+      <!-- ONGLET VIE RÉSIDENTIELLE -->
+      <div id="emarg-onglet-vr" class="emarg-onglet">
+        <div id="vr-contenu"></div>
+      </div>
+
       <div id="emarg-onglet-historique" class="emarg-onglet">
         <div class="emarg-filtres">
           <select id="emargFiltreClasse" onchange="afficherHistoriqueEmarg()">
@@ -22762,7 +22846,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.49";
+const APP_VERSION = "4.54";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -22902,6 +22986,110 @@ const CLASSES = {
 // =================================================================
 
 // Identifiants des familles rattachées à un apprenti, contact principal en tête.
+// -----------------------------------------------------------------
+// Rattachement des responsables légaux à un apprenti
+// -----------------------------------------------------------------
+// Certains jeunes ont jusqu'à cinq responsables : père, mère, éducateur
+// référent, structure d'accueil, conseil départemental. L'interface montre
+// donc les contacts RATTACHÉS sous forme de cartes ordonnées, et propose
+// l'ajout par une liste déroulante filtrée — jamais la totalité des fiches.
+let CONTACTS_FAMILLE_EN_COURS = [];
+
+function ficheFamilleParId(id) {
+  return (typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [])
+    .find(function(f) { return f.id === id; });
+}
+
+function nomContactFamille(f) {
+  if (!f) return "(fiche supprim\u00e9e)";
+  return ((f.prenom || "") + " " + (f.nom || "")).trim() || "(sans nom)";
+}
+
+function rendreContactsFamille() {
+  const zone = document.getElementById("apprContactsZone");
+  if (!zone) return;
+
+  let h = '';
+
+  // 1. Contacts déjà rattachés, en cartes
+  if (CONTACTS_FAMILLE_EN_COURS.length === 0) {
+    h += '<div class="ctc-vide">Aucun responsable rattach\u00e9 pour l\'instant.</div>';
+  } else {
+    h += '<div class="ctc-liste">';
+    CONTACTS_FAMILLE_EN_COURS.forEach(function(id, i) {
+      const f = ficheFamilleParId(id);
+      const principal = (i === 0);
+      h += '<div class="ctc-carte' + (principal ? ' est-principal' : '') + '">';
+      h += '<div class="ctc-rang">' + (i + 1) + '</div>';
+      h += '<div class="ctc-corps">';
+      h += '<div class="ctc-nom">' + escapeHTML(nomContactFamille(f)) +
+        (f && f.lien ? ' <span class="ctc-lien">' + escapeHTML(f.lien) + '</span>' : '') + '</div>';
+      const coord = [];
+      if (f && f.telephone) coord.push(escapeHTML(f.telephone));
+      if (f && f.email) coord.push(escapeHTML(f.email));
+      if (coord.length) h += '<div class="ctc-coord">' + coord.join(" \u00b7 ") + '</div>';
+      h += principal
+        ? '<div class="ctc-badge">Contact principal \u2014 destinataire des courriers</div>'
+        : '';
+      h += '</div>';
+      h += '<div class="ctc-actions">';
+      if (!principal) {
+        h += '<button type="button" class="btn-mini" title="D\u00e9finir comme contact principal" ' +
+          'onclick="definirContactPrincipal(\'' + id + '\')">\u2605</button>';
+      }
+      h += '<button type="button" class="btn-mini ctc-retirer" title="Retirer ce contact" ' +
+        'onclick="retirerContactFamille(\'' + id + '\')">\u2715</button>';
+      h += '</div></div>';
+    });
+    h += '</div>';
+  }
+
+  // 2. Ajout d'un contact
+  const dispo = (typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [])
+    .filter(function(f) {
+      return (f.statut || "actif") === "actif" && CONTACTS_FAMILLE_EN_COURS.indexOf(f.id) < 0;
+    })
+    .sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || ""); });
+
+  h += '<div class="ctc-ajout">';
+  if (dispo.length === 0) {
+    h += '<span class="ctc-vide">Toutes les fiches famille actives sont d\u00e9j\u00e0 rattach\u00e9es. ' +
+      'Cr\u00e9ez-en une nouvelle dans la sous-page Familles.</span>';
+  } else {
+    h += '<select id="ctc-select"><option value="">\u2014 Ajouter un responsable \u2014</option>';
+    dispo.forEach(function(f) {
+      h += '<option value="' + f.id + '">' + escapeHTML(nomContactFamille(f)) +
+        (f.lien ? " (" + escapeHTML(f.lien) + ")" : "") + '</option>';
+    });
+    h += '</select>';
+    h += '<button type="button" class="btn-mini btn-primary" onclick="ajouterContactFamille()">+ Ajouter</button>';
+  }
+  h += '</div>';
+
+  zone.innerHTML = h;
+}
+
+function ajouterContactFamille() {
+  const sel = document.getElementById("ctc-select");
+  if (!sel || !sel.value) return;
+  if (CONTACTS_FAMILLE_EN_COURS.indexOf(sel.value) < 0) {
+    CONTACTS_FAMILLE_EN_COURS.push(sel.value);
+  }
+  rendreContactsFamille();
+}
+
+function retirerContactFamille(id) {
+  CONTACTS_FAMILLE_EN_COURS = CONTACTS_FAMILLE_EN_COURS.filter(function(x) { return x !== id; });
+  rendreContactsFamille();
+}
+
+// Le contact principal passe en tête : l'ordre de la liste fait foi.
+function definirContactPrincipal(id) {
+  CONTACTS_FAMILLE_EN_COURS = [id].concat(
+    CONTACTS_FAMILLE_EN_COURS.filter(function(x) { return x !== id; }));
+  rendreContactsFamille();
+}
+
 function famillesIdsDeApprenti(apprenti) {
   if (!apprenti) return [];
   const liste = Array.isArray(apprenti.famillesIds) ? apprenti.famillesIds.slice() : [];
@@ -23632,14 +23820,32 @@ async function traiterUnCompteFirebase(item, code) {
       } else { throw e; }
     }
 
-    // Forcer l'obtention du jeton avant d'écrire : garantit que Firestore
-    // dispose bien de l'identité de CE compte, et pas d'une précédente.
-    await utilisateur.getIdToken(true);
-    await db.collection("annuaire").doc(utilisateur.uid)
-      .set(ficheAnnuaire(item.profil, item.role, item.identifiant));
+    // Écriture de la fiche d'annuaire, par la voie la plus sûre disponible.
+    //
+    // 1) Si la Direction est connectée à Firebase, c'est ELLE qui écrit la
+    //    fiche. Les règles normales l'autorisent (rôle mfr) : aucune règle
+    //    de bascule n'est alors nécessaire. C'est le régime courant, pour
+    //    l'arrivée d'un élève en cours d'année.
+    //
+    // 2) Sinon, le compte créé écrit lui-même sa fiche, ce qui suppose les
+    //    règles de bascule. C'est le mode d'amorçage, quand l'annuaire est
+    //    encore vide et que personne n'y porte le rôle mfr.
+    const fiche = ficheAnnuaire(item.profil, item.role, item.identifiant);
+    let ecritureParDirection = false;
+    if (fbAuth && fbAuth.currentUser && utilisateurConnecte
+        && utilisateurConnecte.role === "mfr" && utilisateurConnecte.sourceFirebase) {
+      try {
+        await fbDb.collection("annuaire").doc(utilisateur.uid).set(fiche);
+        ecritureParDirection = true;
+      } catch (e) { /* on retombe sur la voie d'amorçage */ }
+    }
+    if (!ecritureParDirection) {
+      await utilisateur.getIdToken(true);
+      await db.collection("annuaire").doc(utilisateur.uid).set(fiche);
+    }
 
     try { await auth.signOut(); } catch (e) {}
-    return { ok: true, uid: utilisateur.uid, repris: repris };
+    return { ok: true, uid: utilisateur.uid, repris: repris, parDirection: ecritureParDirection };
   } finally {
     if (app) { try { await app.delete(); } catch (e) {} }
   }
@@ -23680,7 +23886,7 @@ async function creerComptesFirebase() {
   msg += "\nComptez environ " + Math.ceil(aCreer.length * 1.5 / 60) + " minute(s). Ne fermez pas la page.";
   if (!confirm(msg)) return;
 
-  let crees = 0, reprises = 0;
+  let crees = 0, reprises = 0, parDirection = 0;
   const echecs = [], nouveauxCodes = [];
 
   for (let i = 0; i < aCreer.length; i++) {
@@ -23712,6 +23918,7 @@ async function creerComptesFirebase() {
       item.profil.uidFirebase = r.uid;
       crees++;
       if (r.repris) reprises++;
+      if (r.parDirection) parDirection++;
     } catch (e) {
       const c = (e && e.code) ? e.code : "";
       if (c === "auth/wrong-password" || c === "auth/invalid-credential") {
@@ -23730,6 +23937,13 @@ async function creerComptesFirebase() {
 
   let bilan = "\u2705 " + crees + " compte(s) op\u00e9rationnel(s) sur " + aCreer.length + ".";
   if (reprises > 0) bilan += "\n   (dont " + reprises + " repris d'une tentative pr\u00e9c\u00e9dente)";
+  if (parDirection === crees && crees > 0) {
+    bilan += "\n\n✅ Fiches écrites sous votre identité de Direction : les règles de " +
+      "bascule n'étaient pas nécessaires, et ne le seront plus.";
+  } else if (parDirection > 0) {
+    bilan += "\n\nℹ " + parDirection + " fiche(s) écrite(s) sous votre identité de Direction, " +
+      "le reste en mode amorçage.";
+  }
   if (nouveauxCodes.length > 0) {
     bilan += "\n\n\u26A0 NOUVEAUX CODES \u00c0 COMMUNIQUER \u2014 notez-les maintenant :\n   " +
       nouveauxCodes.join("\n   ");
@@ -31098,20 +31312,10 @@ function ouvrirFormulaireApprenti(idExistant) {
     .map(l => `<option value="${l.id}" ${apprenti && apprenti.lieuId === l.id ? 'selected' : ''}>${l.entreprise} (MA : ${l.prenomMA} ${l.nomMA})</option>`).join("");
   // Rattachement multiple : un apprenti peut avoir plusieurs contacts famille
   // (père, mère, tuteur, éducateur référent, structure d'accueil…).
-  const idsFamillesApprenti = apprenti ? famillesIdsDeApprenti(apprenti) : [];
-  const famillesActives = PROFILS_FAMILLES.filter(f => f.statut === "actif");
-  const optionsFamilles = famillesActives.length === 0
-    ? '<p class="appr-familles-vide">Aucune fiche famille active. Créez-les d\'abord dans la sous-page Familles.</p>'
-    : famillesActives.map(f => {
-        const coche = idsFamillesApprenti.indexOf(f.id) >= 0;
-        const principal = idsFamillesApprenti.length > 0 && idsFamillesApprenti[0] === f.id;
-        return `<label class="appr-famille-item${coche ? ' est-coche' : ''}">` +
-          `<input type="checkbox" data-famille-id="${f.id}" ${coche ? 'checked' : ''}> ` +
-          `<span class="appr-famille-nom">${escapeHTML(f.prenom || '')} ${escapeHTML(f.nom || '')}</span>` +
-          (f.lien ? `<span class="appr-famille-lien">${escapeHTML(f.lien)}</span>` : '') +
-          (principal ? '<span class="appr-famille-principal">contact principal</span>' : '') +
-          `</label>`;
-      }).join("");
+  // Les contacts rattachés sont gérés en mémoire pendant l'édition, puis relus
+  // à l'enregistrement. Une liste de cases à cocher devenait illisible dès
+  // que le nombre de fiches famille dépassait la dizaine.
+  CONTACTS_FAMILLE_EN_COURS = apprenti ? famillesIdsDeApprenti(apprenti).slice() : [];
 
   const modal = document.createElement("div");
   modal.className = "formulaire-overlay";
@@ -31202,13 +31406,10 @@ function ouvrirFormulaireApprenti(idExistant) {
               <div class="formulaire-help">Vous pourrez le rattacher plus tard si pas encore créé.</div>
             </div>
             <div class="formulaire-field">
-              <label>Contacts famille</label>
-              <div class="appr-familles-liste" id="apprFamillesListe">
-                ${optionsFamilles}
-              </div>
-              <div class="formulaire-help">Cochez tous les contacts à rattacher : père, mère, tuteur, éducateur référent, structure d'accueil.
-              Chacun aura accès au carnet de liaison et recevra les enquêtes. Le <strong>premier coché</strong> est le contact principal,
-              destinataire des courriers nominatifs.</div>
+              <label>Responsables légaux et contacts</label>
+              <div id="apprContactsZone"></div>
+              <div class="formulaire-help">Tous les contacts rattachés ont accès au carnet de liaison et reçoivent les enquêtes.
+              Le <strong>contact principal</strong> est celui à qui sont adressés les courriers nominatifs.</div>
             </div>
           </div>
         </div>
@@ -31227,6 +31428,8 @@ function ouvrirFormulaireApprenti(idExistant) {
     </div>
   `;
   document.body.appendChild(modal);
+   // Rendu des responsables légaux, une fois le formulaire inséré dans la page.
+   if (typeof rendreContactsFamille === "function") rendreContactsFamille();
 }
 
 function fermerFormulaire(id) {
@@ -31262,8 +31465,7 @@ function enregistrerApprenti(idExistant) {
     email: document.getElementById("apprEmail").value.trim(),
     telephone: document.getElementById("apprTelephone").value.trim(),
     lieuId: document.getElementById("apprLieuId").value || null,
-    famillesIds: Array.from(document.querySelectorAll('#apprFamillesListe input[data-famille-id]:checked'))
-      .map(function(el) { return el.dataset.familleId; })
+    famillesIds: (typeof CONTACTS_FAMILLE_EN_COURS !== "undefined" ? CONTACTS_FAMILLE_EN_COURS.slice() : [])
   };
   data.familleId = data.famillesIds.length > 0 ? data.famillesIds[0] : null;
 
@@ -39528,6 +39730,9 @@ function peuplerFiltreClassesEmarg() {
 }
 
 function changerOngletEmarg(quel) {
+  if (quel === "vr" && typeof afficherVieResidentielle === "function") {
+    setTimeout(afficherVieResidentielle, 0);
+  }
   document.querySelectorAll(".emarg-tab").forEach(function(t) {
     t.classList.toggle("active", t.dataset.emargTab === quel);
   });
@@ -39783,6 +39988,430 @@ function afficherHistoriqueEmarg() {
 // des séances, le nom du formateur signataire et l'empreinte numérique
 // de chaque séance cloturée.
 // =================================================================
+
+// =================================================================
+// ÉMARGEMENT RESTAURATION ET HÉBERGEMENT
+// -----------------------------------------------------------------
+// Ces émargements alimentent la facturation à l'OPCO : 3 € le repas,
+// 6 € la nuitée, sur présence effective. Un émargement faux produit une
+// facture indue à un financeur public : d'où la validation hebdomadaire
+// par la Direction ou le référent CAP, seule à rendre la ligne facturable.
+//
+// Services générés automatiquement sur les semaines MFR, sans intervention :
+//   • repas de midi et du soir, du lundi au jeudi (pas de vendredi midi)
+//   • nuitées du lundi au jeudi
+//
+// Contrôle de présence : aucun procédé logiciel ne prouve qu'un jeune est
+// sur place. Trois barrières cumulées rendent la fraude coûteuse et traçable :
+//   1. code de service affiché sur place, changeant chaque jour,
+//   2. fenêtre horaire stricte propre à chaque service,
+//   3. validation humaine en fin de semaine.
+// =================================================================
+
+const SERVICES_VIE_RESIDENTIELLE = [
+  { code: "midi", libelle: "Repas de midi", icone: "\u{1F37D}\uFE0F",
+    jours: [1, 2, 3, 4], debut: "11:30", fin: "14:00", tarif: 3, unite: "repas" },
+  { code: "soir", libelle: "Repas du soir", icone: "\u{1F319}",
+    jours: [1, 2, 3, 4], debut: "18:30", fin: "21:00", tarif: 3, unite: "repas" },
+  { code: "nuit", libelle: "Nuit\u00e9e", icone: "\u{1F6CF}\uFE0F",
+    jours: [1, 2, 3, 4], debut: "20:00", fin: "23:00", tarif: 6, unite: "nuit\u00e9e" }
+];
+
+const JOURS_VR = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+
+function chargerEmargVR() {
+  try { return JSON.parse(localStorage.getItem("mfr_emarg_vie_residentielle") || "{}"); }
+  catch (e) { return {}; }
+}
+function sauverEmargVR(d) {
+  try { localStorage.setItem("mfr_emarg_vie_residentielle", JSON.stringify(d)); return true; }
+  catch (e) { alert("M\u00e9moire du navigateur satur\u00e9e : l'\u00e9margement n'a pas \u00e9t\u00e9 enregistr\u00e9."); return false; }
+}
+
+// Code de service du jour : dérivé de la date et du service, donc identique
+// pour tous et reproductible, sans rien stocker. Affiché sur place par la MFR.
+function codeServiceDuJour(dateISO, codeService) {
+  const graine = dateISO + "|" + codeService + "|mfr-neracais";
+  let h = 0;
+  for (let i = 0; i < graine.length; i++) {
+    h = ((h << 5) - h) + graine.charCodeAt(i);
+    h |= 0;
+  }
+  const alphabet = "ACDEFGHJKLMNPQRTUVWXY3479";
+  let code = "";
+  let n = Math.abs(h);
+  for (let i = 0; i < 4; i++) { code += alphabet[n % alphabet.length]; n = Math.floor(n / alphabet.length); }
+  return code;
+}
+
+// Contrôle par code : DÉSACTIVÉ par décision de la Direction (18/09/2026).
+// La friction quotidienne pour 19 jeunes a été jugée disproportionnée.
+// Reste activable si le besoin se présente.
+function codeServiceExige() {
+  try { return localStorage.getItem("mfr_emarg_vr_code_exige") === "oui"; }
+  catch (e) { return false; }
+}
+
+// -----------------------------------------------------------------
+// CONTRÔLE DE VRAISEMBLANCE
+// -----------------------------------------------------------------
+// Le code de service étant écarté, la validation hebdomadaire porte seule
+// la garantie. Pour qu'elle ne soit pas une signature à l'aveugle, chaque
+// ligne est confrontée à ce que l'application sait déjà du jeune ce jour-là :
+// son émargement en cours et ses absences déclarées.
+//
+// Un jeune absent en cours le matin mais qui signe son repas de midi n'est
+// pas nécessairement fraudeur — il a pu arriver en retard. Mais c'est la
+// ligne que la Direction doit regarder avant de valider.
+
+function anomaliesEmargementVR(username, dateISO) {
+  const signaux = [];
+
+  // 1) Absence déclarée ce jour-là
+  try {
+    const absences = JSON.parse(localStorage.getItem("mfr_absences") || "[]");
+    const abs = absences.find(function(a) {
+      return a.apprentiUsername === username && a.date === dateISO;
+    });
+    if (abs) signaux.push("absence déclarée ce jour");
+  } catch (e) {}
+
+  // 2) Marqué absent à toutes les séances de cours du jour
+  try {
+    const seances = (typeof PROFILS_EMARGEMENTS !== "undefined" ? PROFILS_EMARGEMENTS : [])
+      .filter(function(sc) {
+        return sc.date === dateISO && sc.emargements && sc.emargements[username];
+      });
+    if (seances.length > 0) {
+      const presences = seances.filter(function(sc) {
+        return sc.emargements[username].statut !== "absent";
+      });
+      if (presences.length === 0) {
+        signaux.push("absent à toutes les séances de cours du jour");
+      }
+    }
+  } catch (e) {}
+
+  return signaux;
+}
+
+// Signature tardive : dans les cinq dernières minutes de la fenêtre.
+// Indice faible, mais révélateur d'un rattrapage à distance.
+function signatureTardive(service, horodatage) {
+  if (!horodatage) return false;
+  const d = new Date(horodatage);
+  const m = d.getHours() * 60 + d.getMinutes();
+  return m > (minutesDeHeure(service.fin) - 5);
+}
+
+function minutesDeHeure(hhmm) {
+  const p = String(hhmm || "").split(":");
+  return (parseInt(p[0], 10) || 0) * 60 + (parseInt(p[1], 10) || 0);
+}
+
+// Un service est-il ouvert à la signature en cet instant ?
+function etatServiceVR(service, dateISO, maintenant) {
+  const now = maintenant || new Date();
+  const aujourdhui = isoDeDate(now);
+  if (dateISO > aujourdhui) return { ouvert: false, motif: "a_venir" };
+  if (dateISO < aujourdhui) return { ouvert: false, motif: "passe" };
+  const m = now.getHours() * 60 + now.getMinutes();
+  if (m < minutesDeHeure(service.debut)) return { ouvert: false, motif: "trop_tot" };
+  if (m > minutesDeHeure(service.fin)) return { ouvert: false, motif: "trop_tard" };
+  return { ouvert: true, motif: "ouvert" };
+}
+
+// Services attendus pour une classe sur une semaine MFR donnée.
+function servicesDeLaSemaine(classe, lundiISO) {
+  const liste = [];
+  SERVICES_VIE_RESIDENTIELLE.forEach(function(sv) {
+    sv.jours.forEach(function(j) {
+      const d = new Date(lundiISO + "T12:00:00");
+      d.setDate(d.getDate() + (j - 1));
+      liste.push({
+        cle: classe + "|" + isoDeDate(d) + "|" + sv.code,
+        classe: classe, date: isoDeDate(d), jour: JOURS_VR[j],
+        service: sv
+      });
+    });
+  });
+  return liste.sort(function(a, b) { return (a.date + a.service.code).localeCompare(b.date + b.service.code); });
+}
+
+function estSemaineMfr(classe, lundiISO) {
+  if (typeof PLANNINGS === "undefined" || !PLANNINGS[classe]) return false;
+  const sem = (typeof semaineEnCoursPour === "function") ? semaineEnCoursPour(classe) : null;
+  if (!sem) return false;
+  return sem.type === "M" && lundiISO === lundiDeLaSemaine(new Date());
+}
+
+// -----------------------------------------------------------------
+// ÉCRANS DE LA VIE RÉSIDENTIELLE
+// -----------------------------------------------------------------
+
+function peutValiderVieResidentielle() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "mfr") return false;
+  if (["pascale.dauge", "secretariat", "test.admin"].indexOf(u.id) >= 0) return true;
+  return (typeof estReferentCAP === "function") ? estReferentCAP() : false;
+}
+
+function afficherVieResidentielle() {
+  const zone = document.getElementById("vr-contenu");
+  if (!zone) return;
+  const u = utilisateurConnecte;
+  if (!u) { zone.innerHTML = ""; return; }
+  if (u.role === "apprenti") zone.innerHTML = ecranVRApprenti(u);
+  else if (peutValiderVieResidentielle()) zone.innerHTML = ecranVRValidation();
+  else zone.innerHTML = '<div class="vr-info">Les repas et nuit\u00e9es sont sign\u00e9s par les apprenti\u00b7es ' +
+    'et valid\u00e9s en fin de semaine par la Direction ou le r\u00e9f\u00e9rent CAP.</div>';
+}
+
+// --- Écran du jeune : ses services de la semaine -------------------------
+function ecranVRApprenti(u) {
+  const apprenti = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(a) { return a.username === u.id; });
+  const classe = apprenti ? apprenti.classe : (Array.isArray(u.classes) ? u.classes[0] : "");
+  if (!classe) return '<div class="vr-info">Votre classe n\'est pas renseign\u00e9e. Signalez-le au secr\u00e9tariat.</div>';
+
+  const lundi = lundiDeLaSemaine(new Date());
+  const sem = (typeof semaineEnCoursPour === "function") ? semaineEnCoursPour(classe) : null;
+  if (!sem || sem.type !== "M") {
+    return '<div class="vr-info">\u{1F3E0} Vous \u00eates en entreprise cette semaine : aucun repas ni nuit\u00e9e \u00e0 signer.</div>';
+  }
+
+  const donnees = chargerEmargVR();
+  const services = servicesDeLaSemaine(classe, lundi);
+  const maintenant = new Date();
+
+  let h = '<div class="vr-entete"><h3>\u{1F37D}\uFE0F Mes repas et nuit\u00e9es \u2014 semaine du ' +
+    dateFr(lundi) + '</h3>' +
+    '<p>Signez chaque service au moment o\u00f9 vous en b\u00e9n\u00e9ficiez. ' +
+    'Ces d\u00e9clarations servent \u00e0 la facturation aupr\u00e8s de votre OPCO : ' +
+    '<strong>ne signez que ce dont vous avez r\u00e9ellement b\u00e9n\u00e9fici\u00e9</strong>.</p></div>';
+
+  let jourCourant = "";
+  h += '<div class="vr-liste">';
+  services.forEach(function(sv) {
+    if (sv.date !== jourCourant) {
+      jourCourant = sv.date;
+      h += '<div class="vr-jour">' + sv.jour.charAt(0).toUpperCase() + sv.jour.slice(1) +
+        ' ' + sv.date.split("-").reverse().slice(0, 2).join("/") + '</div>';
+    }
+    const enreg = donnees[sv.cle] && donnees[sv.cle][u.id];
+    const etat = etatServiceVR(sv.service, sv.date, maintenant);
+    let action;
+    if (enreg) {
+      action = '<span class="vr-signe">\u2713 Sign\u00e9 \u00e0 ' +
+        new Date(enreg.horodatage).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) + '</span>';
+    } else if (etat.ouvert) {
+      action = '<button class="btn-primary btn-mini" onclick="signerServiceVR(\'' + sv.cle + '\')">Je signe</button>';
+    } else {
+      const motifs = { a_venir: "\u00c0 venir", trop_tot: "Ouvre \u00e0 " + sv.service.debut,
+        trop_tard: "Ferm\u00e9 depuis " + sv.service.fin, passe: "Non sign\u00e9" };
+      action = '<span class="vr-ferme">' + (motifs[etat.motif] || "") + '</span>';
+    }
+    h += '<div class="vr-ligne' + (enreg ? ' est-signe' : '') + '">' +
+      '<span class="vr-icone">' + sv.service.icone + '</span>' +
+      '<span class="vr-libelle">' + sv.service.libelle + '</span>' +
+      '<span class="vr-action">' + action + '</span></div>';
+  });
+  h += '</div>';
+  h += '<p class="vr-pied">Un service non sign\u00e9 dans sa plage horaire ne pourra plus l\'\u00eatre. ' +
+    'Signalez tout oubli \u00e0 la vie r\u00e9sidentielle avant la fin de la semaine.</p>';
+  return h;
+}
+
+function signerServiceVR(cle) {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  const parts = cle.split("|");
+  const service = SERVICES_VIE_RESIDENTIELLE.find(function(sv) { return sv.code === parts[2]; });
+  if (!service) return;
+  const etat = etatServiceVR(service, parts[1], new Date());
+  if (!etat.ouvert) { alert("Ce service n'est pas ouvert \u00e0 la signature."); return; }
+
+  if (codeServiceExige()) {
+    const saisi = prompt("Code affich\u00e9 sur place pour ce service :", "");
+    if (!saisi) return;
+    if (saisi.trim().toUpperCase() !== codeServiceDuJour(parts[1], parts[2])) {
+      alert("Code incorrect."); return;
+    }
+  }
+
+  const donnees = chargerEmargVR();
+  if (!donnees[cle]) donnees[cle] = {};
+  donnees[cle][u.id] = {
+    horodatage: new Date().toISOString(),
+    tardive: signatureTardive(service, new Date().toISOString())
+  };
+  if (!sauverEmargVR(donnees)) return;
+  afficherVieResidentielle();
+}
+
+// --- Écran de validation hebdomadaire ------------------------------------
+function ecranVRValidation() {
+  const classes = (typeof classesOuvertes === "function") ? classesOuvertes() : Object.keys(CLASSES);
+  const lundi = lundiDeLaSemaine(new Date());
+  let h = '<div class="vr-entete"><h3>\u2705 Validation des repas et nuit\u00e9es</h3>' +
+    '<p>Votre validation rend ces lignes facturables aupr\u00e8s de l\'OPCO. ' +
+    'Les lignes signal\u00e9es en orange demandent un regard avant de signer.</p></div>';
+  h += '<div class="vr-filtres">' +
+    '<label>Classe <select id="vr-classe" onchange="rafraichirValidationVR()">' +
+      classes.map(function(c) { return '<option value="' + c + '">' + escapeHTML(CLASSES[c]) + '</option>'; }).join("") +
+    '</select></label>' +
+    '<label>Semaine du <input type="date" id="vr-lundi" value="' + lundi + '" onchange="rafraichirValidationVR()"></label>' +
+    '<button class="btn-mini" onclick="imprimerVieResidentielle()">\u{1F5A8}\uFE0F Imprimer / PDF</button>' +
+    '</div><div id="vr-tableau"></div>';
+  setTimeout(rafraichirValidationVR, 0);
+  return h;
+}
+
+function rafraichirValidationVR() {
+  const zone = document.getElementById("vr-tableau");
+  if (!zone) return;
+  const classe = (document.getElementById("vr-classe") || {}).value;
+  const lundi = lundiDeLaSemaine((document.getElementById("vr-lundi") || {}).value || new Date());
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return a.classe === classe && (a.statut || "actif") !== "archive"; })
+    .sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || ""); });
+  if (apprentis.length === 0) { zone.innerHTML = '<div class="vr-info">Aucun apprenti dans cette classe.</div>'; return; }
+
+  const donnees = chargerEmargVR();
+  const services = servicesDeLaSemaine(classe, lundi);
+  const validations = donnees.__validations || {};
+  const cleSemaine = classe + "|" + lundi;
+  const dejaValide = validations[cleSemaine];
+
+  let total = 0, anomalies = 0;
+  let h = '<table class="vr-table"><thead><tr><th>Apprenti\u00b7e</th>';
+  services.forEach(function(sv) {
+    h += '<th title="' + sv.jour + ' \u2014 ' + sv.service.libelle + '">' +
+      sv.service.icone + '<br><small>' + sv.jour.substring(0, 3) + '</small></th>';
+  });
+  h += '<th>Total</th></tr></thead><tbody>';
+
+  apprentis.forEach(function(a) {
+    let cout = 0;
+    h += '<tr><td class="vr-nom">' + escapeHTML((a.nom || "").toUpperCase() + " " + (a.prenom || "")) + '</td>';
+    services.forEach(function(sv) {
+      const e = donnees[sv.cle] && donnees[sv.cle][a.username];
+      if (e) {
+        cout += sv.service.tarif;
+        const signaux = anomaliesEmargementVR(a.username, sv.date);
+        if (e.tardive) signaux.push("sign\u00e9 en fin de plage");
+        if (signaux.length > 0) anomalies++;
+        h += '<td class="vr-case ' + (signaux.length ? 'vr-suspect' : 'vr-ok') + '"' +
+          (signaux.length ? ' title="' + escapeHTML(signaux.join(" \u2014 ")) + '"' : '') + '>\u2713</td>';
+      } else {
+        h += '<td class="vr-case">\u2014</td>';
+      }
+    });
+    total += cout;
+    h += '<td class="vr-total">' + cout + ' \u20ac</td></tr>';
+  });
+  h += '</tbody></table>';
+  h += '<div class="vr-bilan"><strong>Total de la semaine : ' + total + ' \u20ac</strong>' +
+    (anomalies > 0 ? ' \u2014 <span class="vr-alerte">' + anomalies + ' ligne(s) \u00e0 v\u00e9rifier (survolez les cases orange)</span>' : '') +
+    '</div>';
+
+  if (dejaValide) {
+    h += '<div class="vr-valide">\u2705 Semaine valid\u00e9e par ' + escapeHTML(dejaValide.par) +
+      ' le ' + dateFr((dejaValide.le || "").substring(0, 10)) + '. ' +
+      '<button class="btn-mini" onclick="devaliderSemaineVR()">Annuler la validation</button></div>';
+  } else {
+    h += '<button class="btn-primary" onclick="validerSemaineVR()">\u2705 Valider cette semaine</button>';
+  }
+  zone.innerHTML = h;
+}
+
+function validerSemaineVR() {
+  if (!peutValiderVieResidentielle()) return;
+  const classe = (document.getElementById("vr-classe") || {}).value;
+  const lundi = lundiDeLaSemaine((document.getElementById("vr-lundi") || {}).value);
+  if (!confirm("Valider les repas et nuit\u00e9es de cette classe pour la semaine du " + dateFr(lundi) + " ?\n\n" +
+    "Votre validation engage l'\u00e9tablissement : ces lignes deviennent facturables \u00e0 l'OPCO.")) return;
+  const donnees = chargerEmargVR();
+  if (!donnees.__validations) donnees.__validations = {};
+  donnees.__validations[classe + "|" + lundi] = {
+    par: utilisateurConnecte ? (utilisateurConnecte.nom || utilisateurConnecte.id) : "",
+    parId: utilisateurConnecte ? utilisateurConnecte.id : "",
+    le: new Date().toISOString()
+  };
+  if (!sauverEmargVR(donnees)) return;
+  rafraichirValidationVR();
+}
+
+function devaliderSemaineVR() {
+  if (!peutValiderVieResidentielle()) return;
+  if (!confirm("Annuler la validation de cette semaine ?")) return;
+  const classe = (document.getElementById("vr-classe") || {}).value;
+  const lundi = lundiDeLaSemaine((document.getElementById("vr-lundi") || {}).value);
+  const donnees = chargerEmargVR();
+  if (donnees.__validations) delete donnees.__validations[classe + "|" + lundi];
+  if (!sauverEmargVR(donnees)) return;
+  rafraichirValidationVR();
+}
+
+// --- Impression de la vie résidentielle, distincte des cours -------------
+function imprimerVieResidentielle() {
+  const classe = (document.getElementById("vr-classe") || {}).value;
+  const lundi = lundiDeLaSemaine((document.getElementById("vr-lundi") || {}).value || new Date());
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return a.classe === classe && (a.statut || "actif") !== "archive"; })
+    .sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || ""); });
+  if (apprentis.length === 0) { alert("Aucun apprenti dans cette classe."); return; }
+
+  const donnees = chargerEmargVR();
+  const services = servicesDeLaSemaine(classe, lundi);
+  const validation = (donnees.__validations || {})[classe + "|" + lundi];
+
+  let totalRepas = 0, totalNuits = 0, totalEuros = 0;
+  let corps = '<table class="meta"><tbody>';
+  corps += '<tr><th>Classe</th><td>' + escapeHTML(CLASSES[classe] || classe) + '</td>' +
+    '<th>Effectif</th><td>' + apprentis.length + '</td></tr>';
+  corps += '<tr><th>Tarifs appliqu\u00e9s</th><td colspan="3">Repas 3 \u20ac \u2014 Nuit\u00e9e 6 \u20ac, sur pr\u00e9sence effective</td></tr>';
+  corps += '</tbody></table>';
+
+  corps += '<table class="detail"><thead><tr><th>Apprenti\u00b7e</th>';
+  services.forEach(function(sv) {
+    corps += '<th class="c"><small>' + sv.jour.substring(0, 3) + '</small><br>' +
+      (sv.service.code === "nuit" ? "Nuit" : sv.service.code === "midi" ? "Midi" : "Soir") + '</th>';
+  });
+  corps += '<th class="c">Repas</th><th class="c">Nuits</th><th class="c">Montant</th></tr></thead><tbody>';
+
+  apprentis.forEach(function(a) {
+    let r = 0, n = 0;
+    corps += '<tr><td>' + escapeHTML((a.nom || "").toUpperCase() + " " + (a.prenom || "")) + '</td>';
+    services.forEach(function(sv) {
+      const e = donnees[sv.cle] && donnees[sv.cle][a.username];
+      if (e) { if (sv.service.code === "nuit") n++; else r++; }
+      corps += '<td class="c">' + (e ? "\u2713" : "\u2013") + '</td>';
+    });
+    const montant = r * 3 + n * 6;
+    totalRepas += r; totalNuits += n; totalEuros += montant;
+    corps += '<td class="c">' + r + '</td><td class="c">' + n + '</td><td class="c"><strong>' + montant + ' \u20ac</strong></td></tr>';
+  });
+  corps += '</tbody></table>';
+
+  corps += '<div class="totaux"><strong>R\u00e9capitulatif :</strong> ' + totalRepas + ' repas \u00e0 3 \u20ac et ' +
+    totalNuits + ' nuit\u00e9e(s) \u00e0 6 \u20ac \u2014 <strong>total ' + totalEuros + ' \u20ac</strong>.</div>';
+
+  if (validation) {
+    corps += '<div class="sceau">Semaine valid\u00e9e par ' + escapeHTML(validation.par) +
+      ' le ' + dateFr((validation.le || "").substring(0, 10)) + '.</div>';
+  } else {
+    corps += '<div class="sceau" style="color:#8E4A28;">\u26A0 Semaine NON VALID\u00c9E : ce document n\'a pas valeur de justificatif de facturation.</div>';
+  }
+  corps += blocSignatures(false);
+
+  const titre = "\u00c9margement vie r\u00e9sidentielle \u2014 " + (CLASSES[classe] || classe);
+  const fin = (function() { const d = new Date(lundi + "T12:00:00"); d.setDate(d.getDate() + 4); return isoDeDate(d); })();
+  const nom = "Vie-residentielle_" + classe + "_" + lundi + ".pdf";
+  telechargerEmargementsPDF(titre, lundi, fin, corps, nom);
+}
+
+
 
 function lundiDeLaSemaine(d) {
   const j = new Date(d);
