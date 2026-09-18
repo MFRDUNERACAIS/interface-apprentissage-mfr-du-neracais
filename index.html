@@ -9678,6 +9678,21 @@
     border-left: 4px solid var(--mfr-red); padding: 0.6rem 0.9rem;
     border-radius: 6px; font-size: 0.88rem; color: #8E4A28; font-weight: 600;
   }
+  /* Impression des emargements */
+  .impr-champ { margin-bottom: 0.8rem; }
+  .impr-champ label { display: block; font-size: 0.85rem; font-weight: 600; color: var(--olive-dark); margin-bottom: 0.25rem; }
+  .impr-champ select, .impr-champ input {
+    width: 100%; padding: 0.45rem 0.6rem; font: inherit;
+    border: 1px solid var(--border); border-radius: 6px;
+  }
+  .impr-dates { display: flex; gap: 0.8rem; }
+  .impr-dates .impr-champ { flex: 1; }
+  .impr-aide {
+    font-size: 0.83rem; color: var(--text-muted);
+    background: #FFF8E1; border-left: 3px solid var(--or);
+    padding: 0.55rem 0.8rem; border-radius: 5px; margin: 0.6rem 0;
+  }
+  .impr-case { display: flex; align-items: center; gap: 0.45rem; font-size: 0.88rem; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -21688,6 +21703,7 @@
           </select>
           <input type="date" id="emargFiltreDate" onchange="afficherHistoriqueEmarg()">
           <button class="btn-mini" onclick="exporterEmargementsCSV()">📥 Exporter en CSV</button>
+          <button class="btn-mini btn-primary" onclick="ouvrirImpressionEmargements()">🖨️ Imprimer les émargements</button>
         </div>
         <div id="emarg-historique-liste">
           <!-- Généré dynamiquement -->
@@ -22746,7 +22762,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.44";
+const APP_VERSION = "4.47";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23893,23 +23909,19 @@ async function login() {
   // Mode local : on cherche d'abord dans la liste codée en dur (comptes de test / historiques),
   // puis dans les profils créés depuis l'application (apprentis, familles, lieux, salariés).
   // 1) Firebase d'abord : c'est la source partagée entre tous les postes.
+  //    Aucun cas d'échec ne doit interrompre la chaîne : un verrou Firebase
+  //    ne peut pas avoir pour effet de fermer la porte de secours. On mémorise
+  //    la raison, on poursuit, et on ne l'affiche qu'en dernier recours.
   let user = null;
+  let raisonFirebase = "";
   if (typeof connexionFirebase === "function") {
     const tentative = await connexionFirebase(id, code);
-    if (tentative.user) {
-      user = tentative.user;
-    } else if (tentative.raison === "trop_de_tentatives") {
-      errorBox.textContent = "Trop de tentatives. Patientez quelques minutes avant de réessayer.";
-      errorBox.classList.add("show");
-      return;
-    } else if (tentative.raison === "archive") {
-      errorBox.textContent = "Ce compte a été désactivé. Contactez le secrétariat.";
-      errorBox.classList.add("show");
-      return;
-    }
+    if (tentative.user) user = tentative.user;
+    else raisonFirebase = tentative.raison || "";
   }
 
-  // 2) À défaut, comptes intégrés au fichier.
+  // 2) À défaut, comptes intégrés au fichier — ils fonctionnent toujours,
+  //    y compris hors ligne et malgré un blocage Firebase.
   if (!user) {
     user = UTILISATEURS.find(u => normaliserIdentifiantConnexion(u.id) === id && u.code === code);
   }
@@ -23984,7 +23996,18 @@ async function login() {
 
   if (!user) {
     errorBox.classList.add("show");
-    errorBox.textContent = "Identifiant ou code d'accès incorrect.";
+    // On n'affiche la raison Firebase qu'ici : toutes les voies ont échoué.
+    if (raisonFirebase === "trop_de_tentatives") {
+      errorBox.textContent = "Trop de tentatives sur ce compte. Firebase l'a bloqué " +
+        "quelques minutes. Patientez, ou utilisez un autre compte.";
+    } else if (raisonFirebase === "archive") {
+      errorBox.textContent = "Ce compte a été désactivé. Contactez le secrétariat.";
+    } else if (raisonFirebase === "sans_annuaire") {
+      errorBox.textContent = "Votre compte existe mais sa fiche d'annuaire est manquante. " +
+        "Signalez-le à la direction : une réparation est nécessaire.";
+    } else {
+      errorBox.textContent = "Identifiant ou code d'accès incorrect.";
+    }
     return;
   }
 
@@ -39728,6 +39751,385 @@ function afficherHistoriqueEmarg() {
     '</div>';
   }).join("");
 }
+
+// =================================================================
+// IMPRESSION DES FEUILLES D'ÉMARGEMENT
+// -----------------------------------------------------------------
+// Trois portées : un apprenti, une classe, l'ensemble des classes.
+// Le document produit sert de justificatif de présence auprès des OPCO
+// et de preuve en audit : il porte l'en-tête de l'établissement, le détail
+// des séances, le nom du formateur signataire et l'empreinte numérique
+// de chaque séance cloturée.
+// =================================================================
+
+function lundiDeLaSemaine(d) {
+  const j = new Date(d);
+  const decalage = (j.getDay() + 6) % 7;      // lundi = 0
+  j.setDate(j.getDate() - decalage);
+  return j.toISOString().split("T")[0];
+}
+
+function vendrediDeLaSemaine(d) {
+  const j = new Date(lundiDeLaSemaine(d));
+  j.setDate(j.getDate() + 4);
+  return j.toISOString().split("T")[0];
+}
+
+function ouvrirImpressionEmargements() {
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return (a.statut || "actif") !== "archive"; })
+    .sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || ""); });
+
+  let optionsApprentis = "";
+  apprentis.forEach(function(a) {
+    optionsApprentis += '<option value="' + escapeHTML(a.username || "") + '">' +
+      escapeHTML((a.nom || "") + " " + (a.prenom || "")) + " \u2014 " +
+      escapeHTML(libelleClasseCourte(a.classe) || "") + '</option>';
+  });
+  let optionsClasses = "";
+  Object.keys(CLASSES).forEach(function(c) {
+    optionsClasses += '<option value="' + c + '">' + escapeHTML(CLASSES[c]) + '</option>';
+  });
+
+  const ancien = document.getElementById("modale-impr-emarg");
+  if (ancien) ancien.remove();
+
+  const m = document.createElement("div");
+  m.id = "modale-impr-emarg";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F5A8}\uFE0F</span>' +
+        '<h2>Imprimer les feuilles d\'\u00e9margement</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<div class="impr-champ"><label>Que voulez-vous imprimer ?</label>' +
+          '<select id="impr-portee" onchange="majChampsImpressionEmarg()">' +
+            '<option value="classe">Une classe</option>' +
+            '<option value="apprenti">Un apprenti</option>' +
+            '<option value="tous">Toutes les classes</option>' +
+          '</select></div>' +
+        '<div class="impr-champ" id="impr-bloc-classe"><label>Classe</label>' +
+          '<select id="impr-classe">' + optionsClasses + '</select></div>' +
+        '<div class="impr-champ" id="impr-bloc-apprenti" style="display:none;"><label>Apprenti\u00b7e</label>' +
+          '<select id="impr-apprenti">' + optionsApprentis + '</select></div>' +
+        '<div class="impr-dates">' +
+          '<div class="impr-champ"><label>Du</label><input type="date" id="impr-debut" value="' + lundiDeLaSemaine(new Date()) + '"></div>' +
+          '<div class="impr-champ"><label>Au</label><input type="date" id="impr-fin" value="' + vendrediDeLaSemaine(new Date()) + '"></div>' +
+        '</div>' +
+        '<p class="impr-aide">La p\u00e9riode propos\u00e9e est la semaine en cours. Seules les s\u00e9ances ' +
+          '<strong>cl\u00f4tur\u00e9es et sign\u00e9es</strong> par le formateur figurent sur le document : ' +
+          'une s\u00e9ance en cours de saisie n\'a pas valeur de justificatif.</p>' +
+        '<label class="impr-case"><input type="checkbox" id="impr-signature" checked> ' +
+          'Ajouter une colonne de signature manuscrite</label>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="imprimerEmargements(\'pdf\')">\u{1F4C4} T\u00e9l\u00e9charger en PDF</button> ' +
+        '<button class="btn-secondaire" onclick="imprimerEmargements(\'impression\')">\u{1F5A8}\uFE0F Aper\u00e7u et impression</button> ' +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-impr-emarg\').remove()">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function majChampsImpressionEmarg() {
+  const p = (document.getElementById("impr-portee") || {}).value;
+  const bc = document.getElementById("impr-bloc-classe");
+  const ba = document.getElementById("impr-bloc-apprenti");
+  if (bc) bc.style.display = (p === "classe") ? "" : "none";
+  if (ba) ba.style.display = (p === "apprenti") ? "" : "none";
+}
+
+function nomApprentiPourImpression(username) {
+  const a = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(x) { return x.username === username; });
+  return a ? ((a.nom || "").toUpperCase() + " " + (a.prenom || "")).trim() : username;
+}
+
+function dateFr(iso) {
+  if (!iso) return "";
+  const d = new Date(iso + "T12:00:00");
+  return isNaN(d) ? iso : d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+}
+
+function imprimerEmargements(format) {
+  const portee = (document.getElementById("impr-portee") || {}).value || "classe";
+  const classe = (document.getElementById("impr-classe") || {}).value || "";
+  const apprenti = (document.getElementById("impr-apprenti") || {}).value || "";
+  const debut = (document.getElementById("impr-debut") || {}).value || "";
+  const fin = (document.getElementById("impr-fin") || {}).value || "";
+  const avecSignature = !!(document.getElementById("impr-signature") || {}).checked;
+
+  if (!debut || !fin) { alert("Renseignez les deux dates."); return; }
+  if (fin < debut) { alert("La date de fin pr\u00e9c\u00e8de la date de d\u00e9but."); return; }
+
+  let seances = PROFILS_EMARGEMENTS
+    .filter(function(s) { return !!s.cloture && s.date >= debut && s.date <= fin; });
+
+  if (portee === "classe") seances = seances.filter(function(s) { return s.classe === classe; });
+  if (portee === "apprenti") {
+    seances = seances.filter(function(s) { return s.emargements && s.emargements[apprenti]; });
+  }
+  seances.sort(function(a, b) {
+    return (a.date + (a.horaireDebut || "")).localeCompare(b.date + (b.horaireDebut || ""));
+  });
+
+  if (seances.length === 0) {
+    alert("Aucune s\u00e9ance cl\u00f4tur\u00e9e sur cette p\u00e9riode.\n\n" +
+      "V\u00e9rifiez les dates, et que les formateurs ont bien sign\u00e9 leurs s\u00e9ances.");
+    return;
+  }
+
+  const nomFichier = "Emargements_" +
+    (portee === "apprenti" ? normaliserIdentifiantConnexion(apprenti).replace(/\./g, "-")
+      : portee === "classe" ? classe : "toutes-classes") +
+    "_" + debut + "_" + fin + ".pdf";
+
+  const titre = portee === "apprenti"
+    ? "Feuille d'\u00e9margement individuelle"
+    : (portee === "classe" ? "Feuille d'\u00e9margement \u2014 " + (CLASSES[classe] || classe)
+                           : "Feuilles d'\u00e9margement \u2014 toutes classes");
+
+  let corps = "";
+  if (portee === "apprenti") {
+    corps = corpsEmargementIndividuel(apprenti, seances, debut, fin, avecSignature);
+  } else {
+    corps = corpsEmargementParSeance(seances, avecSignature);
+  }
+
+  if (format === "pdf") {
+    telechargerEmargementsPDF(titre, debut, fin, corps, nomFichier);
+  } else {
+    ouvrirFenetreImpressionEmarg(titre, debut, fin, corps);
+  }
+}
+
+// Styles communs aux deux sorties : un seul jeu à maintenir.
+function stylesImpressionEmarg() {
+  return '@page { size: A4; margin: 1.2cm; }' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#2A2E1F;font-size:10pt;line-height:1.35;margin:0;}' +
+    '.entete{border-bottom:3px solid #C9A23E;padding-bottom:0.5rem;margin-bottom:0.9rem;}' +
+    '.entete h1{font-size:14pt;color:#3E4A29;margin:0 0 0.15rem;}' +
+    '.entete .etab{font-size:9pt;color:#6B6B5C;}' +
+    '.entete .periode{font-size:10pt;color:#5C6F3E;font-weight:bold;margin-top:0.2rem;}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:0.6rem;}' +
+    '.meta th{background:#F5EFE0;text-align:left;padding:0.25rem 0.45rem;border:1px solid #D8D2BE;width:14%;font-size:9pt;}' +
+    '.meta td{padding:0.25rem 0.45rem;border:1px solid #D8D2BE;font-size:9pt;}' +
+    '.detail th{background:#5C6F3E;color:#fff;text-align:left;padding:0.3rem 0.45rem;font-size:9pt;}' +
+    '.detail td{border:1px solid #D8D2BE;padding:0.3rem 0.45rem;}' +
+    '.detail td.n{width:2.2rem;text-align:center;color:#6B6B5C;}' +
+    '.detail td.c{text-align:center;width:6rem;}' +
+    '.detail th.sig,.detail td.sig{width:30%;}' +
+    'tr.st-absent td{background:#FDF4EF;}' +
+    'tr.st-retard td{background:#FFF8E1;}' +
+    '.totaux{font-size:9pt;background:#F1F8E9;border-left:3px solid #5C6F3E;padding:0.35rem 0.6rem;margin-bottom:0.6rem;}' +
+    '.sceau{font-size:8pt;color:#6B6B5C;font-style:italic;margin-bottom:0.6rem;}' +
+    '.signatures{margin-top:0.5rem;}' +
+    '.signatures td{width:33%;padding:0 0.4rem;vertical-align:top;}' +
+    '.sig-lib{font-size:8.5pt;color:#6B6B5C;margin-bottom:0.15rem;}' +
+    '.sig-case{border:1px solid #D8D2BE;height:2.6cm;}' +
+    '.saut{page-break-before:always;}' +
+    '.pied{margin-top:0.8rem;border-top:1px solid #D8D2BE;padding-top:0.3rem;font-size:8pt;color:#6B6B5C;text-align:center;}';
+}
+
+function documentImpressionEmarg(titre, debut, fin, corps) {
+  let html = '<div class="entete">';
+  html += '<h1>' + titre + '</h1>';
+  html += '<div class="etab">MFR du N\u00e9racais \u2014 200 route de Bordeaux, 47230 Barbaste \u2014 ' +
+    'N\u00b0 de d\u00e9claration d\'activit\u00e9 75470139547 \u2014 SIRET 78219893100027</div>';
+  html += '<div class="periode">P\u00e9riode du ' + dateFr(debut) + ' au ' + dateFr(fin) + '</div>';
+  html += '</div>' + corps;
+  html += '<div class="pied">Document \u00e9dit\u00e9 le ' +
+    new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) +
+    ' \u2014 justificatif de pr\u00e9sence \u00e0 conserver</div>';
+  return html;
+}
+
+// Téléchargement direct du PDF. Si la bibliothèque n'est pas disponible
+// — coupure réseau, ou protection anti-pistage du navigateur — on bascule
+// sur la fenêtre d'impression, qui produit le même PDF en un clic de plus.
+function telechargerEmargementsPDF(titre, debut, fin, corps, nomFichier) {
+  if (typeof html2pdf === "undefined") {
+    alert("La biblioth\u00e8que de g\u00e9n\u00e9ration PDF n'est pas disponible.\n\n" +
+      "Cela arrive lorsque la protection anti-pistage du navigateur bloque son chargement, " +
+      "ou en l'absence de connexion.\n\n" +
+      "J'ouvre la fen\u00eatre d'impression : choisissez \u00ab Enregistrer au format PDF \u00bb " +
+      "comme destination, le r\u00e9sultat est identique.");
+    ouvrirFenetreImpressionEmarg(titre, debut, fin, corps);
+    return;
+  }
+
+  const conteneur = document.createElement("div");
+  conteneur.style.cssText = "position:fixed;left:-10000px;top:0;width:210mm;background:#fff;";
+  conteneur.innerHTML = '<style>' + stylesImpressionEmarg() + '</style>' +
+    documentImpressionEmarg(titre, debut, fin, corps);
+  document.body.appendChild(conteneur);
+
+  const options = {
+    margin: [10, 10, 10, 10],
+    filename: nomFichier,
+    image: { type: "jpeg", quality: 0.96 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+    pagebreak: { mode: ["css", "legacy"], before: ".saut" }
+  };
+
+  const modale = document.getElementById("modale-impr-emarg");
+  if (modale) modale.remove();
+
+  html2pdf().set(options).from(conteneur).save()
+    .then(function() {
+      conteneur.remove();
+      if (typeof afficherToast === "function") afficherToast("\u2713 PDF t\u00e9l\u00e9charg\u00e9 : " + nomFichier);
+    })
+    .catch(function(e) {
+      conteneur.remove();
+      alert("La g\u00e9n\u00e9ration du PDF a \u00e9chou\u00e9.\n\n" +
+        (e && e.message ? e.message : e) +
+        "\n\nJ'ouvre la fen\u00eatre d'impression : choisissez \u00ab Enregistrer au format PDF \u00bb.");
+      ouvrirFenetreImpressionEmarg(titre, debut, fin, corps);
+    });
+}
+
+// --- Document individuel : le parcours d'un apprenti sur la période -------
+function corpsEmargementIndividuel(username, seances, debut, fin, avecSignature) {
+  const a = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(x) { return x.username === username; });
+  let presents = 0, retards = 0, absents = 0;
+
+  let h = '<table class="meta"><tbody>';
+  h += '<tr><th>Apprenti\u00b7e</th><td>' + escapeHTML(nomApprentiPourImpression(username)) + '</td></tr>';
+  h += '<tr><th>Classe</th><td>' + escapeHTML(a ? (libelleClasseCourte(a.classe) || "") : "") + '</td></tr>';
+  h += '<tr><th>P\u00e9riode</th><td>du ' + dateFr(debut) + " au " + dateFr(fin) + '</td></tr>';
+  h += '</tbody></table>';
+
+  h += '<table class="detail"><thead><tr>' +
+    '<th>Date</th><th>Horaire</th><th>Mati\u00e8re</th><th>Formateur</th><th>Pr\u00e9sence</th>' +
+    (avecSignature ? '<th class="sig">Signature</th>' : '') + '</tr></thead><tbody>';
+  seances.forEach(function(s) {
+    const e = s.emargements[username];
+    const st = e ? e.statut : "";
+    if (st === "present") presents++;
+    else if (st === "retard") retards++;
+    else if (st === "absent") absents++;
+    const libelle = st === "present" ? "Pr\u00e9sent\u00b7e" : st === "retard" ? "Retard" : st === "absent" ? "Absent\u00b7e" : "\u2014";
+    h += '<tr class="st-' + st + '">' +
+      '<td>' + dateFr(s.date) + '</td>' +
+      '<td>' + escapeHTML((s.horaireDebut || "") + (s.horaireFin ? " \u2013 " + s.horaireFin : "")) + '</td>' +
+      '<td>' + escapeHTML(s.matiere || "") + '</td>' +
+      '<td>' + escapeHTML(s.cloture.signeParFormateur || s.formateurNom || "") + '</td>' +
+      '<td class="c">' + libelle + '</td>' +
+      (avecSignature ? '<td class="sig"></td>' : '') +
+      '</tr>';
+  });
+  h += '</tbody></table>';
+
+  const total = presents + retards + absents;
+  h += '<div class="totaux"><strong>Bilan de la p\u00e9riode :</strong> ' + total + ' s\u00e9ance(s) \u2014 ' +
+    presents + ' pr\u00e9sence(s), ' + retards + ' retard(s), ' + absents + ' absence(s)' +
+    (total > 0 ? ' \u2014 taux de pr\u00e9sence ' + Math.round(((presents + retards) / total) * 100) + ' %' : '') +
+    '.</div>';
+  h += blocSignatures(true);
+  return h;
+}
+
+// --- Document par séance : le justificatif de référence -------------------
+function corpsEmargementParSeance(seances, avecSignature) {
+  let h = "";
+  seances.forEach(function(s, i) {
+    if (i > 0) h += '<div class="saut"></div>';
+    h += '<table class="meta"><tbody>';
+    h += '<tr><th>Date</th><td>' + dateFr(s.date) + '</td>' +
+         '<th>Horaire</th><td>' + escapeHTML((s.horaireDebut || "") + (s.horaireFin ? " \u2013 " + s.horaireFin : "")) + '</td></tr>';
+    h += '<tr><th>Classe</th><td>' + escapeHTML(CLASSES[s.classe] || s.classe) + '</td>' +
+         '<th>Mati\u00e8re</th><td>' + escapeHTML(s.matiere || "") + '</td></tr>';
+    h += '<tr><th>Formateur</th><td colspan="3">' + escapeHTML(s.cloture.signeParFormateur || s.formateurNom || "") + '</td></tr>';
+    h += '</tbody></table>';
+
+    const noms = Object.keys(s.emargements || {}).sort(function(x, y) {
+      return nomApprentiPourImpression(x).localeCompare(nomApprentiPourImpression(y));
+    });
+    h += '<table class="detail"><thead><tr><th class="n">N\u00b0</th><th>Apprenti\u00b7e</th><th>Pr\u00e9sence</th>' +
+      (avecSignature ? '<th class="sig">Signature</th>' : '') + '</tr></thead><tbody>';
+    noms.forEach(function(u, k) {
+      const e = s.emargements[u];
+      const libelle = e.statut === "present" ? "Pr\u00e9sent\u00b7e" : e.statut === "retard" ? "Retard" : e.statut === "absent" ? "Absent\u00b7e" : "\u2014";
+      h += '<tr class="st-' + e.statut + '"><td class="n">' + (k + 1) + '</td>' +
+        '<td>' + escapeHTML(nomApprentiPourImpression(u)) + '</td>' +
+        '<td class="c">' + libelle + '</td>' +
+        (avecSignature ? '<td class="sig"></td>' : '') + '</tr>';
+    });
+    h += '</tbody></table>';
+
+    const p = noms.filter(function(u) { return s.emargements[u].statut === "present"; }).length;
+    const r = noms.filter(function(u) { return s.emargements[u].statut === "retard"; }).length;
+    const ab = noms.filter(function(u) { return s.emargements[u].statut === "absent"; }).length;
+    h += '<div class="totaux"><strong>Effectif :</strong> ' + noms.length + ' \u2014 ' +
+      p + ' pr\u00e9sent(s), ' + r + ' retard(s), ' + ab + ' absent(s).</div>';
+    if (s.cloture.hash) {
+      h += '<div class="sceau">S\u00e9ance cl\u00f4tur\u00e9e et sign\u00e9e \u00e9lectroniquement le ' +
+        escapeHTML((s.cloture.dateSignature || "").substring(0, 10)) +
+        ' \u2014 empreinte ' + escapeHTML(s.cloture.hash.substring(0, 16)) + '\u2026</div>';
+    }
+    h += blocSignatures(false);
+  });
+  return h;
+}
+
+function blocSignatures(individuel) {
+  return '<table class="signatures"><tbody><tr>' +
+    '<td><div class="sig-lib">Le formateur</div><div class="sig-case"></div></td>' +
+    (individuel
+      ? '<td><div class="sig-lib">L\'apprenti\u00b7e</div><div class="sig-case"></div></td>'
+      : '') +
+    '<td><div class="sig-lib">La Direction</div><div class="sig-case"></div></td>' +
+    '</tr></tbody></table>';
+}
+
+function ouvrirFenetreImpressionEmarg(titre, debut, fin, corps) {
+  const styles = stylesImpressionEmarg();
+  const stylesInutilises =
+    '@page { size: A4; margin: 1.2cm; }' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#2A2E1F;font-size:10pt;line-height:1.35;margin:0;}' +
+    '.entete{border-bottom:3px solid #C9A23E;padding-bottom:0.5rem;margin-bottom:0.9rem;}' +
+    '.entete h1{font-size:14pt;color:#3E4A29;margin:0 0 0.15rem;}' +
+    '.entete .etab{font-size:9pt;color:#6B6B5C;}' +
+    '.entete .periode{font-size:10pt;color:#5C6F3E;font-weight:bold;margin-top:0.2rem;}' +
+    'table{width:100%;border-collapse:collapse;margin-bottom:0.6rem;}' +
+    '.meta th{background:#F5EFE0;text-align:left;padding:0.25rem 0.45rem;border:1px solid #D8D2BE;width:14%;font-size:9pt;}' +
+    '.meta td{padding:0.25rem 0.45rem;border:1px solid #D8D2BE;font-size:9pt;}' +
+    '.detail th{background:#5C6F3E;color:#fff;text-align:left;padding:0.3rem 0.45rem;font-size:9pt;}' +
+    '.detail td{border:1px solid #D8D2BE;padding:0.3rem 0.45rem;}' +
+    '.detail td.n{width:2.2rem;text-align:center;color:#6B6B5C;}' +
+    '.detail td.c{text-align:center;width:6rem;}' +
+    '.detail th.sig,.detail td.sig{width:30%;}' +
+    'tr.st-absent td{background:#FDF4EF;}' +
+    'tr.st-retard td{background:#FFF8E1;}' +
+    '.totaux{font-size:9pt;background:#F1F8E9;border-left:3px solid #5C6F3E;padding:0.35rem 0.6rem;margin-bottom:0.6rem;}' +
+    '.sceau{font-size:8pt;color:#6B6B5C;font-style:italic;margin-bottom:0.6rem;}' +
+    '.signatures{margin-top:0.5rem;}' +
+    '.signatures td{width:33%;padding:0 0.4rem;vertical-align:top;}' +
+    '.sig-lib{font-size:8.5pt;color:#6B6B5C;margin-bottom:0.15rem;}' +
+    '.sig-case{border:1px solid #D8D2BE;height:2.6cm;}' +
+    '.saut{page-break-before:always;}' +
+    '.pied{margin-top:0.8rem;border-top:1px solid #D8D2BE;padding-top:0.3rem;font-size:8pt;color:#6B6B5C;text-align:center;}';
+
+  const html = documentImpressionEmarg(titre, debut, fin, corps);
+
+  const fen = window.open("", "_blank");
+  if (!fen) {
+    alert("L\'impression a \u00e9t\u00e9 bloqu\u00e9e par le navigateur.\n\nAutorisez les fen\u00eatres surgissantes pour ce site, puis r\u00e9essayez.");
+    return;
+  }
+  fen.document.write('<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>' +
+    titre + '</title><style>' + styles + '</style></head><body>' + html + '</body></html>');
+  fen.document.close();
+  const modale = document.getElementById("modale-impr-emarg");
+  if (modale) modale.remove();
+  setTimeout(function() { fen.print(); }, 400);
+}
+
+function lundiDeLaSemaine2() {}
 
 function exporterEmargementsCSV() {
   const filtreClasse = document.getElementById("emargFiltreClasse").value;
