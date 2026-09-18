@@ -9771,6 +9771,49 @@
     flex: 1; min-width: 12rem; padding: 0.4rem 0.6rem;
     border: 1px solid var(--border); border-radius: 6px; font: inherit;
   }
+  /* Pas a pas du mode d'emploi */
+  .me-etapes {
+    counter-reset: etape; list-style: none; margin: 0.6rem 0 0.5rem; padding: 0;
+  }
+  .me-etapes li {
+    counter-increment: etape; position: relative;
+    padding: 0.3rem 0 0.3rem 2rem; font-size: 0.9rem; line-height: 1.5;
+    border-left: 2px solid var(--border); margin-left: 0.7rem;
+  }
+  .me-etapes li:last-child { border-left-color: transparent; }
+  .me-etapes li::before {
+    content: counter(etape); position: absolute; left: -0.75rem; top: 0.3rem;
+    width: 1.45rem; height: 1.45rem; border-radius: 50%;
+    background: var(--olive); color: #fff;
+    font-size: 0.75rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .me-attention {
+    background: #FDF4EF; border-left: 4px solid var(--mfr-red);
+    padding: 0.5rem 0.8rem; border-radius: 6px;
+    font-size: 0.86rem; margin: 0.5rem 0;
+  }
+  /* Appreciation hebdomadaire */
+  .appr-carte {
+    border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1.2rem;
+    border: 1px solid var(--border); border-left: 5px solid var(--or); background: #FFFDF5;
+  }
+  .appr-carte.appr-faite { border-left-color: #4C7A34; background: #F1F8E9; }
+  .appr-carte.appr-moniteur { border-left-color: var(--olive); background: #F1F8E9; }
+  .appr-titre { font-size: 1.02rem; font-weight: 700; color: var(--olive-dark); margin-bottom: 0.35rem; }
+  .appr-carte p { font-size: 0.92rem; margin-bottom: 0.7rem; }
+  .appr-limite { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.5rem; font-style: italic; }
+  .appr-intro { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.6rem; }
+  .appr-citation {
+    background: var(--beige); border-left: 4px solid var(--or);
+    padding: 0.7rem 0.9rem; border-radius: 6px; margin: 0 0 0.8rem;
+    font-size: 0.92rem; font-style: italic; white-space: pre-wrap;
+  }
+  .appr-aide { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+  #appr-texte {
+    width: 100%; padding: 0.6rem 0.8rem; font: inherit;
+    border: 1px solid var(--border); border-radius: 8px; resize: vertical;
+  }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -22846,7 +22889,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.54";
+const APP_VERSION = "4.58";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24381,6 +24424,22 @@ function initDashboard() {
 
   const zone = document.getElementById("dashboardZone");
   zone.innerHTML = "";
+
+  // Appréciation hebdomadaire du carnet : le jeudi pour l'apprenti,
+  // à tout moment pour le moniteur tant qu'une réponse est attendue.
+  try {
+    let carteAppr = "";
+    if (u.role === "apprenti" && typeof carteAppreciationApprenti === "function") {
+      carteAppr = carteAppreciationApprenti(u);
+    } else if (u.role === "mfr" && typeof carteAppreciationMoniteur === "function") {
+      carteAppr = carteAppreciationMoniteur();
+    }
+    if (carteAppr) {
+      const bloc = document.createElement("div");
+      bloc.innerHTML = carteAppr;
+      zone.appendChild(bloc);
+    }
+  } catch (e) { if (window.console) console.warn("appreciation", e); }
 
   // ===== Bandeau de bienvenue =====
   const greetingDiv = document.createElement("div");
@@ -38143,119 +38202,287 @@ function construireCarteSalarieTrombino(s, modifiable) {
 
 const MODE_EMPLOI_CONTENU = {
   "apprenti": {
-    icone: "\u{1F468}\u200D\u{1F393}",
-    titre: "Mode d'emploi \u2014 Apprenti\u00b7e",
-    accroche: "Cette application vous accompagne du premier jour \u00e0 l'examen. Elle remplace le carnet papier, centralise vos \u00e9changes avec la MFR et votre entreprise, et vous donne acc\u00e8s \u00e0 vos droits. Prenez dix minutes pour la parcourir : vous en gagnerez beaucoup ensuite.",
-    sections: [
-      {
-        titre: "\u{1F6AA} Premiers pas",
-        actions: [
-          { titre: "Me connecter",
-            comment: "Votre identifiant a la forme <strong>prenom.nom</strong>. Votre code d'acc\u00e8s compte 8 caract\u00e8res, avec un tiret au milieu \u2014 par exemple Dq9-yT4k. Attention : <strong>les majuscules et les minuscules comptent</strong>. Le dernier caract\u00e8re est toujours une minuscule. Recopiez-le exactement tel qu'il figure sur votre courrier d'accueil.",
-            ou: "\u00c9cran de connexion" },
-          { titre: "J'ai perdu mon code d'acc\u00e8s",
-            comment: "Cliquez sur \u00ab \u{1F511} Mot de passe oubli\u00e9 ? \u00bb sous le bouton de connexion, ou passez au secr\u00e9tariat. Un nouveau code vous sera remis \u2014 l'ancien cessera alors de fonctionner.",
-            ou: "\u00c9cran de connexion > Mot de passe oubli\u00e9" },
-          { titre: "Les deux fen\u00eatres qui s'affichent \u00e0 la premi\u00e8re connexion",
-            comment: "Elles ne peuvent pas \u00eatre ferm\u00e9es tant que vous n'avez pas r\u00e9pondu, et c'est voulu. La premi\u00e8re concerne la <strong>protection de vos donn\u00e9es</strong> : vous attestez avoir pris connaissance de ce que la MFR enregistre \u00e0 votre sujet. La seconde est la <strong>Charte de l'apprentissage</strong> : vous vous engagez sur l'assiduit\u00e9, le s\u00e9rieux des missions confi\u00e9es et le respect des r\u00e8glements. Lisez avant de signer : votre attestation est horodat\u00e9e et scell\u00e9e.",
-            ou: "\u00c0 la connexion, automatiquement" },
-          { titre: "Retrouver ce mode d'emploi",
-            comment: "Il est accessible \u00e0 tout moment, juste apr\u00e8s l'accueil dans le menu. Revenez-y d\u00e8s qu'une fonction vous \u00e9chappe.",
-            ou: "Menu > Mode d'emploi" }
-        ]
-      },
-      {
-        titre: "\u{1F4C5} Mon parcours au quotidien",
-        actions: [
-          { titre: "Savoir quand je suis \u00e0 la MFR et quand je suis en entreprise",
-            comment: "Le planning d'alternance affiche toute l'ann\u00e9e, semaine par semaine : <strong>M</strong> pour les semaines \u00e0 la MFR, <strong>E</strong> pour les semaines en entreprise, <strong>F</strong> pour les p\u00e9riodes de fermeture. Consultez-le avant de poser un rendez-vous ou d'organiser un d\u00e9placement.",
-            ou: "Menu > Planning d'alternance" },
-          { titre: "Tenir mon carnet de liaison",
-            comment: "C'est le lien entre vous, votre famille, votre ma\u00eetre d'apprentissage et l'\u00e9quipe. Vous y consignez ce que vous faites en entreprise, vos progr\u00e8s et vos difficult\u00e9s. Chacun peut y \u00e9crire et tout le monde le lit : soignez ce que vous y \u00e9crivez.",
-            ou: "Menu > Mon carnet de liaison" },
-          { titre: "Compl\u00e9ter mon livret d'apprentissage",
-            comment: "Le livret suit l'acquisition de vos comp\u00e9tences professionnelles tout au long de la formation. Il est renseign\u00e9 avec votre ma\u00eetre d'apprentissage et votre r\u00e9f\u00e9rent. C'est une pi\u00e8ce attendue \u00e0 l'examen : ne le laissez pas pour la fin.",
-            ou: "Menu > Livret d'apprentissage" },
-          { titre: "Consulter mes absences",
-            comment: "Vos absences et retards sont enregistr\u00e9s ici, avec leur motif et leur justification. V\u00e9rifiez r\u00e9guli\u00e8rement : une erreur se corrige d'autant plus facilement qu'elle est signal\u00e9e t\u00f4t. Toute absence doit \u00eatre justifi\u00e9e aupr\u00e8s de la MFR <strong>et</strong> de votre employeur.",
-            ou: "Menu > Mes absences" },
-          { titre: "\u00c9marger en cours",
-            comment: "Votre pr\u00e9sence est saisie par le formateur en d\u00e9but de s\u00e9ance. L'\u00e9margement est horodat\u00e9 et sign\u00e9 \u00e9lectroniquement : il sert de justificatif aupr\u00e8s de l'OPCO qui finance votre formation. Vous pouvez consulter votre historique et votre taux de pr\u00e9sence.",
-            ou: "Menu > \u00c9margement" },
-          { titre: "Demander un rendez-vous",
-            comment: "Choisissez un motif, proposez jusqu'\u00e0 trois cr\u00e9neaux, ajoutez un message si besoin. L'application vous indique \u00e0 qui votre demande est transmise. Vous recevez la r\u00e9ponse \u00e0 votre connexion suivante.",
-            ou: "Menu > Demandes de RDV" }
-        ]
-      },
-      {
-        titre: "\u{1F4CA} Mes r\u00e9sultats et mon positionnement",
-        actions: [
-          { titre: "Passer les tests de positionnement",
-            comment: "En d\u00e9but de formation, ces tests \u00e9valuent vos acquis en fran\u00e7ais, math\u00e9matiques, anglais, num\u00e9rique et dans votre domaine professionnel. <strong>Ce n'est pas un examen et il n'y a pas de note \u00e0 obtenir.</strong> Ils servent \u00e0 adapter l'accompagnement \u00e0 vos besoins r\u00e9els : r\u00e9pondez sinc\u00e8rement, c'est votre int\u00e9r\u00eat.",
-            ou: "Menu > Tests de positionnement" },
-          { titre: "Consulter mes r\u00e9sultats et mes \u00e9valuations",
-            comment: "Notes, appr\u00e9ciations des formateurs, \u00e9valuations de vos comp\u00e9tences en entreprise : tout est regroup\u00e9. Votre moniteur peut \u00e9diter un compte rendu d\u00e9taill\u00e9 de votre positionnement, avec vos points d'appui et vos priorit\u00e9s de travail. Demandez-le lors de votre entretien.",
-            ou: "Menu > Mes \u00e9valuations" },
-          { titre: "Consulter mes bulletins",
-            comment: "Les bulletins scolaires de chaque p\u00e9riode sont consultables et t\u00e9l\u00e9chargeables.",
-            ou: "Menu > Bulletins scolaires" }
-        ]
-      },
-      {
-        titre: "\u{1F4DD} Donner mon avis \u2014 c'est attendu de vous",
-        actions: [
-          { titre: "R\u00e9pondre aux enqu\u00eates de satisfaction",
-            comment: "Plusieurs fois dans l'ann\u00e9e, un questionnaire vous est adress\u00e9 : accueil, qualit\u00e9 des cours, alternance, conditions de vie. Une fen\u00eatre s'affiche \u00e0 votre connexion et vous pouvez la reporter \u2014 mais elle revient, \u00e0 intervalles de plus en plus rapproch\u00e9s : 24 h, puis 12 h, puis 6 h, puis 3 h. Le plus simple est de r\u00e9pondre tout de suite : comptez trois minutes.",
-            ou: "Menu > Enqu\u00eates, ou via la fen\u00eatre de rappel" },
-          { titre: "\u00c9valuer les enseignements",
-            comment: "Distinct des enqu\u00eates de satisfaction, ce dispositif porte sur les <strong>contenus et les cours eux-m\u00eames</strong>, mati\u00e8re par mati\u00e8re. Les r\u00e9sultats sont pr\u00e9sent\u00e9s \u00e0 l'\u00e9quipe p\u00e9dagogique en r\u00e9union et donnent lieu \u00e0 des am\u00e9liorations concr\u00e8tes. C'est le levier le plus direct dont vous disposez pour faire \u00e9voluer votre formation.",
-            ou: "Menu > \u00c9valuation des enseignements" },
-          { titre: "\u00c0 quoi servent mes r\u00e9ponses",
-            comment: "Elles sont analys\u00e9es de fa\u00e7on group\u00e9e, pr\u00e9sent\u00e9es au conseil de perfectionnement et servent \u00e0 corriger ce qui doit l'\u00eatre. La MFR est certifi\u00e9e Qualiopi : ce recueil est une obligation, et les taux de r\u00e9ponse sont v\u00e9rifi\u00e9s lors des audits.",
-            ou: "\u2014" }
-        ]
-      },
-      {
-        titre: "\u{1F6E1}\uFE0F En cas de difficult\u00e9 \u2014 ne restez pas seul\u00b7e",
-        actions: [
-          { titre: "Signaler une violence, un harc\u00e8lement ou une discrimination",
-            comment: "\u00c0 la MFR, en entreprise, sur le trajet ou en ligne. Le signalement <strong>peut \u00eatre anonyme</strong> et il est trait\u00e9 par la direction sans d\u00e9lai. La page affiche aussi les num\u00e9ros d'\u00e9coute gratuits et confidentiels : 3919, 3018, 30 20, et le 119 si vous \u00eates mineur\u00b7e.",
-            ou: "Menu > Signalement" },
-          { titre: "D\u00e9poser une r\u00e9clamation",
-            comment: "Une r\u00e9clamation, ce n'est pas un signalement : elle porte sur l'organisation, la p\u00e9dagogie, la restauration, l'internat ou tout autre aspect du service. Elle est enregistr\u00e9e, suivie et re\u00e7oit une r\u00e9ponse. C'est un droit, et son traitement est contr\u00f4l\u00e9 en audit.",
-            ou: "Menu > R\u00e9clamations" },
-          { titre: "Conna\u00eetre mes droits d'apprenti\u00b7e",
-            comment: "Temps de travail, repos, r\u00e9mun\u00e9ration minimale, travail de nuit, m\u00e9diateur de l'apprentissage : la page rassemble l'essentiel, avec des r\u00e8gles renforc\u00e9es si vous \u00eates mineur\u00b7e. Un guide imprimable est t\u00e9l\u00e9chargeable \u2014 gardez-le.",
-            ou: "Menu > Mes droits" },
-          { titre: "Savoir quoi faire en cas d'accident du travail",
-            comment: "La page Sant\u00e9 et s\u00e9curit\u00e9 explique la conduite \u00e0 tenir, les obligations de votre employeur en mati\u00e8re de s\u00e9curit\u00e9, et ce que vous ne devez jamais accepter de faire. \u00c0 lire <strong>avant</strong> d'en avoir besoin.",
-            ou: "Menu > Sant\u00e9 et s\u00e9curit\u00e9 au travail" },
-          { titre: "Demander un am\u00e9nagement li\u00e9 \u00e0 un handicap",
-            comment: "Un trouble de l'apprentissage, une maladie, une situation de handicap reconnue ou non : des am\u00e9nagements existent, en formation comme \u00e0 l'examen. La r\u00e9f\u00e9rente handicap de la MFR est votre interlocutrice, et la d\u00e9marche reste confidentielle. N'attendez pas d'\u00eatre en difficult\u00e9.",
-            ou: "Menu > Accessibilit\u00e9 et handicap" },
-          { titre: "Savoir qui contacter",
-            comment: "L'annuaire indique le bon interlocuteur selon votre question, et le trombinoscope met un visage sur chaque nom.",
-            ou: "Menu > Contacts \u00b7 Menu > Trombinoscope" }
-        ]
-      },
-      {
-        titre: "\u{1F30D} Aller plus loin",
-        actions: [
-          { titre: "Partir en mobilit\u00e9 Erasmus+",
-            comment: "La MFR organise un s\u00e9jour europ\u00e9en. La page pr\u00e9sente la destination, les dates, le d\u00e9roul\u00e9 de la pr\u00e9paration et la r\u00e9f\u00e9rente mobilit\u00e9. Une convention est sign\u00e9e par votre famille, votre entreprise et la MFR : <strong>c'est la MFR qui vous contacte</strong>, vous n'avez aucune d\u00e9marche \u00e0 engager. Anticipez en revanche votre pi\u00e8ce d'identit\u00e9, elle prend du temps.",
-            ou: "Menu > Erasmus+" },
-          { titre: "Pr\u00e9parer la suite de mon parcours",
-            comment: "Poursuite d'\u00e9tudes ou entr\u00e9e dans l'emploi : la page pr\u00e9sente les passerelles possibles apr\u00e8s votre dipl\u00f4me et les r\u00e9sultats des promotions pr\u00e9c\u00e9dentes. Parlez-en \u00e0 votre r\u00e9f\u00e9rent d\u00e8s le deuxi\u00e8me trimestre.",
-            ou: "Menu > Poursuites d'\u00e9tudes" },
-          { titre: "Comprendre le financement de ma formation",
-            comment: "Votre formation ne vous co\u00fbte rien : elle est financ\u00e9e par l'OPCO de votre entreprise. La page d\u00e9taille ce qui reste \u00e0 la charge de votre famille \u2014 restauration, h\u00e9bergement \u2014 et pr\u00e9cise que ces frais sont <strong>r\u00e9gularis\u00e9s fin juillet</strong>.",
-            ou: "Menu > Tarifs et financement" },
-          { titre: "Suivre les actualit\u00e9s de la MFR",
-            comment: "\u00c9v\u00e9nements, \u00e9ch\u00e9ances, informations pratiques sont publi\u00e9s sur la page d'accueil. Les notifications vous alertent de ce qui vous concerne directement.",
-            ou: "Accueil \u00b7 Menu > Notifications" }
-        ]
-      }
-    ]
+      "icone": "👨‍🎓",
+      "titre": "Mode d'emploi — Apprenti·e",
+      "accroche": "Chaque fiche est un pas à pas : suivez les étapes dans l'ordre, elles sont écrites pour être faites en même temps qu'on les lit. Si quelque chose ne marche pas, la réponse est souvent juste en dessous.",
+      "sections": [
+          {
+              "titre": "🔑 Me connecter",
+              "actions": [
+                  {
+                      "titre": "La toute première fois",
+                      "comment": "Ça prend cinq minutes, et vous ne le referez jamais.",
+                      "etapes": [
+                          "Ouvrez l'application sur votre téléphone ou sur un ordinateur.",
+                          "Dans la case <strong>Identifiant</strong>, tapez votre <strong>prénom.nom</strong>. Par exemple : <em>lea.martin</em>. Tout en minuscules, avec un point au milieu.",
+                          "Dans la case <strong>Code d'accès</strong>, recopiez le code que la MFR vous a donné. Il ressemble à <em>Dq9-yT4k</em>.",
+                          "<strong>Recopiez-le exactement</strong> : les grandes et les petites lettres ne sont pas pareilles. Le dernier caractère est toujours une petite lettre.",
+                          "Appuyez sur <strong>Se connecter</strong>.",
+                          "Une fenêtre s'ouvre : <strong>choisissez votre propre mot de passe</strong>. Tapez-le deux fois, puis appuyez sur <strong>Enregistrer</strong>.",
+                          "C'est celui-là que vous utiliserez désormais. Le code de la MFR ne sert plus."
+                      ],
+                      "attention": "Choisissez un mot de passe que vous retiendrez sans l'écrire. Trois mots collés, c'est parfait : <em>velo-tomate-guitare</em>. N'utilisez pas celui de votre Instagram ou de votre boîte mail.",
+                      "ou": "Écran de connexion"
+                  },
+                  {
+                      "titre": "Les deux fenêtres qui ne se ferment pas",
+                      "comment": "Juste après, deux fenêtres s'affichent. Elles ne peuvent pas être fermées. C'est normal, c'est fait exprès.",
+                      "etapes": [
+                          "La première parle de <strong>vos données personnelles</strong> : ce que la MFR enregistre sur vous, et vos droits.",
+                          "Ouvrez les documents, cochez la case, tapez <em>Lu et approuvé</em>, validez.",
+                          "La deuxième est la <strong>Charte de l'apprentissage</strong> : ce sur quoi vous vous engagez, et ce sur quoi la MFR et votre entreprise s'engagent envers vous.",
+                          "Même chose : lisez, cochez, tapez la mention, validez."
+                      ],
+                      "attention": "Prenez cinq minutes pour lire vraiment. Vous signez, et votre signature est enregistrée avec la date et l'heure.",
+                      "ou": "À la connexion"
+                  },
+                  {
+                      "titre": "J'ai oublié mon mot de passe",
+                      "comment": "Ça arrive. Personne ne peut le retrouver, même pas la directrice : il faut en créer un nouveau.",
+                      "etapes": [
+                          "Passez au secrétariat, ou appuyez sur <strong>Mot de passe oublié ?</strong> sous le bouton de connexion.",
+                          "On vous donne un nouveau code provisoire.",
+                          "Connectez-vous avec ce code : l'application vous redemandera de choisir votre mot de passe."
+                      ],
+                      "ou": "Écran de connexion"
+                  },
+                  {
+                      "titre": "Ça ne marche pas",
+                      "comment": "Avant d'aller au secrétariat, vérifiez ces trois choses.",
+                      "etapes": [
+                          "Regardez si vous n'avez pas laissé une <strong>majuscule automatique</strong> au début de l'identifiant. Le téléphone le fait tout seul.",
+                          "Vérifiez qu'il n'y a pas d'<strong>espace</strong> avant ou après le code.",
+                          "Regardez le code de très près : un <em>k</em> et un <em>K</em>, ce n'est pas pareil.",
+                          "Si ça ne marche toujours pas, passez au secrétariat."
+                      ],
+                      "ou": "Écran de connexion"
+                  }
+              ]
+          },
+          {
+              "titre": "🍽️ Mes repas et mes nuits",
+              "actions": [
+                  {
+                      "titre": "Signer mon repas ou ma nuit",
+                      "comment": "À faire chaque fois que vous mangez ou dormez à la MFR. Une semaine complète, ça fait douze signatures.",
+                      "etapes": [
+                          "Menu > <strong>Émargement</strong>, puis l'onglet <strong>🍽 Repas et nuitées</strong>.",
+                          "Vous voyez vos repas et vos nuits de la semaine, jour par jour.",
+                          "Quand c'est l'heure, un bouton <strong>Je signe</strong> apparaît à côté du service.",
+                          "Appuyez dessus. C'est fait : la ligne devient verte avec l'heure de votre signature."
+                      ],
+                      "attention": "Chaque service ne peut être signé que pendant un certain temps. Le repas de midi entre 11 h 30 et 14 h, celui du soir entre 18 h 30 et 21 h, la nuit entre 20 h et 23 h. Après, c'est trop tard.",
+                      "ou": "Menu > Émargement > Repas et nuitées"
+                  },
+                  {
+                      "titre": "J'ai oublié de signer",
+                      "comment": "Le bouton a disparu et vous ne pouvez plus rien faire vous-même.",
+                      "etapes": [
+                          "Allez voir la vie résidentielle ou votre référent, <strong>avant la fin de la semaine</strong>.",
+                          "Dites quel repas ou quelle nuit vous avez oublié de signer.",
+                          "Ils le corrigeront avant de valider la semaine."
+                      ],
+                      "attention": "Attendez la semaine suivante et ce sera trop tard : la semaine aura été validée.",
+                      "ou": "Vie résidentielle"
+                  },
+                  {
+                      "titre": "À quoi ça sert",
+                      "comment": "Ce n'est pas un pointage pour vous surveiller.",
+                      "etapes": [
+                          "Chaque repas et chaque nuit sont payés par l'organisme qui finance votre formation.",
+                          "Ce que vous signez est ce qui sera facturé.",
+                          "Donc : <strong>vous ne signez que ce dont vous avez vraiment bénéficié</strong>."
+                      ],
+                      "attention": "Signer un repas que vous n'avez pas pris, c'est faire payer quelque chose qui n'a pas eu lieu. La MFR vérifie en fin de semaine.",
+                      "ou": "—"
+                  }
+              ]
+          },
+          {
+              "titre": "📅 Savoir où je dois être",
+              "actions": [
+                  {
+                      "titre": "Regarder mon planning",
+                      "comment": "Pour savoir quelles semaines vous êtes à la MFR et lesquelles vous êtes en entreprise.",
+                      "etapes": [
+                          "Menu > <strong>Planning d'alternance</strong>.",
+                          "Vous voyez toute l'année, semaine par semaine.",
+                          "<strong>M</strong> = semaine à la MFR. <strong>E</strong> = semaine en entreprise. <strong>F</strong> = fermeture.",
+                          "Regardez-le avant de poser un rendez-vous ou de prévoir quelque chose."
+                      ],
+                      "ou": "Menu > Planning d'alternance"
+                  },
+                  {
+                      "titre": "Vérifier mes absences",
+                      "comment": "Tout ce qui a été noté sur vous : absences, retards, et si c'est justifié ou non.",
+                      "etapes": [
+                          "Menu > <strong>Mes absences</strong>.",
+                          "Regardez la liste de temps en temps.",
+                          "Si quelque chose est faux, dites-le tout de suite à votre référent."
+                      ],
+                      "attention": "Une erreur signalée en octobre se corrige. La même erreur découverte en juin, beaucoup moins. Et vos absences comptent pour votre salaire.",
+                      "ou": "Menu > Mes absences"
+                  },
+                  {
+                      "titre": "Demander un rendez-vous",
+                      "comment": "Pour parler à quelqu'un de la MFR sans avoir à le croiser dans un couloir.",
+                      "etapes": [
+                          "Menu > <strong>Demandes de RDV</strong>.",
+                          "Appuyez sur <strong>+ Nouvelle demande</strong>.",
+                          "Choisissez le motif, proposez jusqu'à trois créneaux, ajoutez un message si vous voulez.",
+                          "Validez. L'application vous dit à qui la demande est envoyée.",
+                          "La réponse apparaîtra la prochaine fois que vous vous connecterez."
+                      ],
+                      "ou": "Menu > Demandes de RDV"
+                  }
+              ]
+          },
+          {
+              "titre": "📝 Ce qu'on me demande de faire",
+              "actions": [
+                  {
+                      "titre": "Remplir mon carnet de liaison",
+                      "comment": "C'est le lien entre vous, votre famille, votre maître d'apprentissage et l'équipe.",
+                      "etapes": [
+                          "Menu > <strong>Mon carnet de liaison</strong>.",
+                          "Appuyez sur <strong>+ Nouvel échange</strong>.",
+                          "Racontez ce que vous avez fait en entreprise, ce que vous avez appris, ce qui a été difficile.",
+                          "Enregistrez."
+                      ],
+                      "attention": "Tout le monde lit ce carnet : vos parents, votre patron, vos formateurs. Écrivez comme si vous le disiez à voix haute devant eux.",
+                      "ou": "Menu > Mon carnet de liaison"
+                  },
+                  {
+                      "titre": "Répondre à une enquête",
+                      "comment": "Plusieurs fois dans l'année, on vous demande votre avis sur la MFR, les cours, l'internat.",
+                      "etapes": [
+                          "Une fenêtre s'affiche quand vous vous connectez.",
+                          "Vous pouvez la reporter. Mais elle reviendra : d'abord au bout de 24 heures, puis 12, puis 6, puis 3.",
+                          "Le plus simple est de répondre tout de suite. Ça prend trois minutes."
+                      ],
+                      "attention": "Répondez sincèrement. Vos réponses sont regardées ensemble, pas une par une, et elles servent vraiment à changer des choses.",
+                      "ou": "Menu > Enquêtes"
+                  },
+                  {
+                      "titre": "Donner mon avis sur les cours",
+                      "comment": "Différent de l'enquête : ici, vous parlez des <strong>cours eux-mêmes</strong>, matière par matière.",
+                      "etapes": [
+                          "Menu > <strong>Évaluation des enseignements</strong>.",
+                          "S'il y a une évaluation ouverte, elle apparaît.",
+                          "Répondez aux questions, matière par matière."
+                      ],
+                      "attention": "C'est le moyen le plus direct que vous avez de faire bouger votre formation. Les résultats sont présentés aux formateurs en réunion.",
+                      "ou": "Menu > Évaluation des enseignements"
+                  },
+                  {
+                      "titre": "Passer les tests de début d'année",
+                      "comment": "Français, maths, anglais, informatique, et votre métier.",
+                      "etapes": [
+                          "Menu > <strong>Tests de positionnement</strong>.",
+                          "Choisissez un test, répondez aux questions.",
+                          "Vous pouvez les faire en plusieurs fois."
+                      ],
+                      "attention": "<strong>Ce n'est pas un examen. Il n'y a pas de bonne note à avoir.</strong> Ça sert à savoir où vous en êtes pour mieux vous aider. Répondez sincèrement : si vous trichez, c'est vous que vous pénalisez.",
+                      "ou": "Menu > Tests de positionnement"
+                  }
+              ]
+          },
+          {
+              "titre": "🆘 Si ça ne va pas",
+              "actions": [
+                  {
+                      "titre": "Signaler une violence ou du harcèlement",
+                      "comment": "À la MFR, en entreprise, dans le bus, sur les réseaux. Quelqu'un vous fait du mal, ou fait du mal à quelqu'un d'autre.",
+                      "etapes": [
+                          "Menu > <strong>Signalement</strong>.",
+                          "Vous pouvez le faire <strong>sans donner votre nom</strong>.",
+                          "Racontez ce qui s'est passé avec vos mots.",
+                          "Envoyez. La directrice le lit sans attendre."
+                      ],
+                      "attention": "Vous pouvez aussi appeler, c'est gratuit et anonyme : <strong>119</strong> si vous êtes mineur, <strong>3018</strong> pour le harcèlement en ligne, <strong>3020</strong> pour le harcèlement, <strong>3919</strong> pour les violences faites aux femmes.",
+                      "ou": "Menu > Signalement"
+                  },
+                  {
+                      "titre": "Dire que quelque chose ne va pas",
+                      "comment": "Ce n'est pas la même chose qu'un signalement. Ici, c'est l'organisation qui pose problème : les cours, les repas, l'internat, un planning.",
+                      "etapes": [
+                          "Menu > <strong>Réclamations</strong>.",
+                          "Appuyez sur <strong>+ Nouvelle réclamation</strong>.",
+                          "Expliquez ce qui ne va pas.",
+                          "Envoyez. Vous recevrez une réponse : c'est votre droit."
+                      ],
+                      "ou": "Menu > Réclamations"
+                  },
+                  {
+                      "titre": "Connaître mes droits",
+                      "comment": "Vous êtes apprenti, donc salarié. Vous avez des droits précis.",
+                      "etapes": [
+                          "Menu > <strong>Mes droits</strong>.",
+                          "Vous y trouvez : le temps de travail maximum, les repos obligatoires, votre salaire minimum selon votre âge, ce que vous n'avez pas le droit de faire si vous êtes mineur.",
+                          "Un guide est téléchargeable : gardez-le."
+                      ],
+                      "attention": "Si vous êtes mineur, les règles sont plus strictes : pas de travail de nuit, pas certaines machines. Si on vous demande de les enfreindre, parlez-en à votre référent.",
+                      "ou": "Menu > Mes droits"
+                  },
+                  {
+                      "titre": "Demander un aménagement",
+                      "comment": "Dyslexie, maladie, handicap reconnu ou pas : des aménagements existent, en cours comme à l'examen.",
+                      "etapes": [
+                          "Menu > <strong>Accessibilité et handicap</strong>.",
+                          "Vous y trouvez le nom et les coordonnées de la référente handicap.",
+                          "Contactez-la, ou demandez à votre référent de le faire pour vous.",
+                          "C'est confidentiel."
+                      ],
+                      "attention": "N'attendez pas d'être en difficulté. Un aménagement pour l'examen se demande plusieurs mois à l'avance.",
+                      "ou": "Menu > Accessibilité et handicap"
+                  },
+                  {
+                      "titre": "Savoir qui aller voir",
+                      "comment": "Quand vous ne savez pas à qui parler.",
+                      "etapes": [
+                          "Menu > <strong>Contacts</strong> pour trouver la bonne personne.",
+                          "Menu > <strong>Trombinoscope</strong> pour mettre un visage sur un nom."
+                      ],
+                      "ou": "Menu > Contacts · Menu > Trombinoscope"
+                  }
+              ]
+          },
+          {
+              "titre": "🌍 Et après",
+              "actions": [
+                  {
+                      "titre": "Partir à l'étranger avec Erasmus+",
+                      "comment": "La MFR organise un séjour en Europe.",
+                      "etapes": [
+                          "Menu > <strong>Erasmus+</strong> : destination, dates, comment ça se prépare.",
+                          "Vous n'avez <strong>aucune démarche à faire</strong> : c'est la MFR qui contacte votre famille et votre entreprise.",
+                          "En revanche, occupez-vous de votre <strong>carte d'identité ou passeport</strong> dès maintenant : ça prend des mois."
+                      ],
+                      "ou": "Menu > Erasmus+"
+                  },
+                  {
+                      "titre": "Préparer la suite",
+                      "comment": "Ce que vous pouvez faire après votre diplôme.",
+                      "etapes": [
+                          "Menu > <strong>Poursuites d'études</strong>.",
+                          "Vous y voyez les formations possibles et ce que sont devenus les années précédentes.",
+                          "Parlez-en à votre référent dès le deuxième trimestre, pas en juin."
+                      ],
+                      "ou": "Menu > Poursuites d'études"
+                  },
+                  {
+                      "titre": "Voir mes résultats",
+                      "comment": "Notes, appréciations, bulletins.",
+                      "etapes": [
+                          "Menu > <strong>Mes évaluations</strong> pour les notes et les appréciations.",
+                          "Menu > <strong>Bulletins scolaires</strong> pour les bulletins de chaque période.",
+                          "Vous pouvez les télécharger."
+                      ],
+                      "ou": "Menu > Mes évaluations · Menu > Bulletins scolaires"
+                  }
+              ]
+          }
+      ]
   },
   "famille": {
     icone: "👨‍👩‍👧",
@@ -38344,53 +38571,330 @@ const MODE_EMPLOI_CONTENU = {
     ]
   },
   "salarie": {
-    icone: "🏫",
-    titre: "Mode d'emploi — Salarié MFR (hors direction)",
-    accroche: "En tant que formateur ou personnel de la MFR, l'application est votre outil pédagogique et administratif quotidien.",
-    sections: [
-      {
-        titre: "🚪 Se connecter et attestations",
-        actions: [
-          { titre: "Se connecter",
-            comment: "Identifiants remis par la Direction. Chaque salarié dispose d'un compte individuel selon son périmètre.",
-            ou: "Page d'accueil" },
-          { titre: "Attester ma prise de connaissance RGPD",
-            comment: "6 documents vous concernent en tant que salarié : notice, charte informatique, formulaires, procédures, convention, note DPO. Attestation obligatoire.",
-            ou: "Menu > Protection de vos données" }
-        ]
-      },
-      {
-        titre: "📋 Gestion pédagogique quotidienne",
-        actions: [
-          { titre: "Renseigner les carnets de liaison",
-            comment: "Pour chaque apprenti dont vous êtes formateur référent, complétez les échanges pédagogiques et communiquez avec les familles.",
-            ou: "Menu > Apprentis > sélectionner un apprenti > Carnet" },
-          { titre: "Saisir des évaluations",
-            comment: "Après chaque module ou évaluation, notez les résultats et rédigez une appréciation.",
-            ou: "Menu > Évaluations" },
-          { titre: "Contrôler l'émargement",
-            comment: "Pour vos classes : générer les codes de session d'émargement, contrôler les présences, exporter les feuilles.",
-            ou: "Menu > Émargement" },
-          { titre: "Consulter le planning d'alternance",
-            comment: "Vérifier les semaines M/E/F pour votre classe référente, préparer vos sessions.",
-            ou: "Menu > Planning" }
-        ]
-      },
-      {
-        titre: "📊 Qualiopi et documentation",
-        actions: [
-          { titre: "Consulter le tableau de bord Qualiopi V10",
-            comment: "Suivre l'état de conformité des 32 indicateurs qui vous concernent selon votre périmètre.",
-            ou: "Menu > Tableau de bord Qualiopi V10 (selon habilitations)" },
-          { titre: "Traiter les demandes de RDV",
-            comment: "Consulter les demandes qui vous sont adressées, planifier les entretiens.",
-            ou: "Menu > Demandes de RDV" },
-          { titre: "Suivre les signalements",
-            comment: "Prendre connaissance des signalements et des réclamations dont vous êtes destinataire.",
-            ou: "Menu > Signalements / Réclamations" }
-        ]
-      }
-    ]
+      "icone": "🏫",
+      "titre": "Mode d'emploi — Équipe de la MFR",
+      "accroche": "Chaque fiche ci-dessous est un pas à pas : suivez les étapes dans l'ordre. Ce que vous ne saisissez pas dans l'application n'existe pas — ni pour vos collègues, ni pour un auditeur.",
+      "sections": [
+          {
+              "titre": "🚪 Premiers pas",
+              "actions": [
+                  {
+                      "titre": "Me connecter la première fois",
+                      "comment": "Trois étapes s'enchaînent et aucune ne peut être reportée. Comptez cinq minutes, une seule fois.",
+                      "etapes": [
+                          "Ouvrez l'application. Dans <strong>Identifiant</strong>, tapez votre <strong>prenom.nom</strong> en minuscules.",
+                          "Dans <strong>Code d'accès</strong>, recopiez le code provisoire remis par la Direction. Attention aux majuscules : le code y est sensible.",
+                          "Cliquez sur <strong>Se connecter</strong>.",
+                          "Une fenêtre s'ouvre : <strong>choisissez votre mot de passe</strong>. Saisissez-le deux fois, puis <strong>Enregistrer</strong>. Trois mots accolés font un excellent mot de passe.",
+                          "La fenêtre <strong>Protection des données</strong> s'affiche. Ouvrez les documents, cochez la case, tapez <em>Lu et approuvé</em>, validez.",
+                          "La fenêtre <strong>Charte de l'apprentissage</strong> suit. Même principe : lisez, cochez, tapez la mention, validez."
+                      ],
+                      "attention": "Votre mot de passe est chiffré : personne ne peut le relire, pas même la Direction. En cas d'oubli, il faudra vous en attribuer un nouveau.",
+                      "ou": "Écran de connexion"
+                  },
+                  {
+                      "titre": "Changer mon mot de passe",
+                      "comment": "À tout moment, sans passer par le secrétariat.",
+                      "etapes": [
+                          "Cliquez sur l'icône <strong>🔑</strong> en haut à droite, à côté de Déconnexion.",
+                          "Saisissez deux fois le nouveau mot de passe.",
+                          "Cliquez sur <strong>Enregistrer</strong>."
+                      ],
+                      "ou": "En-tête de l'application"
+                  },
+                  {
+                      "titre": "Un onglet me manque",
+                      "comment": "Vous ne voyez que les onglets ouverts à votre fonction. Ce n'est pas une panne.",
+                      "etapes": [
+                          "Vérifiez le menu latéral : faites défiler, les onglets sont groupés par thème.",
+                          "Si l'onglet n'y est pas, demandez son ouverture à la Direction en précisant lequel et pourquoi."
+                      ],
+                      "attention": "N'empruntez jamais le compte d'un collègue : toutes les saisies sont horodatées à son nom.",
+                      "ou": "Menu latéral"
+                  }
+              ]
+          },
+          {
+              "titre": "📅 Mon quotidien",
+              "actions": [
+                  {
+                      "titre": "Émarger une séance de cours",
+                      "comment": "Le geste le plus important de la journée : c'est lui qui justifie le financement de la formation.",
+                      "etapes": [
+                          "Menu > <strong>Émargement</strong>, onglet <strong>Séance en cours</strong>.",
+                          "Choisissez votre <strong>classe</strong> et le <strong>créneau</strong> du planning.",
+                          "La liste des apprentis s'affiche. Pour chacun, cliquez sur <strong>Présent</strong>, <strong>Retard</strong> ou <strong>Absent</strong>.",
+                          "En fin de séance, cliquez sur <strong>Clôturer et signer</strong>.",
+                          "Confirmez votre nom : il devient le nom du formateur signataire."
+                      ],
+                      "attention": "Une séance non clôturée ne vaut rien. Elle n'apparaît ni dans les impressions, ni en audit, et le financement peut être refusé.",
+                      "ou": "Menu > Émargement"
+                  },
+                  {
+                      "titre": "Imprimer les émargements",
+                      "comment": "Trois portées : un apprenti, une classe, ou toutes les classes.",
+                      "etapes": [
+                          "Menu > <strong>Émargement</strong>, onglet <strong>Historique</strong>.",
+                          "Cliquez sur <strong>🖨 Imprimer les émargements</strong>.",
+                          "Choisissez la portée : une classe, un apprenti, ou toutes les classes.",
+                          "Ajustez les dates. Par défaut, la semaine en cours du lundi au vendredi.",
+                          "Cliquez sur <strong>Télécharger en PDF</strong>, ou sur <strong>Aperçu et impression</strong>."
+                      ],
+                      "ou": "Menu > Émargement > Historique"
+                  },
+                  {
+                      "titre": "Saisir une absence",
+                      "comment": "Toute absence se consigne le jour même, avec son motif.",
+                      "etapes": [
+                          "Menu > <strong>Absences</strong>.",
+                          "Cliquez sur <strong>+ Ajouter une absence</strong>.",
+                          "Sélectionnez l'apprenti, la date, et le motif.",
+                          "Indiquez si l'absence est justifiée, et par quel document.",
+                          "Enregistrez."
+                      ],
+                      "attention": "L'assiduité conditionne la rémunération de l'apprenti et le financement OPCO. Une absence oubliée se paie au moment du contrôle.",
+                      "ou": "Menu > Absences"
+                  },
+                  {
+                      "titre": "Écrire dans le carnet de liaison",
+                      "comment": "Le carnet est lu par l'apprenti, sa famille, son maître d'apprentissage et l'équipe.",
+                      "etapes": [
+                          "Menu > <strong>Suivi des carnets</strong>.",
+                          "Sélectionnez l'apprenti.",
+                          "Cliquez sur <strong>+ Nouvel échange</strong>.",
+                          "Rédigez, puis enregistrez."
+                      ],
+                      "attention": "Tout le monde lit ce que vous écrivez. Pour une difficulté délicate, préférez un appel, puis consignez ensuite le fait et la décision.",
+                      "ou": "Menu > Suivi des carnets"
+                  },
+                  {
+                      "titre": "Répondre à une demande de rendez-vous",
+                      "comment": "Les familles proposent jusqu'à trois créneaux.",
+                      "etapes": [
+                          "Menu > <strong>Demandes de RDV</strong>. Un badge signale les demandes en attente.",
+                          "Ouvrez la demande : motif, créneaux proposés, message.",
+                          "Choisissez un créneau, ou proposez-en un autre.",
+                          "Validez : la réponse apparaîtra à la prochaine connexion du demandeur."
+                      ],
+                      "ou": "Menu > Demandes de RDV"
+                  }
+              ]
+          },
+          {
+              "titre": "🎓 Suivre mes apprentis",
+              "actions": [
+                  {
+                      "titre": "Éditer un compte rendu de positionnement",
+                      "comment": "Le document de l'entretien de rentrée : profil de l'apprenti, comparaison à sa classe, priorités de travail.",
+                      "etapes": [
+                          "Menu > <strong>Résultats</strong>.",
+                          "Dans le bloc <strong>Compte rendu pédagogique</strong>, sélectionnez l'apprenti.",
+                          "Le radar et les tableaux s'affichent. Les cases orange signalent les compétences sous 50 %.",
+                          "Cliquez sur <strong>🖨 Imprimer</strong> pour le document à remettre.",
+                          "Conduisez l'entretien à partir des trois colonnes : points d'appui, à consolider, priorités."
+                      ],
+                      "attention": "Un test de positionnement n'est pas une note. Dites-le à l'apprenti avant de lui montrer le radar, sinon il le lira comme un bulletin.",
+                      "ou": "Menu > Résultats"
+                  },
+                  {
+                      "titre": "Renseigner le livret d'apprentissage",
+                      "comment": "Le livret suit l'acquisition des compétences, avec le maître d'apprentissage.",
+                      "etapes": [
+                          "Menu > <strong>Livret d'apprentissage</strong>.",
+                          "Sélectionnez l'apprenti.",
+                          "Complétez les rubriques de la période en cours.",
+                          "Enregistrez."
+                      ],
+                      "attention": "Le livret est attendu à l'examen. Rempli en juin, il n'a aucune valeur pédagogique et cela se voit.",
+                      "ou": "Menu > Livret d'apprentissage"
+                  },
+                  {
+                      "titre": "Évaluer les compétences professionnelles",
+                      "comment": "Grille du CAP EPC : 3 blocs, 83 compétences, 8 attitudes, quatre niveaux de maîtrise.",
+                      "etapes": [
+                          "Menu > <strong>Évaluations compétences</strong>.",
+                          "Cliquez sur <strong>+ Nouvelle grille</strong>, choisissez l'apprenti.",
+                          "Pour chaque compétence : <em>Pas vu</em>, <em>Insuffisant</em>, <em>Fragile</em> ou <em>Satisfaisant</em>.",
+                          "Complétez les attitudes professionnelles.",
+                          "Enregistrez."
+                      ],
+                      "attention": "Une nouvelle grille est attendue toutes les six semaines de stage. « Pas vu » est une réponse légitime : ne cotez pas au jugé.",
+                      "ou": "Menu > Évaluations compétences"
+                  },
+                  {
+                      "titre": "Consigner une visite en entreprise",
+                      "comment": "Le compte rendu est une preuve directe du suivi, régulièrement demandée en audit.",
+                      "etapes": [
+                          "Menu > <strong>Visites en entreprise</strong>.",
+                          "Cliquez sur <strong>+ Nouvelle visite</strong>.",
+                          "Renseignez la date, l'apprenti, l'entreprise et les personnes rencontrées.",
+                          "Rédigez : ce que vous avez observé, ce qui a été dit, ce qui a été décidé.",
+                          "Enregistrez le jour même, tant que les détails sont frais."
+                      ],
+                      "ou": "Menu > Visites en entreprise"
+                  },
+                  {
+                      "titre": "Échanger avec une entreprise",
+                      "comment": "La messagerie garde trace des échanges, contrairement à votre boîte personnelle.",
+                      "etapes": [
+                          "Menu > <strong>Messages Entreprises</strong>.",
+                          "Sélectionnez l'entreprise ou le maître d'apprentissage.",
+                          "Rédigez et envoyez."
+                      ],
+                      "ou": "Menu > Messages Entreprises"
+                  }
+              ]
+          },
+          {
+              "titre": "🍽️ Repas et nuitées — référents CAP",
+              "actions": [
+                  {
+                      "titre": "Valider la semaine",
+                      "comment": "À faire chaque vendredi. Votre validation rend les lignes facturables à l'OPCO.",
+                      "etapes": [
+                          "Menu > <strong>Émargement</strong>, onglet <strong>🍽 Repas et nuitées</strong>.",
+                          "Choisissez la <strong>classe</strong> et la <strong>semaine</strong>.",
+                          "Parcourez le tableau : apprentis en lignes, les douze services en colonnes.",
+                          "<strong>Survolez les cases orange</strong> : le motif de l'alerte s'affiche.",
+                          "Corrigez ce qui doit l'être avec la vie résidentielle, puis cliquez sur <strong>Valider cette semaine</strong>."
+                      ],
+                      "attention": "Une case orange signale une incohérence : absence déclarée le jour même, absence à tous les cours, signature en fin de plage. Valider sans regarder, c'est attester une facture que vous n'avez pas vérifiée.",
+                      "ou": "Menu > Émargement > Repas et nuitées"
+                  },
+                  {
+                      "titre": "Imprimer le récapitulatif",
+                      "comment": "Document distinct de celui des cours, avec le montant par apprenti.",
+                      "etapes": [
+                          "Sur le même écran, cliquez sur <strong>🖨 Imprimer / PDF</strong>.",
+                          "Le fichier se nomme automatiquement <em>Vie-residentielle_CLASSE_date.pdf</em>."
+                      ],
+                      "attention": "Tant que la semaine n'est pas validée, le document porte une mention indiquant qu'il n'a pas valeur de justificatif. Ne le transmettez pas dans cet état.",
+                      "ou": "Menu > Émargement > Repas et nuitées"
+                  }
+              ]
+          },
+          {
+              "titre": "✅ Qualité et Qualiopi",
+              "actions": [
+                  {
+                      "titre": "Lancer une campagne d'évaluation des enseignements",
+                      "comment": "Dispositif distinct des enquêtes de satisfaction : les apprentis évaluent les contenus, matière par matière. Il répond à l'indicateur 33.",
+                      "etapes": [
+                          "Menu > <strong>Évaluation enseignements</strong>, onglet <strong>Campagnes</strong>.",
+                          "Lisez le rappel réglementaire en tête : quatre obligations cumulatives.",
+                          "Cliquez sur <strong>+ Nouvelle campagne</strong>. Choisissez matière, formateur et classe.",
+                          "Renseignez les <strong>dates d'ouverture et de clôture</strong> : la campagne s'ouvrira et se fermera seule.",
+                          "Enregistrez. Le calendrier conseillé figure sous le rappel réglementaire."
+                      ],
+                      "ou": "Menu > Évaluation enseignements"
+                  },
+                  {
+                      "titre": "Rédiger le compte rendu de réunion pédagogique",
+                      "comment": "C'est ce document qui prouve le partage des résultats, troisième obligation de l'indicateur 33.",
+                      "etapes": [
+                          "Menu > <strong>Évaluation enseignements</strong>, onglet <strong>Réunions pédagogiques</strong>.",
+                          "Cliquez sur <strong>+ Nouveau compte rendu</strong>.",
+                          "Sélectionnez la campagne : <strong>les résultats s'affichent aussitôt</strong>, moyenne par question, lignes faibles en orange.",
+                          "Saisissez la date et les participants.",
+                          "Rédigez en suivant la trame en six points proposée au-dessus du champ.",
+                          "Enregistrez, puis <strong>Imprimer</strong> pour la version à verser au dossier."
+                      ],
+                      "attention": "Un compte rendu qui s'arrête à l'analyse ne couvre qu'une obligation sur deux. Nommez les actions décidées, avec un responsable et une échéance.",
+                      "ou": "Menu > Évaluation enseignements"
+                  },
+                  {
+                      "titre": "Relayer une enquête de satisfaction",
+                      "comment": "L'application n'envoie aucun courriel : le questionnaire s'affiche à la connexion suivante du destinataire.",
+                      "etapes": [
+                          "Vérifiez la campagne en cours : Menu > <strong>Enquêtes de satisfaction</strong>.",
+                          "Annoncez-la aux apprentis en début de séance, et aux maîtres d'apprentissage lors de vos échanges.",
+                          "Suivez le taux de retour sur la même page."
+                      ],
+                      "attention": "Une personne qui ne se connecte jamais ne sera jamais sollicitée. Le taux de retour dépend directement de ce relais.",
+                      "ou": "Menu > Enquêtes de satisfaction"
+                  },
+                  {
+                      "titre": "Traiter une réclamation ou un signalement",
+                      "comment": "Deux dispositifs distincts, à ne pas confondre.",
+                      "etapes": [
+                          "Une <strong>réclamation</strong> porte sur le service : organisation, pédagogie, restauration, internat. Menu > <strong>Réclamations</strong>.",
+                          "Un <strong>signalement</strong> concerne une violence, un harcèlement ou une discrimination, et peut être anonyme. Menu > <strong>Signalement</strong>.",
+                          "Dans les deux cas : enregistrez les faits tels qu'ils vous ont été rapportés, sans les interpréter.",
+                          "Prévenez la Direction le jour même pour tout signalement."
+                      ],
+                      "attention": "Ne qualifiez pas les faits à la place de la Direction, et ne filtrez pas. Un signalement mineur en apparence peut révéler une situation grave.",
+                      "ou": "Menu > Réclamations · Menu > Signalement"
+                  }
+              ]
+          },
+          {
+              "titre": "🛡️ Mes obligations",
+              "actions": [
+                  {
+                      "titre": "Consulter la documentation RGPD",
+                      "comment": "Dix documents institutionnels, dont trois vous concernent directement.",
+                      "etapes": [
+                          "Menu > <strong>Protection des données</strong>.",
+                          "Les documents qui vous concernent sont mis en avant.",
+                          "Cliquez sur <strong>Consulter</strong> pour lire, <strong>Télécharger</strong> pour garder."
+                      ],
+                      "ou": "Menu > Protection des données"
+                  },
+                  {
+                      "titre": "Signaler une violation de données",
+                      "comment": "Courriel parti au mauvais destinataire, clé USB égarée, accès partagé par inadvertance.",
+                      "etapes": [
+                          "Prévenez la Direction <strong>immédiatement</strong>, sans attendre d'avoir tout compris.",
+                          "Décrivez : quoi, quand, quelles données, combien de personnes concernées.",
+                          "N'essayez pas de réparer seul·e avant d'avoir signalé."
+                      ],
+                      "attention": "La CNIL doit être informée sous 72 heures. Un signalement tardif coûte plus cher que l'incident lui-même, et il vous expose personnellement.",
+                      "ou": "direction.barbaste@mfr.asso.fr"
+                  },
+                  {
+                      "titre": "Orienter vers la référente handicap",
+                      "comment": "Tout aménagement, en formation comme à l'examen, passe par elle.",
+                      "etapes": [
+                          "Menu > <strong>Accessibilité et handicap</strong> pour retrouver son nom et ses coordonnées.",
+                          "Orientez l'apprenti ou sa famille vers elle.",
+                          "N'improvisez pas d'arrangement de votre côté."
+                      ],
+                      "attention": "Un aménagement d'examen suppose des démarches longues, engagées plusieurs mois à l'avance. Attendre, c'est le perdre.",
+                      "ou": "Menu > Accessibilité et handicap"
+                  },
+                  {
+                      "titre": "Trouver le bon interlocuteur",
+                      "comment": "Annuaire et trombinoscope.",
+                      "etapes": [
+                          "Menu > <strong>Contacts</strong> pour la fonction et les coordonnées.",
+                          "Menu > <strong>Trombinoscope</strong> pour mettre un visage sur un nom."
+                      ],
+                      "ou": "Menu > Contacts · Menu > Trombinoscope"
+                  }
+              ]
+          },
+          {
+              "titre": "🔒 Réservé à la Direction",
+              "actions": [
+                  {
+                      "titre": "Ce que vous ne verrez pas",
+                      "comment": "Gestion des profils et des accès, paramétrage des années scolaires et des plannings, documents institutionnels, cockpit de pilotage, sauvegarde et restauration. Ces fonctions engagent l'établissement.",
+                      "ou": "—"
+                  },
+                  {
+                      "titre": "En cas de doute",
+                      "comment": "Une information vous paraît fausse, un accès manque, l'application se comporte de façon inattendue ?",
+                      "etapes": [
+                          "Notez ce que vous faisiez, et ce qui s'est passé.",
+                          "Relèvez le numéro de version en bas de l'écran de connexion.",
+                          "Signalez-le à la Direction."
+                      ],
+                      "attention": "Ne contournez pas. Un contournement silencieux se paie en audit, et souvent c'est un autre qui le découvre.",
+                      "ou": "Direction"
+                  }
+              ]
+          }
+      ]
   },
   "admin": {
     icone: "⚙️",
@@ -38500,8 +39004,17 @@ function afficherModeEmploi(role) {
     section.actions.forEach(function(action) {
       html += '<div class="me-action">' +
         '<div class="me-action-titre">' + action.titre + '</div>' +
-        '<div class="me-action-comment">' + action.comment + '</div>' +
-        '<div class="me-action-ou">📍 ' + action.ou + '</div>' +
+        '<div class="me-action-comment">' + action.comment + '</div>';
+      // Pas à pas : étapes numérotées, chacune décrivant un geste précis.
+      if (action.etapes && action.etapes.length) {
+        html += '<ol class="me-etapes">';
+        action.etapes.forEach(function(e) { html += '<li>' + e + '</li>'; });
+        html += '</ol>';
+      }
+      if (action.attention) {
+        html += '<div class="me-attention">⚠ ' + action.attention + '</div>';
+      }
+      html += '<div class="me-action-ou">📍 ' + action.ou + '</div>' +
       '</div>';
     });
     html += '</div></div>';
@@ -40412,6 +40925,226 @@ function imprimerVieResidentielle() {
 }
 
 
+
+// =================================================================
+// APPRÉCIATION HEBDOMADAIRE DU CARNET
+// -----------------------------------------------------------------
+// Rituel de la MFR : le jeudi en fin d'après-midi, chaque apprenti dépose
+// son appréciation de la semaine ; le moniteur y répond le vendredi matin.
+// Les deux textes alimentent les champs déjà prévus dans le carnet —
+// observationJeune et observationMoniteur — qui comptent dans sa complétude.
+//
+// Fenêtre du jeune : jeudi de 13 h 30 à 18 h 00, uniquement en semaine MFR.
+// Le moniteur, lui, peut répondre à tout moment : un rituel ne doit pas
+// empêcher de répondre à un jeune qui attend.
+// =================================================================
+const APPRECIATION_JOUR = 4;          // jeudi
+const APPRECIATION_DEBUT = "13:30";
+const APPRECIATION_FIN = "18:00";
+
+function fenetreAppreciationOuverte(maintenant) {
+  const now = maintenant || new Date();
+  if (now.getDay() !== APPRECIATION_JOUR) return false;
+  const m = now.getHours() * 60 + now.getMinutes();
+  return m >= minutesDeHeure(APPRECIATION_DEBUT) && m <= minutesDeHeure(APPRECIATION_FIN);
+}
+
+// Session MFR du carnet correspondant à la semaine en cours.
+function sessionCarnetDeLaSemaine(carnet, lundiISO) {
+  if (!carnet || !Array.isArray(carnet.sessions)) return null;
+  const vendredi = (function() {
+    const d = new Date(lundiISO + "T12:00:00"); d.setDate(d.getDate() + 4);
+    return isoDeDate(d);
+  })();
+  return carnet.sessions.find(function(sess) {
+    if (!sess.dateDebut) return false;
+    const deb = sess.dateDebut.substring(0, 10);
+    const fin = (sess.dateFin || sess.dateDebut).substring(0, 10);
+    return deb <= vendredi && fin >= lundiISO;
+  }) || null;
+}
+
+// --- Côté apprenti ------------------------------------------------------
+function carteAppreciationApprenti(u) {
+  const apprenti = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(a) { return a.username === u.id; });
+  const classe = apprenti ? apprenti.classe : "";
+  if (!classe) return "";
+  const sem = (typeof semaineEnCoursPour === "function") ? semaineEnCoursPour(classe) : null;
+  if (!sem || sem.type !== "M") return "";
+  if (!fenetreAppreciationOuverte()) return "";
+
+  const lundi = lundiDeLaSemaine(new Date());
+  const carnet = chargerCarnetApprenti(u.id);
+  const sess = sessionCarnetDeLaSemaine(carnet, lundi);
+  const dejaFait = sess && sess.observationJeune && sess.observationJeune.trim();
+
+  if (dejaFait) {
+    return '<div class="appr-carte appr-faite">' +
+      '<div class="appr-titre">\u2713 Votre appr\u00e9ciation de la semaine est d\u00e9pos\u00e9e</div>' +
+      '<p>Votre moniteur y r\u00e9pondra demain matin. Vous la retrouverez dans votre carnet.</p>' +
+      '<button class="btn-secondaire btn-mini" onclick="ouvrirAppreciationApprenti()">Modifier</button>' +
+      '</div>';
+  }
+  return '<div class="appr-carte appr-a-faire">' +
+    '<div class="appr-titre">\u{1F4DD} C\'est le moment de votre appr\u00e9ciation de la semaine</div>' +
+    '<p>Qu\'avez-vous retenu de cette semaine \u00e0 la MFR ? Ce qui a \u00e9t\u00e9 difficile, ce que vous avez aim\u00e9, ' +
+    'ce que vous voulez approfondir. Votre moniteur vous r\u00e9pondra demain matin.</p>' +
+    '<button class="btn-primary" onclick="ouvrirAppreciationApprenti()">\u270D\uFE0F Je laisse mon appr\u00e9ciation</button>' +
+    '<div class="appr-limite">Ouvert jusqu\'\u00e0 ' + APPRECIATION_FIN + '</div>' +
+    '</div>';
+}
+
+function ouvrirAppreciationApprenti() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  const lundi = lundiDeLaSemaine(new Date());
+  const carnet = chargerCarnetApprenti(u.id);
+  const sess = sessionCarnetDeLaSemaine(carnet, lundi);
+  if (!sess) {
+    alert("Aucune session de carnet ne correspond \u00e0 cette semaine.\n\n" +
+      "Signalez-le \u00e0 votre r\u00e9f\u00e9rent : la session doit \u00eatre cr\u00e9\u00e9e dans le carnet.");
+    return;
+  }
+  ouvrirModaleAppreciation({
+    titre: "Mon appr\u00e9ciation de la semaine",
+    intro: "Semaine du " + dateFr(lundi) + (sess.themeSession ? " \u2014 " + escapeHTML(sess.themeSession) : ""),
+    aide: "Que retenez-vous de cette semaine ? Les difficult\u00e9s rencontr\u00e9es, les points forts, " +
+      "ce que vous souhaitez approfondir. \u00c9crivez avec vos mots.",
+    valeur: sess.observationJeune || "",
+    onValider: function(texte) {
+      const c = chargerCarnetApprenti(u.id) || carnet;
+      const s2 = sessionCarnetDeLaSemaine(c, lundi);
+      if (!s2) return;
+      s2.observationJeune = texte;
+      s2.observationJeuneLe = new Date().toISOString();
+      try { localStorage.setItem("carnet_" + u.id, JSON.stringify(c)); }
+      catch (e) { alert("M\u00e9moire satur\u00e9e : l\'appr\u00e9ciation n\'a pas \u00e9t\u00e9 enregistr\u00e9e."); return; }
+      alert("\u2705 Votre appr\u00e9ciation est enregistr\u00e9e.\n\nVotre moniteur y r\u00e9pondra.");
+      if (typeof afficherAccueil === "function") afficherAccueil();
+    }
+  });
+}
+
+// --- Côté moniteur ------------------------------------------------------
+// Appréciations déposées et non encore répondues, pour les classes du moniteur.
+function appreciationsEnAttente() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "mfr") return [];
+  const mesClasses = (typeof classesDuReferent === "function") ? classesDuReferent() : [];
+  const lundi = lundiDeLaSemaine(new Date());
+  const liste = [];
+  (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : []).forEach(function(a) {
+    if ((a.statut || "actif") === "archive") return;
+    if (mesClasses.length > 0 && mesClasses.indexOf(a.classe) < 0) return;
+    const carnet = chargerCarnetApprenti(a.username);
+    const sess = sessionCarnetDeLaSemaine(carnet, lundi);
+    if (!sess) return;
+    const dep = sess.observationJeune && sess.observationJeune.trim();
+    const rep = sess.observationMoniteur && sess.observationMoniteur.trim();
+    if (dep && !rep) {
+      liste.push({ username: a.username, nom: ((a.prenom || "") + " " + (a.nom || "")).trim(),
+        classe: a.classe, texte: sess.observationJeune, lundi: lundi });
+    }
+  });
+  return liste;
+}
+
+function carteAppreciationMoniteur() {
+  const attente = appreciationsEnAttente();
+  if (attente.length === 0) return "";
+  return '<div class="appr-carte appr-moniteur">' +
+    '<div class="appr-titre">\u{1F4AC} ' + attente.length +
+      ' appr\u00e9ciation(s) attendent votre r\u00e9ponse</div>' +
+    '<p>Vos apprentis ont d\u00e9pos\u00e9 leur appr\u00e9ciation de la semaine. ' +
+    'Une r\u00e9ponse \u00e9crite, m\u00eame br\u00e8ve, vaut mieux qu\'un silence.</p>' +
+    '<button class="btn-primary" onclick="ouvrirReponsesAppreciations()">\u270D\uFE0F R\u00e9pondre</button>' +
+    '</div>';
+}
+
+function ouvrirReponsesAppreciations() {
+  const attente = appreciationsEnAttente();
+  if (attente.length === 0) { alert("Aucune appr\u00e9ciation en attente."); return; }
+  repondreAppreciationSuivante(attente, 0);
+}
+
+function repondreAppreciationSuivante(liste, i) {
+  if (i >= liste.length) {
+    alert("\u2705 Toutes les appr\u00e9ciations ont \u00e9t\u00e9 trait\u00e9es.");
+    if (typeof afficherAccueil === "function") afficherAccueil();
+    return;
+  }
+  const item = liste[i];
+  ouvrirModaleAppreciation({
+    titre: "R\u00e9pondre \u00e0 " + escapeHTML(item.nom),
+    intro: escapeHTML(libelleClasseCourte(item.classe)) + " \u2014 semaine du " + dateFr(item.lundi) +
+      " \u2014 " + (i + 1) + " sur " + liste.length,
+    citation: item.texte,
+    aide: "Votre r\u00e9ponse sera visible par l\'apprenti, sa famille et son ma\u00eetre d\'apprentissage.",
+    valeur: "",
+    onValider: function(texte) {
+      const c = chargerCarnetApprenti(item.username);
+      const sess = sessionCarnetDeLaSemaine(c, item.lundi);
+      if (!sess) return;
+      sess.observationMoniteur = texte;
+      sess.observationMoniteurLe = new Date().toISOString();
+      sess.observationMoniteurPar = utilisateurConnecte ? utilisateurConnecte.id : "";
+      try { localStorage.setItem("carnet_" + item.username, JSON.stringify(c)); }
+      catch (e) { alert("M\u00e9moire satur\u00e9e."); return; }
+      repondreAppreciationSuivante(liste, i + 1);
+    },
+    onPasser: function() { repondreAppreciationSuivante(liste, i + 1); }
+  });
+}
+
+// --- Modale commune ------------------------------------------------------
+function ouvrirModaleAppreciation(opt) {
+  const ancien = document.getElementById("modale-appreciation");
+  if (ancien) ancien.remove();
+  const m = document.createElement("div");
+  m.id = "modale-appreciation";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u270D\uFE0F</span>' +
+        '<h2>' + opt.titre + '</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<p class="appr-intro">' + opt.intro + '</p>' +
+        (opt.citation ? '<blockquote class="appr-citation">' + escapeHTML(opt.citation) + '</blockquote>' : '') +
+        '<p class="appr-aide">' + opt.aide + '</p>' +
+        '<textarea id="appr-texte" rows="7">' + escapeHTML(opt.valeur || "") + '</textarea>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="validerModaleAppreciation()">\u2713 Enregistrer</button> ' +
+        (opt.onPasser ? '<button class="btn-secondaire" onclick="passerModaleAppreciation()">Passer</button> ' : '') +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-appreciation\').remove()">Fermer</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+  m.__onValider = opt.onValider;
+  m.__onPasser = opt.onPasser;
+  setTimeout(function() { const t = document.getElementById("appr-texte"); if (t) t.focus(); }, 100);
+}
+
+function validerModaleAppreciation() {
+  const m = document.getElementById("modale-appreciation");
+  const t = document.getElementById("appr-texte");
+  if (!m || !t) return;
+  const texte = t.value.trim();
+  if (texte.length < 10) { alert("Merci d\'\u00e9crire au moins une phrase."); return; }
+  const cb = m.__onValider;
+  m.remove();
+  if (cb) cb(texte);
+}
+
+function passerModaleAppreciation() {
+  const m = document.getElementById("modale-appreciation");
+  if (!m) return;
+  const cb = m.__onPasser;
+  m.remove();
+  if (cb) cb();
+}
 
 function lundiDeLaSemaine(d) {
   const j = new Date(d);
