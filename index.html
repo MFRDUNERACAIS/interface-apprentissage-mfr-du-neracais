@@ -22921,7 +22921,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.74";
+const APP_VERSION = "4.76";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23607,31 +23607,68 @@ async function testerConnexionFirebase() {
     }
   }
 
-  // 3. Dialogue avec la base et réaction des règles
+  // 3. État de l'authentification — indispensable pour interpréter la suite
+  let authentifie = false;
+  if (!bloquant) {
+    authentifie = !!(fbAuth && fbAuth.currentUser);
+    if (authentifie) {
+      lignes.push("\u2705 Authentifi\u00e9\u00b7e aupr\u00e8s de Firebase : " + fbAuth.currentUser.email);
+    } else {
+      lignes.push("\u2139 Non authentifi\u00e9\u00b7e aupr\u00e8s de Firebase.");
+      lignes.push("   Vous \u00eates connect\u00e9\u00b7e avec un compte int\u00e9gr\u00e9 au fichier.");
+      lignes.push("   La synchronisation des donn\u00e9es n'est pas possible dans cet \u00e9tat.");
+    }
+  }
+
+  // 4. Dialogue avec la base, interprété selon l'état d'authentification.
+  //    Une lecture acceptée n'a pas le même sens selon qu'on est identifié
+  //    ou non : identifié, c'est le fonctionnement attendu ; anonyme, c'est
+  //    le signe que les règles laissent entrer n'importe qui.
   if (!bloquant) {
     try {
       await fbDb.collection("diagnostic").doc("sonde").get();
-      lignes.push("✅ La base répond, et elle autorise la lecture.");
-      lignes.push("⚠ Attention : des règles de sécurité ouvertes laissent lire vos données");
-      lignes.push("   à quiconque connaît l'adresse du projet. À refermer avant tout chargement.");
+      if (authentifie) {
+        lignes.push("\u2705 La base r\u00e9pond et vous autorise la lecture \u2014 comportement attendu.");
+      } else {
+        lignes.push("\u26D4 La base autorise la lecture \u00c0 UN VISITEUR NON IDENTIFI\u00c9.");
+        lignes.push("   Vos r\u00e8gles de s\u00e9curit\u00e9 sont ouvertes : n'importe qui connaissant");
+        lignes.push("   l'adresse du projet peut lire vos donn\u00e9es.");
+        bloquant = "Publiez sans attendre le fichier regles-firestore.txt dans la console Firebase.";
+      }
     } catch (e) {
       const code = (e && e.code) ? e.code : "";
       if (code === "permission-denied") {
-        lignes.push("✅ La base répond.");
-        lignes.push("✅ Les règles de sécurité sont fermées — c'est le comportement attendu");
-        lignes.push("   à ce stade : la base refuse tout accès tant que les règles définitives");
-        lignes.push("   ne sont pas posées.");
+        if (authentifie) {
+          lignes.push("\u26A0 La base r\u00e9pond mais refuse la lecture \u00e0 votre compte.");
+          lignes.push("   Votre fiche d'annuaire est peut-\u00eatre manquante ou sans r\u00f4le.");
+        } else {
+          lignes.push("\u2705 La base refuse l'acc\u00e8s aux visiteurs non identifi\u00e9s \u2014 c'est correct.");
+        }
       } else if (code === "unavailable" || code === "failed-precondition") {
-        lignes.push("⛔ La base ne répond pas (" + code + ").");
-        bloquant = "Vérifiez que Firestore est bien créé et que votre connexion fonctionne.";
+        lignes.push("\u26D4 La base ne r\u00e9pond pas (" + code + ").");
+        bloquant = "V\u00e9rifiez que Firestore est bien cr\u00e9\u00e9 et que votre connexion fonctionne.";
       } else {
-        lignes.push("⛔ Erreur inattendue : " + code + " — " + (e && e.message ? e.message : e));
+        lignes.push("\u26D4 Erreur inattendue : " + code + " \u2014 " + (e && e.message ? e.message : e));
         bloquant = "Transmettez ce message pour diagnostic.";
       }
     }
   }
 
-  // 4. Domaine autorisé
+  // 5. Données partagées déjà présentes
+  if (!bloquant && authentifie) {
+    try {
+      const dref = await fbDb.collection("equipe").doc("mfr_profils_apprentis").get();
+      if (dref.exists) {
+        const info = dref.data() || {};
+        lignes.push("\u2705 Donn\u00e9es partag\u00e9es pr\u00e9sentes \u2014 dernier envoi le " +
+          String(info.modifieLe || "").substring(0, 10) + ".");
+      } else {
+        lignes.push("\u2139 Aucune donn\u00e9e encore envoy\u00e9e vers la base partag\u00e9e.");
+      }
+    } catch (e) { /* espace équipe non accessible à ce rôle */ }
+  }
+
+  // 6. Domaine autorisé
   lignes.push("");
   lignes.push("Domaine de cette page : " + (location.hostname || "fichier local"));
   if (location.protocol === "file:") {
@@ -24051,20 +24088,27 @@ async function creerComptesFirebase() {
 // par l'apprenti lui-même et donc un modèle par utilisateur. Lot 4.
 // =================================================================
 
+// Clés relevées dans le code, et non supposées : une clé mal orthographiée
+// ne provoque aucune erreur, elle est simplement comptée comme vide.
 const CLES_SYNC_EQUIPE = [
   "mfr_profils_apprentis", "mfr_profils_familles", "mfr_profils_lieux",
-  "mfr_profils_salaries", "mfr_profils_attestations",
-  "mfr_absences", "mfr_evaluations", "mfr_eval_competences",
-  "mfr_qualiopi", "mfr_reclamations", "mfr_signalements",
-  "mfr_ruptures", "mfr_visites", "mfr_rdv", "mfr_messages_entreprises",
-  "mfr_emargements", "mfr_emarg_vie_residentielle",
-  "mfr_eval_enseignements", "mfr_eval_reunions", "mfr_conseil_perf"
+  "mfr_profils_salaries", "mfr_profils_attestations", "mfr_absences",
+  "mfr_bulletins_scolaires", "mfr_evaluations_competences", "mfr_livret_evaluations",
+  "mfr_livret_preuves", "mfr_resultats_tests", "mfr_emargements",
+  "mfr_emarg_vie_residentielle", "mfr_visites_entreprise", "mfr_messages_entreprise",
+  "mfr_demandes_rdv", "mfr_reclamations", "mfr_signalements",
+  "mfr_ruptures", "mfr_qualiopi_v10", "mfr_actions_amelioration",
+  "mfr_risques_qualite", "mfr_eval_campagnes", "mfr_eval_reponses",
+  "mfr_eval_reunions", "mfr_enquetes_campagnes", "mfr_cperf_membres",
+  "mfr_cperf_seances", "mfr_journal_connexions"
 ];
 
+// Lues par tout compte authentifié, écrites par l'équipe seule.
 const CLES_SYNC_PARTAGE = [
-  "mfr_plannings_hebdo", "mfr_annees_scolaires", "mfr_documents",
-  "mfr_enquetes_calendrier", "mfr_indicateurs", "mfr_contacts",
-  "mfr_alertes", "mfr_notifications"
+  "mfr_plannings_hebdo", "mfr_annees_scolaires", "mfr_annee_scolaire_courante",
+  "mfr_profils_documents", "mfr_docs_rgpd_institutionnels", "mfr_eval_matieres",
+  "mfr_enquetes_calendrier", "mfr_actualites", "mfr_erasmus_sejour",
+  "enquetes_modeles"
 ];
 
 function espaceDeLaCle(cle) {
