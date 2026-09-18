@@ -22762,7 +22762,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.48";
+const APP_VERSION = "4.49";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23603,69 +23603,92 @@ async function reparerCompteFirebase(identifiantParDefaut) {
   }
 }
 
+// Traite UN compte dans une instance Firebase isolée, détruite ensuite.
+// -----------------------------------------------------------------
+// Pourquoi une instance par compte : réutiliser une même instance pour
+// 69 connexions successives crée une course. Le jeton d'authentification
+// de Firestore ne se rafraîchit pas immédiatement au changement
+// d'utilisateur : l'écriture de la fiche de B partait parfois avec le jeton
+// de A encore en mémoire, et la règle refusait — à juste titre.
+// Une instance dédiée supprime la course au lieu de la contourner.
+async function traiterUnCompteFirebase(item, code) {
+  const nomApp = "cre-" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
+  let app = null;
+  try {
+    app = firebase.initializeApp(FIREBASE_CONFIG, nomApp);
+    const auth = app.auth();
+    const db = app.firestore();
+    const adresse = item.identifiant + DOMAINE_TECHNIQUE;
+
+    let utilisateur = null, repris = false;
+    try {
+      const cred = await auth.createUserWithEmailAndPassword(adresse, code);
+      utilisateur = cred.user;
+    } catch (e) {
+      if (e && e.code === "auth/email-already-in-use") {
+        const cred2 = await auth.signInWithEmailAndPassword(adresse, code);
+        utilisateur = cred2.user;
+        repris = true;
+      } else { throw e; }
+    }
+
+    // Forcer l'obtention du jeton avant d'écrire : garantit que Firestore
+    // dispose bien de l'identité de CE compte, et pas d'une précédente.
+    await utilisateur.getIdToken(true);
+    await db.collection("annuaire").doc(utilisateur.uid)
+      .set(ficheAnnuaire(item.profil, item.role, item.identifiant));
+
+    try { await auth.signOut(); } catch (e) {}
+    return { ok: true, uid: utilisateur.uid, repris: repris };
+  } finally {
+    if (app) { try { await app.delete(); } catch (e) {} }
+  }
+}
+
 async function creerComptesFirebase() {
   if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
-    alert("Cette opération est réservée à la Direction et au Secrétariat.");
+    alert("Cette op\u00e9ration est r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat.");
     return;
   }
   if (!initialiserFirebase()) {
     alert("Firebase n'est pas joignable. Lancez d'abord le test de connexion.");
     return;
   }
-  const auth2 = instanceCreation();
-  if (!auth2) { alert("Impossible de préparer l'instance de création."); return; }
 
   let aCreer = profilsACreer(false);
   if (aCreer.length === 0) {
     const e = aCreer.ecartes;
-    let d = "Aucun profil à créer.\n\nProfils écartés :\n";
-    d += "  • " + e.dejaRattaches.length + " déjà rattaché(s) à un compte Firebase\n";
-    if (e.sansIdentifiant.length > 0) d += "  • " + e.sansIdentifiant.length + " sans identifiant\n";
-    if (e.sansCode.length > 0) d += "  • " + e.sansCode.length + " sans code d'accès\n";
-    if (e.archives.length > 0) d += "  • " + e.archives.length + " archivé(s)\n";
-    d += "\nSi vous avez supprimé un compte dans la console Firebase, l'application\n";
-    d += "en garde la trace et l'écarte : il faut alors forcer le retraitement.\n\n";
-    d += "Retraiter TOUS les profils déjà rattachés ?\n";
+    let d = "Aucun profil \u00e0 cr\u00e9er.\n\nProfils \u00e9cart\u00e9s :\n";
+    d += "  \u2022 " + e.dejaRattaches.length + " d\u00e9j\u00e0 rattach\u00e9(s) \u00e0 un compte Firebase\n";
+    if (e.sansIdentifiant.length > 0) d += "  \u2022 " + e.sansIdentifiant.length + " sans identifiant\n";
+    if (e.sansCode.length > 0) d += "  \u2022 " + e.sansCode.length + " sans code d'acc\u00e8s\n";
+    if (e.archives.length > 0) d += "  \u2022 " + e.archives.length + " archiv\u00e9(s)\n";
+    d += "\nRetraiter TOUS les profils d\u00e9j\u00e0 rattach\u00e9s ?\n";
     d += "Les comptes intacts seront simplement repris, sans dommage.";
     if (!confirm(d)) return;
     aCreer = profilsACreer(true);
     if (aCreer.length === 0) { alert("Aucun profil exploitable."); return; }
   }
+
   const avecHash = aCreer.filter(function(x) { return x.profil.passwordHash && !x.profil.password; });
-  let msg = "Créer " + aCreer.length + " compte(s) Firebase ?\n\n";
-  msg += "Chaque personne conservera son identifiant actuel et son code d'accès.\n";
+  let msg = "Traiter " + aCreer.length + " compte(s) Firebase ?\n\n";
+  msg += "Chaque personne conservera son identifiant et son code d'acc\u00e8s.\n";
   if (avecHash.length > 0) {
-    msg += "\n⚠ " + avecHash.length + " personne(s) ont déjà personnalisé leur mot de passe. " +
-      "Celui-ci n'est pas relisible : un NOUVEAU code provisoire leur sera attribué et devra " +
-      "leur être communiqué.\n";
+    msg += "\n\u26A0 " + avecHash.length + " personne(s) ont personnalis\u00e9 leur mot de passe. " +
+      "Celui-ci n'est pas relisible : un NOUVEAU code leur sera attribu\u00e9.\n";
   }
-  msg += "\nL'opération peut prendre une minute. Ne fermez pas la page.";
+  msg += "\nComptez environ " + Math.ceil(aCreer.length * 1.5 / 60) + " minute(s). Ne fermez pas la page.";
   if (!confirm(msg)) return;
 
   let crees = 0, reprises = 0;
-  const echecs = [];
-  const nouveauxCodes = [];
+  const echecs = [], nouveauxCodes = [];
 
   for (let i = 0; i < aCreer.length; i++) {
     const item = aCreer[i];
-    let code = item.profil.password;
-    if (!code) {
-      code = genererMotDePasse();
-      item.profil.password = code;
-      delete item.profil.passwordHash;
-      nouveauxCodes.push(item.identifiant + " : " + code);
-      // Conserver le code IMMÉDIATEMENT. Sans cette écriture, un échec
-      // ultérieur le perdait et la relance en générait un autre, qui ne
-      // correspondait jamais à celui déjà enregistré dans Firebase :
-      // le compte devenait irrécupérable de relance en relance.
-      sauvegarderProfils();
-    }
-    // Un identifiant commençant ou finissant par un point produit une adresse
-    // invalide (« .conseildepartemental@… »). On le nettoie, et on écarte la
-    // fiche si rien d'exploitable ne subsiste.
+
     const idPropre = normaliserIdentifiantConnexion(item.identifiant).replace(/^\.+|\.+$/g, "");
     if (!idPropre) {
-      echecs.push(item.identifiant + " — identifiant inexploitable : corrigez-le dans la fiche");
+      echecs.push(item.identifiant + " \u2014 identifiant inexploitable : corrigez-le dans la fiche");
       continue;
     }
     if (idPropre !== normaliserIdentifiantConnexion(item.identifiant)) {
@@ -23673,65 +23696,49 @@ async function creerComptesFirebase() {
       item.profil.identifiant = idPropre;
       sauvegarderProfils();
     }
-    const adresse = idPropre + DOMAINE_TECHNIQUE;
-    let utilisateur = null, repris = false;
+    item.identifiant = idPropre;
+
+    let code = item.profil.password;
+    if (!code) {
+      code = genererMotDePasse();
+      item.profil.password = code;
+      delete item.profil.passwordHash;
+      nouveauxCodes.push(idPropre + " : " + code);
+      sauvegarderProfils();
+    }
+
     try {
-      const cred = await auth2.createUserWithEmailAndPassword(adresse, code);
-      utilisateur = cred.user;
+      const r = await traiterUnCompteFirebase(item, code);
+      item.profil.uidFirebase = r.uid;
+      crees++;
+      if (r.repris) reprises++;
     } catch (e) {
       const c = (e && e.code) ? e.code : "";
-      if (c === "auth/email-already-in-use") {
-        // Compte déjà créé lors d'une tentative précédente : on s'y reconnecte
-        // pour terminer le travail au lieu d'échouer. L'opération est ainsi
-        // relançable autant de fois que nécessaire.
-        try {
-          const cred2 = await auth2.signInWithEmailAndPassword(adresse, code);
-          utilisateur = cred2.user;
-          repris = true;
-        } catch (e2) {
-          echecs.push(item.identifiant + " — compte Firebase existant avec un autre code.\n" +
-            "      Remède : console Firebase > Authentication > Utilisateurs > " + adresse + "\n" +
-            "      > icône crayon > saisir le code " + code + " > Enregistrer, puis relancer.");
-          continue;
-        }
+      if (c === "auth/wrong-password" || c === "auth/invalid-credential") {
+        echecs.push(idPropre + " \u2014 compte Firebase existant avec un autre code : supprimez-le dans la console, puis relancez");
       } else if (c === "auth/weak-password") {
-        echecs.push(item.identifiant + " — code trop court (6 caractères minimum)");
-        continue;
+        echecs.push(idPropre + " \u2014 code trop court (6 caract\u00e8res minimum)");
+      } else if (c === "permission-denied") {
+        echecs.push(idPropre + " \u2014 annuaire refus\u00e9 : publiez les r\u00e8gles de bascule");
       } else {
-        echecs.push(item.identifiant + " — " + (c || (e && e.message) || "erreur"));
-        continue;
+        echecs.push(idPropre + " \u2014 " + (c || (e && e.message) || "erreur"));
       }
     }
-
-    try {
-      await fbDbCreation.collection("annuaire").doc(utilisateur.uid)
-        .set(ficheAnnuaire(item.profil, item.role, idPropre));
-      item.profil.uidFirebase = utilisateur.uid;
-      crees++;
-      if (repris) reprises++;
-    } catch (e) {
-      const c = (e && e.code) ? e.code : "";
-      echecs.push(item.identifiant + " — annuaire refusé (" + (c || "erreur") + ")");
-    }
   }
 
-  try { await auth2.signOut(); } catch (e) {}
   if (crees > 0) sauvegarderProfils();
 
-  let bilan = "✅ " + crees + " compte(s) opérationnel(s) sur " + aCreer.length + ".";
-  if (reprises > 0) bilan += "\n   (dont " + reprises + " repris d'une tentative précédente)";
-  if (echecs.length > 0 && echecs.join(" ").indexOf("annuaire refus") >= 0) {
-    bilan += "\n\n⚠ L'écriture dans l'annuaire est refusée : publiez d'abord les règles " +
-      "de bascule (fichier regles-firestore-bascule.txt), puis relancez cette opération.";
-  }
+  let bilan = "\u2705 " + crees + " compte(s) op\u00e9rationnel(s) sur " + aCreer.length + ".";
+  if (reprises > 0) bilan += "\n   (dont " + reprises + " repris d'une tentative pr\u00e9c\u00e9dente)";
   if (nouveauxCodes.length > 0) {
-    bilan += "\n\n⚠ NOUVEAUX CODES À COMMUNIQUER — notez-les maintenant :\n   " +
+    bilan += "\n\n\u26A0 NOUVEAUX CODES \u00c0 COMMUNIQUER \u2014 notez-les maintenant :\n   " +
       nouveauxCodes.join("\n   ");
   }
   if (echecs.length > 0) {
-    bilan += "\n\n⛔ ÉCHECS :\n   " + echecs.join("\n   ");
+    bilan += "\n\n\u26D4 \u00c9CHECS (" + echecs.length + ") :\n   " + echecs.slice(0, 12).join("\n   ");
+    if (echecs.length > 12) bilan += "\n   \u2026 et " + (echecs.length - 12) + " autre(s)";
   }
-  bilan += "\n\nVérifiez dans la console Firebase, onglet Authentication > Utilisateurs.";
+  bilan += "\n\nV\u00e9rifiez dans la console Firebase, onglet Authentication > Utilisateurs.";
   alert(bilan);
   if (typeof filtrerSalaries === "function") filtrerSalaries();
 }
