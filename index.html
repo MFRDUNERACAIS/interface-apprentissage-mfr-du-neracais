@@ -22981,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.00";
+const APP_VERSION = "5.02";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23191,22 +23191,32 @@ function rendreContactsFamille() {
     h += '<span class="ctc-vide">Toutes les fiches famille actives sont d\u00e9j\u00e0 rattach\u00e9es. ' +
       'Cr\u00e9ez-en une nouvelle dans la sous-page Familles.</span>';
   } else {
-    h += '<select id="ctc-select"><option value="">\u2014 Ajouter un responsable \u2014</option>';
+    // Le rattachement se fait au choix du nom : un bouton supplémentaire
+    // n'apportait rien et, tant qu'aucun nom n'était sélectionné, il ne
+    // faisait rien ni ne disait rien.
+    h += '<select id="ctc-select" onchange="ajouterContactFamille()">' +
+      '<option value="">\u2014 Choisir un responsable \u00e0 rattacher \u2014</option>';
     dispo.forEach(function(f) {
       h += '<option value="' + f.id + '">' + escapeHTML(nomContactFamille(f)) +
         (f.lien ? " (" + escapeHTML(f.lien) + ")" : "") + '</option>';
     });
     h += '</select>';
-    h += '<button type="button" class="btn-mini btn-primary" onclick="ajouterContactFamille()">+ Ajouter</button>';
+    h += '<button type="button" class="btn-mini btn-primary" onclick="ajouterContactFamille(true)">+ Ajouter</button>';
   }
   h += '</div>';
 
   zone.innerHTML = h;
 }
 
-function ajouterContactFamille() {
+function ajouterContactFamille(parBouton) {
   const sel = document.getElementById("ctc-select");
-  if (!sel || !sel.value) return;
+  if (!sel) return;
+  if (!sel.value) {
+    // Un clic sans choix préalable ne doit pas être silencieux : c'est
+    // exactement ce qui fait croire que le bouton est cassé.
+    if (parBouton) alert("Choisissez d'abord un responsable dans la liste d\u00e9roulante.");
+    return;
+  }
   if (CONTACTS_FAMILLE_EN_COURS.indexOf(sel.value) < 0) {
     CONTACTS_FAMILLE_EN_COURS.push(sel.value);
   }
@@ -24920,7 +24930,7 @@ function ouvrirFormulairePlan(planId) {
   const existant = planId ? plans.find(function(p) { return p.id === planId; }) : null;
   const classe = (document.getElementById("plan-classe") || {}).value;
   const lundi = lundiDeLaSemaine((document.getElementById("plan-lundi") || {}).value || new Date());
-  const classesCAP = (typeof classesCAP === "function") ? classesCAP() :
+  const listeCAP = (typeof classesCAP === "function") ? classesCAP() :
     Object.keys(CLASSES).filter(function(c) { return c.indexOf("CAP_") === 0; });
   const commun = existant ? (existant.classes.length > 1) : false;
 
@@ -24944,7 +24954,7 @@ function ouvrirFormulairePlan(planId) {
         '<label class="impr-case"><input type="checkbox" id="plan-commun" ' + (commun ? "checked" : "") + '> ' +
           '<strong>Plan commun \u00e0 toutes les classes CAP</strong></label>' +
         '<p class="impr-aide">Coch\u00e9, le plan est publi\u00e9 d\'un seul geste pour ' +
-          classesCAP.map(function(c) { return escapeHTML(libelleClasseCourte(c) || c); }).join(" et ") +
+          listeCAP.map(function(c) { return escapeHTML(libelleClasseCourte(c) || c); }).join(" et ") +
           '. D\u00e9coch\u00e9, il ne concerne que la classe s\u00e9lectionn\u00e9e.</p>' +
         '<div class="impr-champ"><label>Consignes g\u00e9n\u00e9rales (facultatif)</label>' +
           '<textarea id="plan-intro" rows="3">' + escapeHTML(existant ? (existant.intro || "") : "") + '</textarea></div>' +
