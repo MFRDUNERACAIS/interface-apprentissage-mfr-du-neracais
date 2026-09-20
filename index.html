@@ -9833,6 +9833,10 @@
     background: #FFF8E1; border-left: 3px solid var(--or);
     padding: 0.6rem 0.85rem; border-radius: 6px;
   }
+  .vr-test {
+    background: #EDE7F6; border-left: 4px solid #6A4FA3; border-radius: 8px;
+    padding: 0.7rem 0.95rem; margin-bottom: 1rem; font-size: 0.89rem;
+  }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -16458,6 +16462,9 @@
         <button class="tab" data-page="absences" onclick="changerPage('absences')">
           <span class="tab-icon">📋</span><span class="tab-label">Mes absences</span>
         </button>
+        <button class="tab" data-page="emargement" onclick="changerPage('emargement')">
+          <span class="tab-icon">✍️</span><span class="tab-label">Émargement</span>
+        </button>
         <button class="tab" data-page="demandes-rdv" onclick="changerPage('demandes-rdv')">
           <span class="tab-icon">📅</span><span class="tab-label">Demandes de RDV <span id="badgeRdvAttente" class="tab-badge" style="display:none;">0</span></span>
         </button>
@@ -16580,9 +16587,6 @@
         </button>
         <button class="tab tab-mfr" data-page="resultats" onclick="changerPage('resultats')" style="display:none;">
           <span class="tab-icon">📈</span><span class="tab-label">Résultats des tests</span>
-        </button>
-        <button class="tab" data-page="emargement" onclick="changerPage('emargement')">
-          <span class="tab-icon">✍️</span><span class="tab-label">Émargement</span>
         </button>
         <button class="tab" data-page="mes-documents" onclick="changerPage('mes-documents')" id="tab-mes-documents" style="display:none;">
           <span class="tab-icon">📄</span><span class="tab-label">Mes documents</span>
@@ -22073,6 +22077,8 @@
           <button class="btn-secondary" onclick="ouvrirEnvoiGroupe()">✉️ Remettre les identifiants à un groupe</button>
           <button class="btn-secondary" onclick="installerCharteApprentissage()">📜 Installer la charte de l'apprentissage</button>
           <button class="btn-secondary" onclick="afficherRecensementMajorite()">🎂 Majorité et accès des familles</button>
+          <button class="btn-secondary" onclick="ouvrirFenetreTestVR()">🧪 Ouvrir une fenêtre de test (30 min)</button>
+          <button class="btn-secondary" onclick="purgerSignaturesTest()">🧹 Retirer les signatures de test</button>
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
           <button class="btn-secondary" onclick="testerConnexionFirebase()">🔥 Tester la connexion Firebase</button>
           <button class="btn-secondary" onclick="creerComptesFirebase()">☁️ Créer les comptes Firebase</button>
@@ -22934,7 +22940,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.81";
+const APP_VERSION = "4.83";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -42323,9 +42329,83 @@ function minutesDeHeure(hhmm) {
 }
 
 // Un service est-il ouvert à la signature en cet instant ?
+// -----------------------------------------------------------------
+// FENÊTRE DE TEST DE LA VIE RÉSIDENTIELLE
+// -----------------------------------------------------------------
+// Les plages horaires empêchent de vérifier la chaîne de signature avant
+// la mise en service. La Direction peut donc ouvrir tous les services
+// pendant trente minutes, sur ce seul navigateur.
+//
+// Trois garde-fous : l'ouverture expire seule, elle est signalée en clair
+// sur l'écran de l'apprenti, et les signatures ainsi recueillies sont
+// marquées « test » pour être distinguées à la validation.
+
+function testVROuvert() {
+  try {
+    const jusqua = localStorage.getItem("mfr_vr_test_jusqua");
+    if (!jusqua) return false;
+    return new Date().toISOString() < jusqua;
+  } catch (e) { return false; }
+}
+
+function finFenetreTestVR() {
+  try { return localStorage.getItem("mfr_vr_test_jusqua") || ""; } catch (e) { return ""; }
+}
+
+function ouvrirFenetreTestVR() {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
+    alert("Op\u00e9ration r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat."); return;
+  }
+  if (testVROuvert()) {
+    if (confirm("Une fen\u00eatre de test est d\u00e9j\u00e0 ouverte jusqu'\u00e0 " +
+        new Date(finFenetreTestVR()).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) +
+        ".\n\nVoulez-vous la refermer maintenant ?")) {
+      try { localStorage.removeItem("mfr_vr_test_jusqua"); } catch (e) {}
+      alert("\u2705 Fen\u00eatre de test referm\u00e9e.");
+    }
+    return;
+  }
+  if (!confirm("Ouvrir tous les services de repas et de nuit\u00e9e pendant 30 minutes ?\n\n" +
+      "Cela ne concerne que ce navigateur, et permet d'\u00e9prouver la cha\u00eene de signature " +
+      "avant la mise en service.\n\n" +
+      "Les signatures recueillies seront marqu\u00e9es \u00ab test \u00bb et devront \u00eatre retir\u00e9es avant " +
+      "la premi\u00e8re validation r\u00e9elle.")) return;
+
+  const fin = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+  try { localStorage.setItem("mfr_vr_test_jusqua", fin); }
+  catch (e) { alert("Impossible d'ouvrir la fen\u00eatre de test."); return; }
+  alert("\u2705 Services ouverts jusqu'\u00e0 " +
+    new Date(fin).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) + ".\n\n" +
+    "Connectez-vous maintenant avec test.apprenti / test2026 et signez un service.\n" +
+    "Revenez ensuite sur votre compte pour cliquer sur \u21bb R\u00e9cup\u00e9rer les signatures.");
+}
+
+// Retire les signatures marquées test, pour repartir propre.
+function purgerSignaturesTest() {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) return;
+  const tout = chargerEmargVR();
+  let retirees = 0;
+  Object.keys(tout).forEach(function(cle) {
+    if (cle.indexOf("__") === 0) return;
+    Object.keys(tout[cle]).forEach(function(u) {
+      if (tout[cle][u] && tout[cle][u].test) { delete tout[cle][u]; retirees++; }
+    });
+    if (Object.keys(tout[cle]).length === 0) delete tout[cle];
+  });
+  if (retirees === 0) { alert("Aucune signature de test \u00e0 retirer."); return; }
+  if (!confirm(retirees + " signature(s) de test seront retir\u00e9e(s). Continuer ?")) return;
+  if (!sauverEmargVR(tout)) return;
+  alert("\u2705 " + retirees + " signature(s) de test retir\u00e9e(s).");
+  if (typeof rafraichirValidationVR === "function") rafraichirValidationVR();
+}
+
 function etatServiceVR(service, dateISO, maintenant) {
   const now = maintenant || new Date();
   const aujourdhui = isoDeDate(now);
+  // Fenêtre de test : tous les services de la semaine sont ouverts.
+  if (typeof testVROuvert === "function" && testVROuvert()) {
+    return { ouvert: true, motif: "test" };
+  }
   if (dateISO > aujourdhui) return { ouvert: false, motif: "a_venir" };
   if (dateISO < aujourdhui) return { ouvert: false, motif: "passe" };
   const m = now.getHours() * 60 + now.getMinutes();
@@ -42397,7 +42477,13 @@ function ecranVRApprenti(u) {
   const services = servicesDeLaSemaine(classe, lundi);
   const maintenant = new Date();
 
-  let h = '<div class="vr-entete"><h3>\u{1F37D}\uFE0F Mes repas et nuit\u00e9es \u2014 semaine du ' +
+  let h = "";
+  if (typeof testVROuvert === "function" && testVROuvert()) {
+    h += '<div class="vr-test">\u{1F9EA} <strong>Mode test</strong> \u2014 tous les services sont ouverts ' +
+      'jusqu\'\u00e0 ' + new Date(finFenetreTestVR()).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) +
+      '. Les signatures donn\u00e9es maintenant ne valent pas justificatif.</div>';
+  }
+  h += '<div class="vr-entete"><h3>\u{1F37D}\uFE0F Mes repas et nuit\u00e9es \u2014 semaine du ' +
     dateFr(lundi) + '</h3>' +
     '<p>Signez chaque service au moment o\u00f9 vous en b\u00e9n\u00e9ficiez. ' +
     'Ces d\u00e9clarations servent \u00e0 la facturation aupr\u00e8s de votre OPCO : ' +
@@ -42456,7 +42542,8 @@ function signerServiceVR(cle) {
   if (!donnees[cle]) donnees[cle] = {};
   donnees[cle][u.id] = {
     horodatage: new Date().toISOString(),
-    tardive: signatureTardive(service, new Date().toISOString())
+    tardive: signatureTardive(service, new Date().toISOString()),
+    test: (typeof testVROuvert === "function" && testVROuvert()) ? true : undefined
   };
   if (!sauverEmargVR(donnees)) return;
   // Remontée immédiate : sans elle, la signature resterait sur ce seul appareil.
