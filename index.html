@@ -22981,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.99";
+const APP_VERSION = "5.00";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -26755,7 +26755,7 @@ function classesCibleDuplication(classeSource) {
 }
 
 function ouvrirDuplicationPlanning() {
-  const p = planningHebdoEnCours;
+  const p = planhebdoCourant;
   if (!p) return;
   const cibles = classesCibleDuplication(p.classe);
   if (cibles.length === 0) { alert("Aucune autre classe ouverte vers laquelle dupliquer."); return; }
@@ -26807,7 +26807,7 @@ function ouvrirDuplicationPlanning() {
 }
 
 function lancerDuplicationPlanning() {
-  const p = planningHebdoEnCours;
+  const p = planhebdoCourant;
   if (!p) return;
   const cible = (document.getElementById("dup-cible") || {}).value;
   const mode = (document.getElementById("dup-mode") || {}).value || "vides";
