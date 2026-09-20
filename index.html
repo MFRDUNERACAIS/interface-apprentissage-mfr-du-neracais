@@ -22981,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.02";
+const APP_VERSION = "5.03";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23188,14 +23188,15 @@ function rendreContactsFamille() {
 
   h += '<div class="ctc-ajout">';
   if (dispo.length === 0) {
-    h += '<span class="ctc-vide">Toutes les fiches famille actives sont d\u00e9j\u00e0 rattach\u00e9es. ' +
-      'Cr\u00e9ez-en une nouvelle dans la sous-page Familles.</span>';
+    h += '<span class="ctc-vide">Toutes les fiches famille actives sont d\u00e9j\u00e0 rattach\u00e9es.</span> ' +
+      '<button type="button" class="btn-mini btn-primary" onclick="ouvrirCreationContact()">\u2795 Cr\u00e9er un responsable</button>';
   } else {
     // Le rattachement se fait au choix du nom : un bouton supplémentaire
     // n'apportait rien et, tant qu'aucun nom n'était sélectionné, il ne
     // faisait rien ni ne disait rien.
     h += '<select id="ctc-select" onchange="ajouterContactFamille()">' +
-      '<option value="">\u2014 Choisir un responsable \u00e0 rattacher \u2014</option>';
+      '<option value="">\u2014 Choisir un responsable \u00e0 rattacher \u2014</option>' +
+      '<option value="__nouveau">\u2795 Cr\u00e9er un nouveau responsable\u2026</option>';
     dispo.forEach(function(f) {
       h += '<option value="' + f.id + '">' + escapeHTML(nomContactFamille(f)) +
         (f.lien ? " (" + escapeHTML(f.lien) + ")" : "") + '</option>';
@@ -23208,9 +23209,103 @@ function rendreContactsFamille() {
   zone.innerHTML = h;
 }
 
+// Création d'un responsable sans quitter la fiche de l'apprenti : obliger
+// à passer par la sous-page Familles pour chaque nouveau contact rendait la
+// saisie d'un dossier impraticable, surtout pour un jeune qui en compte cinq.
+function ouvrirCreationContact() {
+  const ancien = document.getElementById("modale-contact");
+  if (ancien) ancien.remove();
+  const liens = ["M\u00e8re", "P\u00e8re", "Tutrice l\u00e9gale", "Tuteur l\u00e9gal",
+    "Famille d'accueil", "\u00c9ducatrice r\u00e9f\u00e9rente", "\u00c9ducateur r\u00e9f\u00e9rent",
+    "Structure d'accueil", "Conseil d\u00e9partemental", "Autre"];
+
+  const m = document.createElement("div");
+  m.id = "modale-contact";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F465}</span>' +
+        '<h2>Nouveau responsable l\u00e9gal</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<div class="impr-champ"><label>Lien avec l\'apprenti\u00b7e</label>' +
+          '<select id="ctc-lien">' +
+          liens.map(function(l) { return '<option>' + l + '</option>'; }).join("") +
+          '</select></div>' +
+        '<div class="impr-champ"><label>Nom *</label>' +
+          '<input type="text" id="ctc-nom" placeholder="DUPONT"></div>' +
+        '<div class="impr-champ"><label>Pr\u00e9nom</label>' +
+          '<input type="text" id="ctc-prenom" placeholder="Sophie"></div>' +
+        '<div class="impr-champ"><label>T\u00e9l\u00e9phone</label>' +
+          '<input type="tel" id="ctc-tel" placeholder="06 12 34 56 78"></div>' +
+        '<div class="impr-champ"><label>Courriel</label>' +
+          '<input type="email" id="ctc-mail" placeholder="sophie.dupont@exemple.fr"></div>' +
+        '<div class="impr-champ"><label>Adresse postale</label>' +
+          '<input type="text" id="ctc-adresse" placeholder="12 rue des Lilas, 47230 Barbaste"></div>' +
+        '<p class="impr-aide">Un identifiant et un code d\'acc\u00e8s seront g\u00e9n\u00e9r\u00e9s automatiquement. ' +
+        'Vous les retrouverez dans la sous-page Familles pour les remettre \u00e0 la personne.</p>' +
+        '<div class="mdp-erreur" id="ctc-erreur"></div>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="enregistrerNouveauContact()">\u2713 Cr\u00e9er et rattacher</button> ' +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-contact\').remove()">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+  setTimeout(function() { const n = document.getElementById("ctc-nom"); if (n) n.focus(); }, 100);
+}
+
+function enregistrerNouveauContact() {
+  const val = function(id) { const e = document.getElementById(id); return e ? e.value.trim() : ""; };
+  const nom = val("ctc-nom");
+  const erreur = document.getElementById("ctc-erreur");
+  const dire = function(msg) { if (erreur) { erreur.textContent = msg; erreur.style.display = "block"; } };
+
+  if (!nom) { dire("Le nom est obligatoire."); return; }
+  const prenom = val("ctc-prenom");
+  const username = genererIdentifiant(prenom, nom);
+  if (!username) { dire("Impossible de construire un identifiant \u00e0 partir de ce nom."); return; }
+  if (PROFILS_FAMILLES.some(function(f) { return f.username === username; })) {
+    dire("Un contact porte d\u00e9j\u00e0 cet identifiant (" + username + "). " +
+      "Pr\u00e9cisez le pr\u00e9nom pour les distinguer.");
+    return;
+  }
+
+  const nouveau = {
+    id: genererIdUnique(),
+    nom: nom, prenom: prenom,
+    lien: val("ctc-lien"),
+    telephone: val("ctc-tel"),
+    email: val("ctc-mail"),
+    adresse: val("ctc-adresse"),
+    username: username,
+    password: genererMotDePasse(),
+    statut: "actif",
+    role: "parent",
+    dateCreation: new Date().toISOString(),
+    creePar: utilisateurConnecte ? utilisateurConnecte.id : ""
+  };
+  PROFILS_FAMILLES.push(nouveau);
+  if (sauvegarderProfils() === false) { dire("Enregistrement impossible."); return; }
+
+  // Rattachement immédiat : c'est le geste attendu, l'avoir créé sans le
+  // rattacher obligerait à le rechercher dans la liste juste après.
+  if (CONTACTS_FAMILLE_EN_COURS.indexOf(nouveau.id) < 0) {
+    CONTACTS_FAMILLE_EN_COURS.push(nouveau.id);
+  }
+  const m = document.getElementById("modale-contact");
+  if (m) m.remove();
+  rendreContactsFamille();
+  if (typeof majCompteursProfils === "function") majCompteursProfils();
+  alert("\u2705 " + ((prenom + " " + nom).trim()) + " est cr\u00e9\u00e9\u00b7e et rattach\u00e9\u00b7e.\n\n" +
+    "Identifiant : " + username + "\nCode d'acc\u00e8s : " + nouveau.password + "\n\n" +
+    "Notez-le, ou retrouvez-le dans la sous-page Familles.");
+}
+
 function ajouterContactFamille(parBouton) {
   const sel = document.getElementById("ctc-select");
   if (!sel) return;
+  if (sel.value === "__nouveau") { sel.value = ""; ouvrirCreationContact(); return; }
   if (!sel.value) {
     // Un clic sans choix préalable ne doit pas être silencieux : c'est
     // exactement ce qui fait croire que le bouton est cassé.
