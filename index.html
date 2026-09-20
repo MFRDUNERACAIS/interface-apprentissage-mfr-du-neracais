@@ -9869,6 +9869,11 @@
     background: #FFF8E1; border-left: 4px solid var(--or);
     border-radius: 6px; padding: 0.7rem 0.9rem; margin-top: 0.5rem;
   }
+  .seance-classes-sup {
+    display: flex; flex-wrap: wrap; gap: 0.4rem 0.9rem;
+    background: var(--beige); border-radius: 6px; padding: 0.55rem 0.75rem;
+  }
+  .seance-classe-case { display: flex; align-items: center; gap: 0.35rem; font-size: 0.88rem; cursor: pointer; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -22981,7 +22986,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.04";
+const APP_VERSION = "5.05";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -43093,6 +43098,13 @@ function changerOngletEmarg(quel) {
 }
 
 function ouvrirFormulaireSeance() {
+  // Regroupements : un cours peut réunir deux classes, typiquement les deux
+  // années de CAP. Une seule feuille d'émargement vaut alors pour les deux.
+  const optionsClassesSup = (typeof classesOuvertes === "function" ? classesOuvertes() : Object.keys(CLASSES))
+    .map(function(c) {
+      return '<label class="seance-classe-case"><input type="checkbox" data-classe-sup="' + c + '"> ' +
+        escapeHTML(libelleClasseCourte(c) || CLASSES[c] || c) + '</label>';
+    }).join("");
   const optionsClasses = Object.keys(CLASSES).map(function(code) {
     return '<option value="' + code + '">' + CLASSES[code] + '</option>';
   }).join("");
@@ -43109,7 +43121,12 @@ function ouvrirFormulaireSeance() {
     '</div>' +
     '<div class="modal-body">' +
       '<div class="form-group"><label>Classe *</label><select id="seance_classe">' + optionsClasses + '</select></div>' +
-      '<div class="form-group"><label>Matière / séquence pédagogique *</label><input type="text" id="seance_matiere" placeholder="Ex : Vente et relation client"></div>' +
+      '<div class="form-group"><label>Classes regroupées (facultatif)</label>' +
+        '<div class="seance-classes-sup">' + optionsClassesSup + '</div>' +
+        '<div class="form-help">Cochez une ou plusieurs autres classes si le cours les réunit. ' +
+        'Les apprentis de toutes les classes cochées apparaîtront sur la même feuille.</div></div>' +
+      '<div class="form-group"><label>Matière / séquence pédagogique *</label>' +
+        '<input type="text" id="seance_matiere" placeholder="Ex : Vente et relation client"></div>' +
       '<div class="form-row-2">' +
         '<div class="form-group"><label>Date</label><input type="date" id="seance_date" value="' + dateAuj + '"></div>' +
         '<div class="form-row-2">' +
@@ -43135,8 +43152,29 @@ function fermerModalEmarg() {
   if (m) m.remove();
 }
 
+// Classes couvertes par une séance. Les séances antérieures au regroupement
+// n'ont pas de champ classes : on retombe alors sur la classe unique.
+function classesDeSeance(seance) {
+  if (!seance) return [];
+  if (Array.isArray(seance.classes) && seance.classes.length) return seance.classes;
+  return seance.classe ? [seance.classe] : [];
+}
+
+function seanceCouvre(seance, classe) {
+  return classesDeSeance(seance).indexOf(classe) >= 0;
+}
+
+function libelleClassesSeance(seance) {
+  return classesDeSeance(seance)
+    .map(function(c) { return CLASSES[c] || c; })
+    .join(" + ");
+}
+
 function creerSeance() {
   const classe = document.getElementById("seance_classe").value;
+  const classesSup = Array.from(document.querySelectorAll('[data-classe-sup]:checked'))
+    .map(function(el) { return el.dataset.classeSup; })
+    .filter(function(c) { return c !== classe; });
   const matiere = document.getElementById("seance_matiere").value.trim();
   const date = document.getElementById("seance_date").value;
   const debut = document.getElementById("seance_debut").value;
@@ -43150,6 +43188,9 @@ function creerSeance() {
   const seance = {
     id: "SEQ-" + Date.now(),
     classe: classe,
+    // classe reste la classe principale, pour tout le code existant ;
+    // classes porte la liste complète, principale incluse.
+    classes: [classe].concat(classesSup),
     matiere: matiere,
     date: date,
     horaireDebut: debut,
@@ -43177,7 +43218,7 @@ function afficherSeanceActive() {
 
   // Récupérer les apprentis de la classe
   const apprentis = JSON.parse(localStorage.getItem("mfr_profils_apprentis") || "[]")
-    .filter(function(a) { return a.classe === seance.classe && (a.statut === "actif" || !a.statut); });
+    .filter(function(a) { return seanceCouvre(seance, a.classe) && (a.statut === "actif" || !a.statut); });
 
   const emargDone = Object.keys(seance.emargements).length;
   const nbTotal = apprentis.length;
@@ -43188,7 +43229,7 @@ function afficherSeanceActive() {
       '<div class="emarg-seance-meta">' +
         '<span>📅 ' + escapeHTML(seance.date) + '</span>' +
         '<span>🕐 ' + escapeHTML(seance.horaireDebut) + (seance.horaireFin ? ' → ' + escapeHTML(seance.horaireFin) : '') + '</span>' +
-        '<span>🎓 ' + escapeHTML(CLASSES[seance.classe] || seance.classe) + '</span>' +
+        '<span>🎓 ' + escapeHTML(libelleClassesSeance(seance)) + '</span>' +
         '<span>👤 ' + escapeHTML(seance.formateurNom || seance.formateurId) + '</span>' +
       '</div>' +
     '</div>' +
@@ -43260,7 +43301,7 @@ function cloturerSeance() {
   if (!confirm("Clôturer et signer la séance ?\n\nCette action est irréversible. Une empreinte cryptographique SHA-256 sera générée.")) return;
 
   const dateISO = new Date().toISOString();
-  const contenu = JSON.stringify({ id: seance.id, classe: seance.classe, matiere: seance.matiere, date: seance.date, emargements: seance.emargements, formateur: nomFormateur, dateSignature: dateISO });
+  const contenu = JSON.stringify({ id: seance.id, classe: seance.classe, classes: classesDeSeance(seance), matiere: seance.matiere, date: seance.date, emargements: seance.emargements, formateur: nomFormateur, dateSignature: dateISO });
 
   const finaliser = function(hash) {
     seance.cloture = {
@@ -44181,7 +44222,7 @@ function imprimerEmargements(format) {
   let seances = PROFILS_EMARGEMENTS
     .filter(function(s) { return !!s.cloture && s.date >= debut && s.date <= fin; });
 
-  if (portee === "classe") seances = seances.filter(function(s) { return s.classe === classe; });
+  if (portee === "classe") seances = seances.filter(function(s) { return seanceCouvre(s, classe); });
   if (portee === "apprenti") {
     seances = seances.filter(function(s) { return s.emargements && s.emargements[apprenti]; });
   }
@@ -44513,7 +44554,7 @@ function exporterEmargementsCSV() {
   const filtreDate = document.getElementById("emargFiltreDate").value;
 
   let seances = PROFILS_EMARGEMENTS.filter(function(s) { return !!s.cloture; });
-  if (filtreClasse !== "all") seances = seances.filter(function(s) { return s.classe === filtreClasse; });
+  if (filtreClasse !== "all") seances = seances.filter(function(s) { return seanceCouvre(s, filtreClasse); });
   if (filtreDate) seances = seances.filter(function(s) { return s.date === filtreDate; });
 
   if (seances.length === 0) { alert("Aucune séance à exporter avec ces filtres."); return; }
@@ -44528,7 +44569,7 @@ function exporterEmargementsCSV() {
   seances.forEach(function(s) {
     Object.keys(s.emargements).forEach(function(u) {
       const e = s.emargements[u];
-      lignes.push([s.date, CLASSES[s.classe] || s.classe, s.matiere, s.horaireDebut, s.horaireFin || "", s.cloture.signeParFormateur, u, nomApprenti(u), EMARG_STATUTS[e.statut] ? EMARG_STATUTS[e.statut].libelle.replace(/[✅⏱✗]/g, "").trim() : e.statut, e.horodatage, s.cloture.hash || ""]);
+      lignes.push([s.date, libelleClassesSeance(s), s.matiere, s.horaireDebut, s.horaireFin || "", s.cloture.signeParFormateur, u, nomApprenti(u), EMARG_STATUTS[e.statut] ? EMARG_STATUTS[e.statut].libelle.replace(/[✅⏱✗]/g, "").trim() : e.statut, e.horodatage, s.cloture.hash || ""]);
     });
   });
 
