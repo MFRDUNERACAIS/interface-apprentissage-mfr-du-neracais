@@ -9823,6 +9823,16 @@
   }
   .acteurs-reprise > div { flex: 1; min-width: 16rem; }
   .dup-intro { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+  /* Consentement d'acces de la famille */
+  .cons-liste {
+    background: var(--beige); border-radius: 8px;
+    padding: 0.7rem 0.9rem; margin: 0.7rem 0; font-size: 0.9rem;
+  }
+  .cons-aide {
+    font-size: 0.85rem; color: var(--text-muted);
+    background: #FFF8E1; border-left: 3px solid var(--or);
+    padding: 0.6rem 0.85rem; border-radius: 6px;
+  }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -22062,6 +22072,7 @@
           <button class="btn-secondary" onclick="genererAccesSalariesManquants()">🔑 Générer les accès manquants</button>
           <button class="btn-secondary" onclick="ouvrirEnvoiGroupe()">✉️ Remettre les identifiants à un groupe</button>
           <button class="btn-secondary" onclick="installerCharteApprentissage()">📜 Installer la charte de l'apprentissage</button>
+          <button class="btn-secondary" onclick="afficherRecensementMajorite()">🎂 Majorité et accès des familles</button>
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
           <button class="btn-secondary" onclick="testerConnexionFirebase()">🔥 Tester la connexion Firebase</button>
           <button class="btn-secondary" onclick="creerComptesFirebase()">☁️ Créer les comptes Firebase</button>
@@ -22923,7 +22934,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.79";
+const APP_VERSION = "4.80";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23195,6 +23206,21 @@ function familleEstRattachee(apprenti, familleId) {
 
 // Apprentis rattachés à une fiche famille.
 function apprentisDeFamille(famille) {
+  if (!famille) return [];
+  const rattaches = PROFILS_APPRENTIS.filter(function(a) { return familleEstRattachee(a, famille.id); });
+  // Un apprenti majeur ayant refusé l'accès disparaît de la vue de sa famille.
+  // Le rattachement demeure : c'est l'accès qui est retiré, pas le lien.
+  const u = (typeof utilisateurConnecte !== "undefined") ? utilisateurConnecte : null;
+  if (u && u.role === "parent") {
+    return rattaches.filter(function(a) {
+      return (typeof familleAccedeAuDossier === "function") ? familleAccedeAuDossier(a) : true;
+    });
+  }
+  return rattaches;
+}
+
+// Vue non filtrée, pour la Direction et les traitements internes.
+function apprentisRattachesAFamille(famille) {
   if (!famille) return [];
   return PROFILS_APPRENTIS.filter(function(a) { return familleEstRattachee(a, famille.id); });
 }
@@ -24278,6 +24304,204 @@ function rechargerDonneesEnMemoire() {
   if (typeof PROFILS_EMARGEMENTS !== "undefined") PROFILS_EMARGEMENTS = lire("mfr_emargements", "[]");
 }
 
+// =================================================================
+// MAJORITÉ DE L'APPRENTI
+// -----------------------------------------------------------------
+// Deux conséquences, l'une juridique, l'autre relative à la protection
+// des données.
+//
+// 1. Signature. Un apprenti majeur s'engage seul : la signature du
+//    responsable légal n'a plus de fondement. Celles déjà recueillies
+//    restent valables, elles étaient régulières à leur date.
+//
+// 2. Accès de la famille. Les données d'un majeur lui appartiennent.
+//    Les transmettre à ses parents suppose son accord. Il est donc
+//    recueilli une fois, à la majorité, et reste révocable à tout moment.
+//    Pour un mineur, la question ne se pose pas : l'accès est de droit.
+// =================================================================
+
+function ageEnAnnees(dateISO, aLaDate) {
+  if (!dateISO) return null;
+  const n = new Date(dateISO);
+  if (isNaN(n)) return null;
+  const ref = aLaDate ? new Date(aLaDate) : new Date();
+  let age = ref.getFullYear() - n.getFullYear();
+  const m = ref.getMonth() - n.getMonth();
+  if (m < 0 || (m === 0 && ref.getDate() < n.getDate())) age--;
+  return age;
+}
+
+// Une date de naissance manquante fait considérer l'apprenti comme mineur :
+// c'est l'hypothèse protectrice, qui maintient l'accès de la famille.
+function estMajeur(apprenti) {
+  if (!apprenti) return false;
+  const age = ageEnAnnees(apprenti.dateNaissance);
+  return age !== null && age >= 18;
+}
+
+function dateMajorite(apprenti) {
+  if (!apprenti || !apprenti.dateNaissance) return null;
+  const n = new Date(apprenti.dateNaissance);
+  if (isNaN(n)) return null;
+  n.setFullYear(n.getFullYear() + 18);
+  return isoDeDate(n);
+}
+
+// État du consentement : "accorde", "refuse", ou "" si jamais demandé.
+function consentementAccesFamille(apprenti) {
+  if (!apprenti || !apprenti.consentementFamille) return "";
+  return apprenti.consentementFamille.valeur || "";
+}
+
+// La famille a-t-elle accès au dossier de cet apprenti ?
+function familleAccedeAuDossier(apprenti) {
+  if (!apprenti) return false;
+  if (!estMajeur(apprenti)) return true;          // mineur : accès de droit
+  const c = consentementAccesFamille(apprenti);
+  if (c === "refuse") return false;
+  return true;   // accord donné, ou question pas encore posée : on maintient
+}
+
+// La question doit-elle être posée à cet apprenti ?
+function doitDemanderConsentementFamille(apprenti) {
+  if (!apprenti || !estMajeur(apprenti)) return false;
+  if (consentementAccesFamille(apprenti)) return false;
+  const familles = (typeof famillesIdsDeApprenti === "function") ? famillesIdsDeApprenti(apprenti) : [];
+  return familles.length > 0;
+}
+
+// --- Fenêtre de recueil ------------------------------------------------
+function majPopupConsentementFamille() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return false;
+  const a = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(x) { return x.username === u.id; });
+  if (!doitDemanderConsentementFamille(a)) return false;
+  afficherPopupConsentementFamille(a);
+  return true;
+}
+
+function afficherPopupConsentementFamille(apprenti) {
+  const noms = (typeof famillesDeApprenti === "function" ? famillesDeApprenti(apprenti) : [])
+    .map(function(f) { return ((f.prenom || "") + " " + (f.nom || "")).trim() + (f.lien ? " (" + f.lien + ")" : ""); });
+
+  const ancien = document.getElementById("popup-consentement-famille");
+  if (ancien) ancien.remove();
+  const m = document.createElement("div");
+  m.id = "popup-consentement-famille";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F513}</span>' +
+        '<h2>Vous \u00eates majeur\u00b7e : une question sur vos donn\u00e9es</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<p>Depuis vos 18 ans, les informations de votre dossier vous appartiennent : ' +
+        'votre carnet de liaison, vos absences, vos r\u00e9sultats, vos appr\u00e9ciations.</p>' +
+        '<p><strong>Souhaitez-vous que vos responsables l\u00e9gaux continuent d\'y avoir acc\u00e8s ?</strong></p>' +
+        (noms.length ? '<div class="cons-liste">' + noms.map(function(n) {
+            return '<div>\u2022 ' + escapeHTML(n) + '</div>'; }).join("") + '</div>' : '') +
+        '<div class="cons-aide">Vous pouvez changer d\'avis quand vous voulez, depuis votre espace. ' +
+        'Ce choix ne concerne que la consultation de votre dossier : il ne change rien \u00e0 votre formation, ' +
+        'ni \u00e0 la facturation des repas et des nuit\u00e9es.</div>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="enregistrerConsentementFamille(\'accorde\')">\u2713 Oui, ils gardent l\'acc\u00e8s</button> ' +
+        '<button class="btn-secondaire" onclick="enregistrerConsentementFamille(\'refuse\')">Non, je pr\u00e9f\u00e8re pas</button>' +
+      '</div>' +
+      '<div class="popup-rgpd-footer"><small>Votre r\u00e9ponse est enregistr\u00e9e avec la date. ' +
+        'La MFR conserve, elle, l\'acc\u00e8s \u00e0 votre dossier : c\'est n\u00e9cessaire \u00e0 votre suivi.</small></div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function enregistrerConsentementFamille(valeur) {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  const a = PROFILS_APPRENTIS.find(function(x) { return x.username === u.id; });
+  if (!a) return;
+  a.consentementFamille = {
+    valeur: valeur,
+    date: new Date().toISOString(),
+    parLuiMeme: true
+  };
+  if (sauvegarderProfils() === false) return;
+  const p = document.getElementById("popup-consentement-famille");
+  if (p) p.remove();
+  alert(valeur === "accorde"
+    ? "\u2705 Vos responsables l\u00e9gaux gardent acc\u00e8s \u00e0 votre dossier.\n\nVous pouvez revenir sur ce choix quand vous voulez."
+    : "\u2705 Vos responsables l\u00e9gaux n'ont plus acc\u00e8s \u00e0 votre dossier.\n\nLa MFR, elle, conserve l'acc\u00e8s : c'est n\u00e9cessaire \u00e0 votre suivi.\n\nVous pouvez revenir sur ce choix quand vous voulez.");
+  if (typeof afficherAccueil === "function") afficherAccueil();
+}
+
+// Permet à l'apprenti de revenir sur son choix à tout moment.
+function changerConsentementFamille() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  const a = PROFILS_APPRENTIS.find(function(x) { return x.username === u.id; });
+  if (!a || !estMajeur(a)) return;
+  afficherPopupConsentementFamille(a);
+}
+
+// Recensement pour la Direction : qui est majeur, qui le devient, et où
+// en est le consentement d'accès de la famille.
+function recensementMajorite() {
+  const liste = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return (a.statut || "actif") !== "archive"; });
+  const finAnnee = (new Date().getMonth() >= 7)
+    ? (new Date().getFullYear() + 1) + "-08-31"
+    : new Date().getFullYear() + "-08-31";
+
+  const r = { total: liste.length, majeurs: [], bientot: [], mineurs: [],
+              sansDate: [], accorde: 0, refuse: 0, aDemander: 0 };
+  liste.forEach(function(a) {
+    const nom = ((a.prenom || "") + " " + (a.nom || "")).trim() || a.username;
+    if (!a.dateNaissance) { r.sansDate.push(nom); return; }
+    if (estMajeur(a)) {
+      r.majeurs.push(nom);
+      const c = consentementAccesFamille(a);
+      if (c === "accorde") r.accorde++;
+      else if (c === "refuse") r.refuse++;
+      else r.aDemander++;
+    } else {
+      const dm = dateMajorite(a);
+      if (dm && dm <= finAnnee) r.bientot.push(nom + " le " + dm.split("-").reverse().join("/"));
+      else r.mineurs.push(nom);
+    }
+  });
+  return r;
+}
+
+function afficherRecensementMajorite() {
+  if (typeof peutGererProfils === "function" && !peutGererProfils()) {
+    alert("Op\u00e9ration r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat."); return;
+  }
+  const r = recensementMajorite();
+  let m = "MAJORIT\u00c9 ET ACC\u00c8S DES FAMILLES\n" +
+    "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n";
+  m += r.total + " apprenti(s) actif(s).\n\n";
+  m += "\u2022 " + r.majeurs.length + " majeur(s)";
+  if (r.majeurs.length) m += " :\n   " + r.majeurs.join("\n   ");
+  m += "\n\u2022 " + r.bientot.length + " le deviendront avant la fin de l'ann\u00e9e scolaire";
+  if (r.bientot.length) m += " :\n   " + r.bientot.join("\n   ");
+  m += "\n\u2022 " + r.mineurs.length + " mineur(s) jusqu'\u00e0 la fin de l'ann\u00e9e";
+  if (r.sansDate.length) {
+    m += "\n\n\u26A0 " + r.sansDate.length + " fiche(s) SANS DATE DE NAISSANCE :\n   " +
+      r.sansDate.join("\n   ") +
+      "\n   Ces apprentis sont trait\u00e9s comme mineurs : la famille conserve l'acc\u00e8s.";
+  }
+  if (r.majeurs.length) {
+    m += "\n\nAcc\u00e8s des familles aux dossiers des majeurs :\n";
+    m += "   " + r.accorde + " accord(s) donn\u00e9(s)\n";
+    m += "   " + r.refuse + " refus\n";
+    m += "   " + r.aDemander + " question(s) pas encore pos\u00e9e(s)";
+    if (r.aDemander) m += "\n\nLa question leur sera pos\u00e9e \u00e0 leur prochaine connexion.";
+  }
+  alert(m);
+}
+
+function recensementMajorite_fin() {}
+
 function normaliserIdentifiantConnexion(v) {
   return (v || "").toString().trim().toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -24584,6 +24808,7 @@ async function login() {
   if (typeof majPopupMotDePasse === "function" && majPopupMotDePasse()) return;
   if (typeof majBadgeAttestationRgpd === "function") majBadgeAttestationRgpd();
   if (typeof majPopupCharte === "function") majPopupCharte();
+  if (typeof majPopupConsentementFamille === "function") majPopupConsentementFamille();
   if (typeof chargerAlertes === "function" && utilisateurConnecte && utilisateurConnecte.role === "mfr") {
     setTimeout(function() { try { chargerAlertes(); } catch(e){} }, 300);
   }
@@ -34522,8 +34747,19 @@ const CHARTE_SIGNATAIRES = [
   { role: "mfr",      libelle: "Référent·e de classe" },
   { role: "maitre",   libelle: "Maître d'apprentissage" },
   { role: "apprenti", libelle: "Apprenti·e" },
+  { role: "parent",   libelle: "Responsable légal", siMineurSeulement: true },
   { role: "mfr",      libelle: "Direction de l'établissement" }
 ];
+
+// Signataires attendus pour un apprenti donné : un majeur s'engage seul,
+// la signature de son responsable légal n'a plus de fondement juridique.
+// Celles déjà recueillies restent valables, elles étaient régulières à leur date.
+function signatairesCharte(apprenti) {
+  const majeur = (typeof estMajeur === "function") ? estMajeur(apprenti) : false;
+  return CHARTE_SIGNATAIRES.filter(function(sig) {
+    return !(sig.siMineurSeulement && majeur);
+  });
+}
 
 // Installe la charte dans les documents institutionnels, sans jamais
 // écraser une version déjà présente : les attestations déjà recueillies
