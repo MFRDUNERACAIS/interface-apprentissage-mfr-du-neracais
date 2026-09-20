@@ -9874,6 +9874,22 @@
     background: var(--beige); border-radius: 6px; padding: 0.55rem 0.75rem;
   }
   .seance-classe-case { display: flex; align-items: center; gap: 0.35rem; font-size: 0.88rem; cursor: pointer; }
+  /* Signature de presence par l'apprenti */
+  .sig-carte {
+    background: #FFFDF5; border: 1px solid var(--border);
+    border-left: 5px solid var(--or); border-radius: 10px;
+    padding: 1.1rem 1.3rem; margin-bottom: 1.2rem;
+  }
+  .sig-carte.sig-faite { border-left-color: #4C7A34; background: #F1F8E9; }
+  .sig-entete { font-size: 1.05rem; font-weight: 700; color: var(--olive-dark); }
+  .sig-meta { font-size: 0.87rem; color: var(--text-muted); margin-bottom: 0.7rem; }
+  .sig-ok { font-size: 0.95rem; font-weight: 600; color: #3B6B28; margin-bottom: 0.3rem; }
+  .sig-aide { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+  .emarg-info {
+    background: var(--beige); border-left: 4px solid var(--border);
+    border-radius: 8px; padding: 0.9rem 1.1rem; font-size: 0.92rem; margin-bottom: 1.2rem;
+  }
+  .emarg-signe { color: #3B6B28; font-size: 0.78rem; font-weight: 600; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -21916,6 +21932,7 @@
             <option value="all">Toutes les classes</option>
           </select>
           <input type="date" id="emargFiltreDate" onchange="afficherHistoriqueEmarg()">
+          <button class="btn-mini" onclick="rafraichirSignaturesSeance()">↻ Récupérer les signatures</button>
           <button class="btn-mini" onclick="exporterEmargementsCSV()">📥 Exporter en CSV</button>
           <button class="btn-mini btn-primary" onclick="ouvrirImpressionEmargements()">🖨️ Imprimer les émargements</button>
         </div>
@@ -22986,7 +23003,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.06";
+const APP_VERSION = "5.08";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24742,6 +24759,10 @@ async function envoyerMesDonneesPersonnelles(silencieux) {
   if (u.role === "apprenti") {
     const sig = mesSignaturesVR(u.id);
     if (Object.keys(sig).length > 0) { paquet.signaturesVR = JSON.stringify(sig); envoyees++; }
+    try {
+      const sigS = mesSignaturesSeances(u.id);
+      if (Object.keys(sigS).length > 0) { paquet.signaturesSeances = JSON.stringify(sigS); envoyees++; }
+    } catch (e) {}
     // Coches du travail à faire, propres à cet apprenti.
     try {
       const tout = chargerTachesFaites();
@@ -24770,7 +24791,7 @@ async function recevoirMesDonneesPersonnelles() {
     const d = doc.data() || {};
     let recues = 0;
     Object.keys(d).forEach(function(cle) {
-      if (["identifiant", "role", "modifieLe", "signaturesVR", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
+      if (["identifiant", "role", "modifieLe", "signaturesVR", "signaturesSeances", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
       if (typeof d[cle] !== "string") return;
       try { JSON.parse(d[cle]); } catch (e) { return; }
       localStorage.setItem(cle, d[cle]);
@@ -25246,7 +25267,7 @@ function fusionnerDepots(recus) {
 function recopierClesPersonnelles(d) {
   let n = 0;
   Object.keys(d || {}).forEach(function(cle) {
-    if (["identifiant", "role", "modifieLe", "signaturesVR", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
+    if (["identifiant", "role", "modifieLe", "signaturesVR", "signaturesSeances", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
     if (typeof d[cle] !== "string") return;
     try { JSON.parse(d[cle]); } catch (e) { return; }
     try { localStorage.setItem(cle, d[cle]); n++; } catch (e) {}
@@ -40960,6 +40981,20 @@ const MODE_EMPLOI_CONTENU = {
                       "ou": "Menu > Émargement"
                   },
                   {
+                      "titre": "Répondre à l'appréciation du jeudi",
+                      "comment": "Chaque jeudi, vos apprentis déposent leur appréciation de la semaine. Vous répondez le vendredi matin.",
+                      "etapes": [
+                          "Une carte apparaît sur votre <strong>accueil</strong> dès qu'une réponse est attendue : « X appréciation(s) attendent votre réponse ».",
+                          "Cliquez sur <strong>✍️ Répondre</strong>.",
+                          "L'appréciation du jeune s'affiche en encadré, au-dessus de votre zone de saisie : répondez à ce qui est écrit.",
+                          "Rédigez, puis <strong>✓ Enregistrer</strong> : vous passez automatiquement au suivant.",
+                          "<strong>Passer</strong> vous permet de reprendre plus tard sans rien perdre.",
+                          "Votre réponse rejoint le carnet de liaison de l'apprenti, visible de sa famille et de son maître d'apprentissage."
+                      ],
+                      "attention": "Une réponse brève vaut mieux qu'un silence. Un jeune qui écrit et n'obtient jamais de réponse cesse d'écrire, et vous perdez le meilleur indicateur dont vous disposez sur son vécu.",
+                      "ou": "Accueil"
+                  },
+                  {
                       "titre": "Saisir une absence",
                       "comment": "Toute absence se consigne le jour même, avec son motif.",
                       "etapes": [
@@ -40973,16 +41008,21 @@ const MODE_EMPLOI_CONTENU = {
                       "ou": "Menu > Absences"
                   },
                   {
-                      "titre": "Écrire dans le carnet de liaison",
-                      "comment": "Le carnet est lu par l'apprenti, sa famille, son maître d'apprentissage et l'équipe.",
+                      "titre": "Tenir le carnet de liaison",
+                      "comment": "Le carnet est lu par l'apprenti, sa famille, son maître d'apprentissage et l'équipe. Il se remplit session par session.",
                       "etapes": [
-                          "Menu > <strong>Suivi des carnets</strong>.",
-                          "Sélectionnez l'apprenti.",
-                          "Cliquez sur <strong>+ Nouvel échange</strong>.",
-                          "Rédigez, puis enregistrez."
+                          "Menu latéral, rubrique <strong>Mon espace</strong>, cliquez sur <strong>📓 Carnet de liaison</strong>.",
+                          "Si vous êtes formateur, un sélecteur en haut vous permet de choisir l'apprenti. Vérifiez-le avant d'écrire.",
+                          "Les sessions MFR sont présentées sous forme de fiches dépliables, numérotées dans l'ordre de l'année.",
+                          "Cliquez sur la session concernée pour la déplier.",
+                          "<strong>Thème de la session</strong> : l'intitulé du fil conducteur de la semaine.",
+                          "<strong>Tableau des activités</strong> : les modules sont déjà pré-remplis depuis le planning que vous avez saisi. Une matière dispensée plusieurs fois n'occupe qu'une ligne.",
+                          "Complétez la colonne <strong>thèmes abordés</strong> en face de chaque module : c'est la seule partie qui reste à votre main.",
+                          "<strong>Observations complémentaires</strong> : facultatif, pour ce qui ne rentre dans aucune ligne.",
+                          "L'enregistrement est automatique : ce que vous tapez est conservé sans bouton à cliquer."
                       ],
-                      "attention": "Tout le monde lit ce que vous écrivez. Pour une difficulté délicate, préférez un appel, puis consignez ensuite le fait et la décision.",
-                      "ou": "Menu > Suivi des carnets"
+                      "attention": "Tout le monde lit ce carnet. Pour une difficulté délicate, préférez un appel, puis consignez le fait et la décision — pas l'appréciation.",
+                      "ou": "Mon espace > Carnet de liaison"
                   },
                   {
                       "titre": "Répondre à une demande de rendez-vous",
@@ -41040,14 +41080,18 @@ const MODE_EMPLOI_CONTENU = {
                   },
                   {
                       "titre": "Consigner une visite en entreprise",
-                      "comment": "Le compte rendu est une preuve directe du suivi, régulièrement demandée en audit.",
+                      "comment": "Le compte rendu est une preuve directe du suivi, régulièrement demandée en audit. Comptez dix minutes.",
                       "etapes": [
-                          "Menu > <strong>Visites en entreprise</strong>.",
-                          "Cliquez sur <strong>+ Nouvelle visite</strong>.",
-                          "Renseignez la date, l'apprenti, l'entreprise et les personnes rencontrées.",
-                          "Rédigez : ce que vous avez observé, ce qui a été dit, ce qui a été décidé.",
+                          "Menu > <strong>Visites en entreprise</strong>, puis <strong>+ Nouvelle visite</strong>.",
+                          "<strong>Apprenti·e concerné·e</strong>, <strong>Date de la visite</strong>, <strong>Type de visite</strong> et <strong>Durée en minutes</strong>.",
+                          "<strong>Visiteur MFR</strong>, <strong>Nom de l'entreprise</strong>, <strong>Maître d'apprentissage</strong> avec sa fonction.",
+                          "Les conditions de travail : <strong>Poste occupé et tâches confiées</strong>, <strong>Horaires respectés</strong>, <strong>Conditions de sécurité et EPI</strong>, <strong>Intégration dans l'équipe</strong>.",
+                          "La progression : <strong>Compétences travaillées</strong>, <strong>Progression observée depuis la dernière visite</strong>, <strong>Écarts entre programme MFR et pratique entreprise</strong>.",
+                          "Le comportement : <strong>Assiduité</strong>, <strong>Ponctualité</strong>, <strong>Initiative et autonomie</strong>, <strong>Relations professionnelles</strong>.",
+                          "<strong>Points de vigilance identifiés</strong> : ce qui devra être revu à la prochaine visite.",
                           "Enregistrez le jour même, tant que les détails sont frais."
                       ],
+                      "attention": "La rubrique <strong>Conditions de sécurité et EPI</strong> n'est pas une formalité : pour un apprenti mineur, c'est la seule trace écrite que vous ayez vérifié ce point. Renseignez-la précisément.",
                       "ou": "Menu > Visites en entreprise"
                   },
                   {
@@ -42974,7 +43018,7 @@ function afficherEmargement() {
              : u.role === "parent" ? "✍️ Émargements de votre enfant"
              : u.role === "maitre" ? "✍️ Émargements de l'apprenti"
              : "✍️ Émargements";
-  const intro = u.role === "apprenti" ? "Retrouvez ici l'historique de vos émargements aux séances pédagogiques dispensées à la MFR, tel qu'ils ont été saisis par vos formateurs."
+  const intro = u.role === "apprenti" ? "Signez votre présence quand une séance est ouverte, et retrouvez l'historique de vos émargements."
              : u.role === "parent" ? "Retrouvez ici l'historique des émargements de votre enfant aux séances pédagogiques dispensées à la MFR."
              : "Retrouvez ici l'historique des émargements de l'apprenti que vous accompagnez, tel que saisi par les formateurs de la MFR.";
 
@@ -43032,13 +43076,24 @@ function afficherEmargementApprenti(apprentiUsername) {
     return;
   }
 
+  // L'apprenti signe lui-même sa présence : la carte de signature précède
+  // l'historique, puisque c'est l'action attendue de lui.
+  let enTeteSignature = "";
+  if (u.role === "apprenti" && typeof ecranSignatureApprenti === "function") {
+    const moiApp = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+      .find(function(a) { return a.username === apprentiUsername; });
+    if (moiApp && moiApp.classe) {
+      try { enTeteSignature = ecranSignatureApprenti(apprentiUsername, moiApp.classe); } catch (e) {}
+    }
+  }
+
   // Récupérer toutes les séances (clôturées ou non) où cet apprenti a été émargé
   const seances = PROFILS_EMARGEMENTS.filter(function(s) {
     return s.emargements && s.emargements[apprentiUsername];
   });
 
   if (seances.length === 0) {
-    conteneur.innerHTML = '<div class="emarg-vide">Aucun émargement enregistré pour le moment.</div>';
+    conteneur.innerHTML = enTeteSignature + '<div class="emarg-vide">Aucun émargement enregistré pour le moment.</div>';
     return;
   }
 
@@ -43085,7 +43140,7 @@ function afficherEmargementApprenti(apprentiUsername) {
   });
   html += '</div>';
 
-  conteneur.innerHTML = html;
+  conteneur.innerHTML = enTeteSignature + html;
 }
 
 function peuplerFiltreClassesEmarg() {
@@ -43183,6 +43238,134 @@ function libelleClassesSeance(seance) {
     .map(function(c) { return CLASSES[c] || c; })
     .join(" + ");
 }
+
+// =================================================================
+// SIGNATURE DE PRÉSENCE PAR L'APPRENTI
+// -----------------------------------------------------------------
+// Une feuille d'émargement est signée par l'apprenant : c'est lui qui
+// atteste sa présence, le formateur ne fait que la constater et la
+// contresigner. Le dispositif précédent inversait ce rapport — le
+// moniteur déclarait, l'apprenti consultait — ce qui privait le document
+// de la valeur probante attendue par un financeur.
+//
+// Désormais : le moniteur ouvre la séance, l'apprenti signe, le moniteur
+// complète les absences et clôture.
+// =================================================================
+
+function seanceOuvertePour(classe) {
+  return (typeof PROFILS_EMARGEMENTS !== "undefined" ? PROFILS_EMARGEMENTS : [])
+    .find(function(s) { return !s.cloture && seanceCouvre(s, classe); }) || null;
+}
+
+function maSignatureSeance(seance, username) {
+  if (!seance || !seance.emargements) return null;
+  const e = seance.emargements[username];
+  return (e && e.signeParApprenti) ? e : null;
+}
+
+// --- Écran de l'apprenti --------------------------------------------------
+function ecranSignatureApprenti(username, classe) {
+  const seance = seanceOuvertePour(classe);
+  if (!seance) {
+    return '<div class="emarg-info">\u{1F4CB} Aucune s\u00e9ance ouverte en ce moment. ' +
+      'Votre formateur ouvrira la s\u00e9ance en d\u00e9but de cours.</div>';
+  }
+  const sig = maSignatureSeance(seance, username);
+  let h = '<div class="sig-carte' + (sig ? ' sig-faite' : '') + '">';
+  h += '<div class="sig-entete">' + escapeHTML(seance.matiere) + '</div>';
+  h += '<div class="sig-meta">' + escapeHTML(libelleClassesSeance(seance)) + ' \u2014 ' +
+    dateFr(seance.date) + ' \u2014 ' + escapeHTML(seance.horaireDebut || "") +
+    (seance.horaireFin ? " \u00e0 " + escapeHTML(seance.horaireFin) : "") + '</div>';
+  if (sig) {
+    const h2 = new Date(sig.horodatage);
+    h += '<div class="sig-ok">\u2713 Vous avez sign\u00e9 \u00e0 ' +
+      h2.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }) + '.</div>';
+    h += '<p class="sig-aide">Votre signature est enregistr\u00e9e. Vous n\'avez rien d\'autre \u00e0 faire.</p>';
+  } else {
+    h += '<p class="sig-aide">En signant, vous attestez \u00eatre pr\u00e9sent\u00b7e \u00e0 cette s\u00e9ance. ' +
+      'Votre signature est horodat\u00e9e.</p>';
+    h += '<button class="btn-primary" onclick="signerMaPresence(\'' + seance.id + '\')">' +
+      '\u270D\uFE0F Je signe ma pr\u00e9sence</button>';
+  }
+  h += '</div>';
+  return h;
+}
+
+function signerMaPresence(seanceId) {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  const seance = PROFILS_EMARGEMENTS.find(function(s) { return s.id === seanceId; });
+  if (!seance) { alert("Cette s\u00e9ance n'est plus disponible."); return; }
+  if (seance.cloture) { alert("Cette s\u00e9ance est d\u00e9j\u00e0 cl\u00f4tur\u00e9e : vous ne pouvez plus signer.\n\n" +
+    "Signalez-le \u00e0 votre formateur."); return; }
+  if (!confirm("Signer votre pr\u00e9sence \u00e0 cette s\u00e9ance ?\n\n" +
+      "Vous attestez \u00eatre pr\u00e9sent\u00b7e. Votre signature sera horodat\u00e9e et ne pourra pas \u00eatre retir\u00e9e.")) return;
+
+  if (!seance.emargements) seance.emargements = {};
+  seance.emargements[u.id] = {
+    statut: "present",
+    horodatage: new Date().toISOString(),
+    signeParApprenti: true,
+    nom: u.nom || u.id
+  };
+  sauverEmargements();
+  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
+  alert("\u2705 Votre pr\u00e9sence est sign\u00e9e.");
+  afficherEmargement();
+}
+
+// --- Remontée et agrégation ----------------------------------------------
+function mesSignaturesSeances(username) {
+  const out = {};
+  (typeof PROFILS_EMARGEMENTS !== "undefined" ? PROFILS_EMARGEMENTS : []).forEach(function(s) {
+    const e = s.emargements && s.emargements[username];
+    if (e && e.signeParApprenti) out[s.id] = e;
+  });
+  return out;
+}
+
+async function agregerSignaturesSeances(classe) {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { lus: 0, appliquees: 0 };
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) {
+      return (!classe || a.classe === classe) && (a.statut || "actif") !== "archive" && a.uidFirebase;
+    });
+  let lus = 0, appliquees = 0;
+  for (let i = 0; i < apprentis.length; i++) {
+    const a = apprentis[i];
+    try {
+      const doc = await fbDb.collection("perso").doc(a.uidFirebase).get();
+      if (!doc.exists) continue;
+      lus++;
+      const d = doc.data() || {};
+      if (typeof d.signaturesSeances !== "string") continue;
+      const sig = JSON.parse(d.signaturesSeances);
+      Object.keys(sig).forEach(function(seanceId) {
+        const s = PROFILS_EMARGEMENTS.find(function(x) { return x.id === seanceId; });
+        // Une séance clôturée ne reçoit plus rien : son empreinte est scellée.
+        if (!s || s.cloture) return;
+        if (!s.emargements) s.emargements = {};
+        if (s.emargements[a.username] && s.emargements[a.username].signeParApprenti) return;
+        s.emargements[a.username] = sig[seanceId];
+        appliquees++;
+      });
+    } catch (e) { /* dossier inaccessible */ }
+  }
+  if (appliquees > 0) sauverEmargements();
+  return { lus: lus, appliquees: appliquees };
+}
+
+async function rafraichirSignaturesSeance() {
+  const r = await agregerSignaturesSeances(null);
+  alert("\u2705 " + r.lus + " dossier(s) consult\u00e9(s), " + r.appliquees +
+    " signature(s) r\u00e9cup\u00e9r\u00e9e(s)." +
+    (r.appliquees === 0
+      ? "\n\nAucune nouvelle signature. Les apprentis signent depuis leur espace, onglet \u00c9margement."
+      : "\n\nCompl\u00e9tez les absences, puis cl\u00f4turez la s\u00e9ance."));
+  afficherEmargement();
+}
+
+function seanceOuvertePour_fin() {}
 
 function creerSeance() {
   const classe = document.getElementById("seance_classe").value;
