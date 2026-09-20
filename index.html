@@ -9861,6 +9861,14 @@
   }
   .plan-actions { margin-top: 1rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
   .plan-vide { font-size: 0.9rem; color: var(--text-muted); font-style: italic; }
+  .bandeau-local {
+    background: #FDF4EF; border-bottom: 3px solid var(--mfr-red);
+    padding: 0.65rem 1.2rem; font-size: 0.87rem; color: #8E4A28; line-height: 1.45;
+  }
+  .appr-recherche {
+    background: #FFF8E1; border-left: 4px solid var(--or);
+    border-radius: 6px; padding: 0.7rem 0.9rem; margin-top: 0.5rem;
+  }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -22108,6 +22116,7 @@
           <button class="btn-secondary" onclick="ouvrirEnvoiGroupe()">✉️ Remettre les identifiants à un groupe</button>
           <button class="btn-secondary" onclick="installerCharteApprentissage()">📜 Installer la charte de l'apprentissage</button>
           <button class="btn-secondary" onclick="afficherRecensementMajorite()">🎂 Majorité et accès des familles</button>
+          <button class="btn-secondary" onclick="afficherSuiviSansContrat()">🔍 Apprentis sans contrat</button>
           <button class="btn-secondary" onclick="ouvrirFenetreTestVR()">🧪 Ouvrir une fenêtre de test (30 min)</button>
           <button class="btn-secondary" onclick="purgerSignaturesTest()">🧹 Retirer les signatures de test</button>
           <button class="btn-secondary" onclick="associerPhotosTrombinoscope()">📷 Associer les portraits du trombinoscope</button>
@@ -22972,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.91";
+const APP_VERSION = "4.95";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24328,6 +24337,9 @@ async function synchroniserALaConnexion() {
     if (typeof recevoirMesDonneesPersonnelles === "function") {
       await recevoirMesDonneesPersonnelles();
     }
+    if (typeof recevoirNotifications === "function") {
+      await recevoirNotifications();
+    }
     // L'équipe ramasse les dépôts au passage : une réclamation déposée la
     // veille doit être visible dès l'ouverture, sans geste supplémentaire.
     if (u.role === "mfr" && typeof ramasserDepotsSilencieux === "function") {
@@ -25061,7 +25073,7 @@ function ecranPlanReferent_fin() {}
 // l'équipe agrège à la réception. Chacun écrit chez soi, la MFR ramasse.
 
 const CLES_DEPOTS = ["mfr_reclamations", "mfr_signalements", "mfr_demandes_rdv",
-                     "mfr_eval_reponses"];
+                     "mfr_eval_reponses", "mfr_messages_entreprise"];
 
 // Extrait les éléments dont l'utilisateur est l'auteur.
 function mesDepots(username) {
@@ -25071,7 +25083,12 @@ function mesDepots(username) {
     try { liste = JSON.parse(localStorage.getItem(cle) || "[]"); } catch (e) { return; }
     if (!Array.isArray(liste)) return;
     const miens = liste.filter(function(x) {
-      return x && (x.auteurId === username || x.demandeurId === username || x.apprentiUsername === username);
+      if (!x) return false;
+      // Les messages entreprise identifient leur auteur par « destinataire »,
+      // qui désigne en réalité le compte maître d'apprentissage de la conversation.
+      return x.auteurId === username || x.demandeurId === username
+        || x.apprentiUsername === username
+        || (x.expediteur === "entreprise" && x.destinataire === username);
     });
     if (miens.length > 0) out[cle] = miens;
   });
@@ -25102,6 +25119,21 @@ function fusionnerDepots(recus) {
 
 // Ramasse les dépôts de tous les comptes, pour l'équipe.
 // Variante silencieuse, appelée à la connexion de l'équipe.
+// Recopie les clés personnelles d'un compte dans le stockage de l'équipe :
+// carnet de liaison, réponses aux enquêtes, évaluations déjà faites.
+// Sans cela, le suivi des carnets et les résultats d'enquête restaient vides
+// côté MFR : ces clés n'existent que sur l'appareil de leur propriétaire.
+function recopierClesPersonnelles(d) {
+  let n = 0;
+  Object.keys(d || {}).forEach(function(cle) {
+    if (["identifiant", "role", "modifieLe", "signaturesVR", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
+    if (typeof d[cle] !== "string") return;
+    try { JSON.parse(d[cle]); } catch (e) { return; }
+    try { localStorage.setItem(cle, d[cle]); n++; } catch (e) {}
+  });
+  return n;
+}
+
 async function ramasserDepotsSilencieux() {
   try {
     if (!initialiserFirebase() || !fbAuth.currentUser) return 0;
@@ -25116,8 +25148,16 @@ async function ramasserDepotsSilencieux() {
         const doc = await fbDb.collection("perso").doc(comptes[i].uidFirebase).get();
         if (!doc.exists) continue;
         const d = doc.data() || {};
-        if (typeof d.depots !== "string") continue;
-        ajoutes += fusionnerDepots(JSON.parse(d.depots));
+        ajoutes += recopierClesPersonnelles(d);
+        if (typeof d.tachesFaites === "string") {
+          try {
+            const mien = JSON.parse(d.tachesFaites);
+            const tout = chargerTachesFaites();
+            Object.keys(mien).forEach(function(c2) { tout[c2] = mien[c2]; });
+            sauverTachesFaites(tout);
+          } catch (e) {}
+        }
+        if (typeof d.depots === "string") ajoutes += fusionnerDepots(JSON.parse(d.depots));
       } catch (e) {}
     }
     return ajoutes;
@@ -25144,11 +25184,19 @@ async function ramasserDepots() {
       if (!doc.exists) continue;
       lus++;
       const d = doc.data() || {};
-      if (typeof d.depots !== "string") continue;
-      ajoutes += fusionnerDepots(JSON.parse(d.depots));
+      ajoutes += recopierClesPersonnelles(d);
+      if (typeof d.tachesFaites === "string") {
+        try {
+          const mien = JSON.parse(d.tachesFaites);
+          const tout = chargerTachesFaites();
+          Object.keys(mien).forEach(function(c2) { tout[c2] = mien[c2]; });
+          sauverTachesFaites(tout);
+        } catch (e) {}
+      }
+      if (typeof d.depots === "string") ajoutes += fusionnerDepots(JSON.parse(d.depots));
     } catch (e) { /* document inaccessible : on passe */ }
   }
-  alert("\u2705 " + lus + " dossier(s) consult\u00e9(s), " + ajoutes + " d\u00e9p\u00f4t(s) r\u00e9cup\u00e9r\u00e9(s)." +
+  alert("\u2705 " + lus + " dossier(s) consult\u00e9(s), " + ajoutes + " \u00e9l\u00e9ment(s) r\u00e9cup\u00e9r\u00e9(s)." +
     (ajoutes > 0
       ? "\n\nR\u00e9clamations, signalements et demandes de rendez-vous sont d\u00e9sormais visibles dans leurs pages respectives."
       : "\n\nAucun nouveau d\u00e9p\u00f4t."));
@@ -25462,6 +25510,7 @@ async function login() {
   if (typeof majBadgeAttestationRgpd === "function") majBadgeAttestationRgpd();
   if (typeof majPopupCharte === "function") majPopupCharte();
   if (typeof majPopupConsentementFamille === "function") majPopupConsentementFamille();
+  if (typeof majBandeauModeLocal === "function") majBandeauModeLocal();
   if (typeof chargerAlertes === "function" && utilisateurConnecte && utilisateurConnecte.role === "mfr") {
     setTimeout(function() { try { chargerAlertes(); } catch(e){} }, 300);
   }
@@ -27074,6 +27123,63 @@ function resoudreDestinataires(typesDestinataires, apprenti) {
 }
 
 // Crée une nouvelle notification
+// -----------------------------------------------------------------
+// NOTIFICATIONS PARTAGÉES
+// -----------------------------------------------------------------
+// Une notification est créée par l'un pour l'autre : ni l'espace équipe,
+// ni les documents personnels ne conviennent, puisque nul ne peut écrire
+// chez autrui. Elles vivent donc dans une collection dédiée, où chacun
+// dépose et ne lit que celles qui lui sont adressées.
+//
+// Chaque notification est un document indépendant : deux personnes qui en
+// créent une au même instant ne s'écrasent pas l'une l'autre, ce qui
+// serait arrivé avec une liste unique.
+
+async function publierNotification(notification) {
+  try {
+    if (!initialiserFirebase() || !fbAuth.currentUser) return false;
+    // On n'y met que les identifiants des destinataires : c'est sur eux
+    // que portera la règle de lecture.
+    const pour = (notification.destinataires || [])
+      .map(function(d) { return normaliserIdentifiantConnexion(d.userId); })
+      .filter(function(x) { return x; });
+    if (pour.length === 0) return false;
+    await fbDb.collection("notifications").doc(notification.id).set({
+      pour: pour,
+      contenu: JSON.stringify(notification),
+      creeLe: notification.createdAt || new Date().toISOString()
+    });
+    return true;
+  } catch (e) { return false; }
+}
+
+// Récupère les notifications adressées à la personne connectée et les
+// fusionne dans sa liste locale, sans jamais écraser un statut de lecture.
+async function recevoirNotifications() {
+  try {
+    if (!initialiserFirebase() || !fbAuth.currentUser || !utilisateurConnecte) return 0;
+    const moi = normaliserIdentifiantConnexion(utilisateurConnecte.id);
+    const snap = await fbDb.collection("notifications")
+      .where("pour", "array-contains", moi).limit(200).get();
+    if (snap.empty) return 0;
+
+    const locales = chargerNotifications();
+    const connues = locales.map(function(n) { return n.id; });
+    let ajoutees = 0;
+    snap.forEach(function(doc) {
+      const d = doc.data() || {};
+      if (typeof d.contenu !== "string") return;
+      if (connues.indexOf(doc.id) >= 0) return;
+      try {
+        locales.push(JSON.parse(d.contenu));
+        ajoutees++;
+      } catch (e) {}
+    });
+    if (ajoutees > 0) sauvegarderNotifications(locales);
+    return ajoutees;
+  } catch (e) { return 0; }
+}
+
 function creerNotification(config) {
   const notifications = chargerNotifications();
   const u = utilisateurConnecte;
@@ -27096,6 +27202,9 @@ function creerNotification(config) {
   };
   notifications.push(notification);
   sauvegarderNotifications(notifications);
+  // Publication immédiate : sans elle, la notification resterait sur le
+  // poste qui l'a créée et son destinataire ne la verrait jamais.
+  if (typeof publierNotification === "function") publierNotification(notification);
   return notification;
 }
 
@@ -32762,11 +32871,22 @@ function ouvrirFormulaireApprenti(idExistant) {
           <div class="formulaire-row">
             <div class="formulaire-field">
               <label>Lieu d'apprentissage</label>
-              <select id="apprLieuId">
-                <option value="">-- Aucun pour l'instant --</option>
+              <select id="apprLieuId" onchange="majRechercheContrat()">
+                <option value="">— Pas encore d'entreprise —</option>
                 ${optionsLieux}
               </select>
-              <div class="formulaire-help">Vous pourrez le rattacher plus tard si pas encore créé.</div>
+              <div class="formulaire-help">Laissez vide tant que l'apprenti n'a pas signé de contrat.</div>
+              <div id="apprRechercheBloc" class="appr-recherche" style="display:none;">
+                <label class="impr-case">
+                  <input type="checkbox" id="apprRechercheContrat" ${apprenti && apprenti.rechercheContrat ? 'checked' : ''} onchange="majRechercheContrat()">
+                  <strong>En recherche de contrat</strong>
+                </label>
+                <div class="formulaire-field" style="margin-top:0.5rem;">
+                  <label>Depuis le</label>
+                  <input type="date" id="apprRechercheDepuis" value="${apprenti && apprenti.rechercheDepuis ? apprenti.rechercheDepuis : ''}">
+                </div>
+                <div class="formulaire-help">Cette date alimente le suivi des jeunes sans contrat et, le cas échéant, le taux d'abandon.</div>
+              </div>
             </div>
             <div class="formulaire-field">
               <label>Responsables légaux et contacts</label>
@@ -32828,6 +32948,8 @@ function enregistrerApprenti(idExistant) {
     email: document.getElementById("apprEmail").value.trim(),
     telephone: document.getElementById("apprTelephone").value.trim(),
     lieuId: document.getElementById("apprLieuId").value || null,
+    rechercheContrat: !!(document.getElementById("apprRechercheContrat") || {}).checked,
+    rechercheDepuis: (document.getElementById("apprRechercheDepuis") || {}).value || "",
     famillesIds: (typeof CONTACTS_FAMILLE_EN_COURS !== "undefined" ? CONTACTS_FAMILLE_EN_COURS.slice() : [])
   };
   data.familleId = data.famillesIds.length > 0 ? data.famillesIds[0] : null;
@@ -36560,7 +36682,13 @@ function determinerApprentiId() {
     }
   }
 
-  // Fallback : on prend le premier apprenti défini dans les profils (utile pour la Direction en consultation)
+  // Repli réservé à l'équipe : ouvrir la page sur un dossier plutôt que sur
+  // un écran vide. Pour tout autre rôle, ce repli affichait le dossier du
+  // premier apprenti de la liste à quiconque n'avait pas de rattachement —
+  // une famille mal rattachée, un maître d'apprentissage dont l'apprenti a
+  // changé d'entreprise, un compte de démonstration. On ne peut pas faire
+  // dépendre la confidentialité d'une saisie correcte.
+  if (u.role !== "mfr") return null;
   const apprentis = JSON.parse(localStorage.getItem("mfr_profils_apprentis") || "[]");
   if (apprentis.length > 0) return apprentis[0].username;
   return null;
@@ -42370,6 +42498,112 @@ function ouvrirCharteDepuisPopup() {
   if (typeof consulterDocument === "function") consulterDocument(doc.id, true);
 }
 
+// Un compte intégré au fichier ne dialogue pas avec Firebase : ni envoi,
+// ni réception, ni ramassage. Rien ne le signalait, et l'on pouvait passer
+// une matinée à chercher pourquoi les données ne remontent pas.
+// -----------------------------------------------------------------
+// APPRENTIS SANS CONTRAT
+// -----------------------------------------------------------------
+// Un jeune inscrit sans entreprise existe pleinement : il a sa famille,
+// son carnet, ses émargements, son plan d'étude. Il n'a simplement pas
+// encore de lieu d'apprentissage, et l'application doit le savoir plutôt
+// que de le rattacher à une entreprise fictive qui fausserait les
+// effectifs et masquerait le seul indicateur qui compte ici : combien de
+// jeunes cherchent un contrat, et depuis combien de temps.
+
+function majRechercheContrat() {
+  const bloc = document.getElementById("apprRechercheBloc");
+  const lieu = document.getElementById("apprLieuId");
+  if (!bloc || !lieu) return;
+  // Le bloc n'a de sens que tant qu'aucune entreprise n'est rattachée.
+  bloc.style.display = lieu.value ? "none" : "block";
+  if (lieu.value) {
+    const c = document.getElementById("apprRechercheContrat");
+    if (c) c.checked = false;
+  }
+}
+
+function joursDepuis(dateISO) {
+  if (!dateISO) return null;
+  const d = new Date(dateISO);
+  if (isNaN(d)) return null;
+  return Math.floor((new Date() - d) / 86400000);
+}
+
+function apprentisSansContrat() {
+  return (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) {
+      return (a.statut || "actif") !== "archive" && !a.lieuId;
+    });
+}
+
+function afficherSuiviSansContrat() {
+  if (typeof peutGererProfils === "function" && !peutGererProfils()) {
+    alert("Op\u00e9ration r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat."); return;
+  }
+  const liste = apprentisSansContrat();
+  const total = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return (a.statut || "actif") !== "archive"; }).length;
+
+  if (liste.length === 0) {
+    alert("\u2705 Tous les apprentis actifs sont rattach\u00e9s \u00e0 une entreprise.\n\n" +
+      total + " apprenti(s) au total.");
+    return;
+  }
+
+  liste.sort(function(a, b) {
+    const ja = joursDepuis(a.rechercheDepuis), jb = joursDepuis(b.rechercheDepuis);
+    return (jb === null ? -1 : jb) - (ja === null ? -1 : ja);
+  });
+
+  let m = "APPRENTIS SANS CONTRAT\n" +
+    "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n";
+  m += liste.length + " sur " + total + " apprenti(s) actif(s), soit " +
+    Math.round((liste.length / total) * 100) + " %.\n\n";
+
+  let sansDate = 0, longs = 0;
+  liste.forEach(function(a) {
+    const nom = ((a.nom || "").toUpperCase() + " " + (a.prenom || "")).trim();
+    const cl = libelleClasseCourte(a.classe) || a.classe || "";
+    const j = joursDepuis(a.rechercheDepuis);
+    let suffixe;
+    if (j === null) { suffixe = "date de d\u00e9but non renseign\u00e9e"; sansDate++; }
+    else {
+      suffixe = "depuis " + j + " jour(s)";
+      if (j >= 60) { suffixe += "  \u26A0"; longs++; }
+    }
+    m += "   " + nom + " (" + cl + ") \u2014 " + suffixe + "\n";
+  });
+
+  if (longs > 0) {
+    m += "\n\u26A0 " + longs + " jeune(s) sans contrat depuis plus de deux mois.\n";
+    m += "   C'est le d\u00e9lai au-del\u00e0 duquel la plupart des abandons se d\u00e9cident.";
+  }
+  if (sansDate > 0) {
+    m += "\n\n" + sansDate + " fiche(s) sans date de d\u00e9but de recherche : renseignez-la pour suivre l'anciennet\u00e9.";
+  }
+  m += "\n\nCe d\u00e9compte alimente votre plan d'am\u00e9lioration sur l'indicateur 30.";
+  alert(m);
+}
+
+function majBandeauModeLocal() {
+  const u = utilisateurConnecte;
+  let bandeau = document.getElementById("bandeau-mode-local");
+  const enLocal = u && !u.sourceFirebase;
+  if (!enLocal) { if (bandeau) bandeau.remove(); return; }
+  if (!bandeau) {
+    bandeau = document.createElement("div");
+    bandeau.id = "bandeau-mode-local";
+    bandeau.className = "bandeau-local no-print";
+    const app = document.querySelector(".app-main") || document.body;
+    app.insertBefore(bandeau, app.firstChild);
+  }
+  bandeau.innerHTML = '\u26A0\uFE0F <strong>Compte de secours \u2014 aucune synchronisation.</strong> ' +
+    'Vous \u00eates connect\u00e9\u00b7e avec un compte int\u00e9gr\u00e9 au fichier. Les donn\u00e9es de vos coll\u00e8gues, ' +
+    'les r\u00e9clamations et les r\u00e9ponses aux enqu\u00eates ne remonteront pas. ' +
+    'Reconnectez-vous avec votre compte Firebase pour travailler en r\u00e9seau.';
+}
+
 function majBadgeAttestationRgpd() {
   const u = utilisateurConnecte;
   const popup = document.getElementById("popup-rgpd-todo");
@@ -44854,7 +45088,8 @@ function determinerApprentiIdActeurs() {
     }
   }
 
-  // Fallback : premier apprenti défini dans les profils
+  // Même règle que pour le carnet : le repli ne vaut que pour l'équipe.
+  if (u.role !== "mfr") return null;
   const apprentisPourFallback = JSON.parse(localStorage.getItem("mfr_profils_apprentis") || "[]");
   if (apprentisPourFallback.length > 0) return apprentisPourFallback[0].username;
   return null;
@@ -55496,6 +55731,9 @@ function envoyerMessageEntreprise() {
     lu: false
   });
   sauverMessagesEntreprise(messages);
+  // Sans cette remontée, le message resterait sur l'appareil du maître
+  // d'apprentissage : mfr_messages_entreprise appartient à l'espace équipe.
+  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
 
   document.getElementById("msg_texte").value = "";
   afficherToast("✓ Message envoyé à la MFR.");
