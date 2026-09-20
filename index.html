@@ -22986,7 +22986,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.05";
+const APP_VERSION = "5.06";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -40835,12 +40835,26 @@ const MODE_EMPLOI_CONTENU = {
                           "Trois onglets s'affichent en haut : <strong>🟢 Séance en cours</strong>, <strong>📋 Historique</strong>, <strong>🍽️ Repas et nuitées</strong>. Restez sur le premier.",
                           "Cliquez sur <strong>+ Ouvrir une nouvelle séance</strong>.",
                           "<strong>Classe</strong> : choisissez la vôtre dans la liste.",
+                          "<strong>Classes regroupées</strong> : si le cours réunit plusieurs classes — les deux années de CAP, le plus souvent — cochez les autres classes concernées. Laissez vide dans tous les autres cas.",
                           "<strong>Matière / séquence pédagogique</strong> : saisissez l'intitulé. Reprenez celui du planning, mot pour mot — c'est ce qui permet de recouper les deux.",
                           "<strong>Date</strong> : celle du jour s'affiche seule. Ne la changez que pour rattraper une séance passée.",
                           "<strong>Début</strong> et <strong>Fin</strong> : les horaires réels du cours.",
                           "Cliquez sur <strong>Ouvrir la séance</strong>. La liste de vos apprentis apparaît."
                       ],
                       "attention": "Une séance ouverte pour la mauvaise classe ne se déplace pas : il faut la supprimer et recommencer. Vérifiez la classe avant de valider.",
+                      "ou": "Mon espace > Émargement > Séance en cours"
+                  },
+                  {
+                      "titre": "Regrouper deux classes sur une même séance",
+                      "comment": "Quand un cours réunit les deux années de CAP, une seule feuille suffit.",
+                      "etapes": [
+                          "Ouvrez la séance normalement, en choisissant l'une des deux classes comme <strong>classe principale</strong>.",
+                          "Dans <strong>Classes regroupées</strong>, cochez l'autre classe.",
+                          "Validez : les apprentis des deux classes apparaissent sur la même liste.",
+                          "Pointez et clôturez comme pour une séance ordinaire, une seule fois.",
+                          "Le bandeau affiche les deux classes, séparées par un signe plus."
+                      ],
+                      "attention": "La séance apparaîtra dans les impressions de <strong>chacune</strong> des classes cochées : vous pouvez toujours sortir les émargements d'une seule classe pour un financeur. Inutile donc de dédoubler la saisie.",
                       "ou": "Mon espace > Émargement > Séance en cours"
                   },
                   {
