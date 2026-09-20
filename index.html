@@ -22981,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.03";
+const APP_VERSION = "5.04";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -40820,6 +40820,111 @@ const MODE_EMPLOI_CONTENU = {
               ]
           },
           {
+              "titre": "✍️ Émarger — le pas à pas complet",
+              "actions": [
+                  {
+                      "titre": "1. Ouvrir la séance",
+                      "comment": "À faire au début de chaque cours, avant de commencer.",
+                      "etapes": [
+                          "Menu latéral, rubrique <strong>Mon espace</strong>, cliquez sur <strong>✍️ Émargement</strong>.",
+                          "Trois onglets s'affichent en haut : <strong>🟢 Séance en cours</strong>, <strong>📋 Historique</strong>, <strong>🍽️ Repas et nuitées</strong>. Restez sur le premier.",
+                          "Cliquez sur <strong>+ Ouvrir une nouvelle séance</strong>.",
+                          "<strong>Classe</strong> : choisissez la vôtre dans la liste.",
+                          "<strong>Matière / séquence pédagogique</strong> : saisissez l'intitulé. Reprenez celui du planning, mot pour mot — c'est ce qui permet de recouper les deux.",
+                          "<strong>Date</strong> : celle du jour s'affiche seule. Ne la changez que pour rattraper une séance passée.",
+                          "<strong>Début</strong> et <strong>Fin</strong> : les horaires réels du cours.",
+                          "Cliquez sur <strong>Ouvrir la séance</strong>. La liste de vos apprentis apparaît."
+                      ],
+                      "attention": "Une séance ouverte pour la mauvaise classe ne se déplace pas : il faut la supprimer et recommencer. Vérifiez la classe avant de valider.",
+                      "ou": "Mon espace > Émargement > Séance en cours"
+                  },
+                  {
+                      "titre": "2. Pointer les apprentis",
+                      "comment": "Un clic par apprenti. Trois états possibles, et aucun par défaut.",
+                      "etapes": [
+                          "Chaque apprenti apparaît sur une ligne, avec trois boutons à droite.",
+                          "<strong>✅ Présent</strong> — il est là, à l'heure.",
+                          "<strong>⏱ Retard</strong> — il est arrivé après le début. Utilisez-le vraiment : un retard pointé comme présence efface une information utile au suivi.",
+                          "<strong>✗ Absent</strong> — il n'est pas là.",
+                          "Le bouton choisi se colore. Vous pouvez le changer tant que la séance n'est pas clôturée.",
+                          "Un compteur en haut indique combien de présents, de retards et d'absents ont été saisis."
+                      ],
+                      "attention": "Un apprenti sans aucun bouton coché n'est ni présent ni absent : il est <strong>non renseigné</strong>. En audit, cela ne prouve rien. Parcourez la liste entière avant de clôturer.",
+                      "ou": "Mon espace > Émargement > Séance en cours"
+                  },
+                  {
+                      "titre": "3. Clôturer et signer",
+                      "comment": "Le geste qui transforme votre saisie en justificatif. Sans lui, la séance ne vaut rien.",
+                      "etapes": [
+                          "En fin de cours, cliquez sur <strong>🔐 Clôturer et signer la séance</strong>, en bas de la liste.",
+                          "Une fenêtre vous demande de <strong>confirmer votre nom</strong> pour la signature. Il est pré-rempli : validez, ou corrigez-le.",
+                          "Un second message vous avertit que l'action est <strong>irréversible</strong> et qu'une empreinte numérique sera générée. Confirmez.",
+                          "Le message <em>✅ Séance clôturée et signée avec succès</em> confirme l'enregistrement.",
+                          "La séance bascule dans l'onglet <strong>📋 Historique</strong>."
+                      ],
+                      "attention": "Irréversible veut dire irréversible : ni vous ni la Direction ne pourrez modifier un pointage après clôture. Relisez la liste avant de signer.",
+                      "ou": "Mon espace > Émargement > Séance en cours"
+                  },
+                  {
+                      "titre": "Je me suis trompé·e avant de clôturer",
+                      "comment": "Tant que la séance est ouverte, tout reste modifiable.",
+                      "etapes": [
+                          "Cliquez simplement sur le bon bouton : il remplace le précédent.",
+                          "Si la classe ou la matière est fausse, supprimez la séance et rouvrez-en une.",
+                          "Aucune trace n'est conservée des états successifs avant clôture."
+                      ],
+                      "ou": "Mon espace > Émargement > Séance en cours"
+                  },
+                  {
+                      "titre": "Je me suis trompé·e après avoir clôturé",
+                      "comment": "Vous ne pouvez plus rien corriger vous-même. C'est voulu.",
+                      "etapes": [
+                          "Signalez l'erreur à la Direction, en précisant la classe, la date, la matière et l'apprenti concerné.",
+                          "La correction se fera par une mention tracée, jamais par une modification silencieuse.",
+                          "Ne rouvrez pas une seconde séance pour le même créneau : vous créeriez un doublon."
+                      ],
+                      "attention": "Une séance signée est une pièce justificative. La rendre modifiable lui ôterait toute valeur devant un financeur.",
+                      "ou": "Direction"
+                  },
+                  {
+                      "titre": "J'ai oublié d'émarger une séance passée",
+                      "comment": "Rattrapage possible, mais à faire vite.",
+                      "etapes": [
+                          "Ouvrez une nouvelle séance comme d'habitude.",
+                          "Dans le champ <strong>Date</strong>, saisissez la date réelle du cours — pas celle du jour.",
+                          "Renseignez les horaires réels, pointez, clôturez."
+                      ],
+                      "attention": "Un émargement saisi trois semaines après le cours reste traçable comme tel : l'horodatage de la signature ne ment pas. Faites-le le jour même ou le lendemain.",
+                      "ou": "Mon espace > Émargement > Séance en cours"
+                  },
+                  {
+                      "titre": "Retrouver et imprimer mes émargements",
+                      "comment": "Pour un contrôle, une demande de financeur, ou votre propre suivi.",
+                      "etapes": [
+                          "Onglet <strong>📋 Historique</strong>.",
+                          "Vos séances clôturées s'affichent, de la plus récente à la plus ancienne, avec le nombre de présents.",
+                          "Cliquez sur <strong>🖨️ Imprimer les émargements</strong>.",
+                          "Choisissez la <strong>portée</strong> : une classe, un apprenti, ou toutes les classes.",
+                          "Ajustez les <strong>dates</strong> : la semaine en cours est proposée par défaut.",
+                          "Cliquez sur <strong>📄 Télécharger en PDF</strong>, ou sur <strong>Aperçu et impression</strong> si le téléchargement échoue.",
+                          "Le bouton <strong>📥 Exporter en CSV</strong> produit un tableau exploitable dans un tableur."
+                      ],
+                      "attention": "Seules les séances <strong>clôturées et signées</strong> figurent dans ces documents. Une séance restée ouverte est invisible, donc inexistante pour le financeur.",
+                      "ou": "Mon espace > Émargement > Historique"
+                  },
+                  {
+                      "titre": "Pourquoi tout cela compte",
+                      "comment": "Deux minutes de contexte, qui font gagner du temps ensuite.",
+                      "etapes": [
+                          "L'émargement est la <strong>preuve de réalisation</strong> de la formation : c'est lui qui justifie le financement versé par l'OPCO.",
+                          "L'empreinte numérique générée à la signature garantit qu'aucun pointage n'a été modifié après coup.",
+                          "En cas de contrôle, un émargement manquant peut entraîner le remboursement des heures concernées."
+                      ],
+                      "ou": "—"
+                  }
+              ]
+          },
+          {
               "titre": "📅 Mon quotidien",
               "actions": [
                   {
@@ -40834,18 +40939,6 @@ const MODE_EMPLOI_CONTENU = {
                       ],
                       "attention": "Une séance non clôturée ne vaut rien. Elle n'apparaît ni dans les impressions, ni en audit, et le financement peut être refusé.",
                       "ou": "Menu > Émargement"
-                  },
-                  {
-                      "titre": "Imprimer les émargements",
-                      "comment": "Trois portées : un apprenti, une classe, ou toutes les classes.",
-                      "etapes": [
-                          "Menu > <strong>Émargement</strong>, onglet <strong>Historique</strong>.",
-                          "Cliquez sur <strong>🖨 Imprimer les émargements</strong>.",
-                          "Choisissez la portée : une classe, un apprenti, ou toutes les classes.",
-                          "Ajustez les dates. Par défaut, la semaine en cours du lundi au vendredi.",
-                          "Cliquez sur <strong>Télécharger en PDF</strong>, ou sur <strong>Aperçu et impression</strong>."
-                      ],
-                      "ou": "Menu > Émargement > Historique"
                   },
                   {
                       "titre": "Saisir une absence",
