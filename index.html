@@ -22981,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.96";
+const APP_VERSION = "4.97";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -23644,6 +23644,13 @@ function initialiserFirebase() {
     fbApp = firebase.initializeApp(FIREBASE_CONFIG);
     fbDb = firebase.firestore();
     fbAuth = firebase.auth();
+    // Le partage est effectif dès que Firebase reconnaît quelqu'un.
+    fbAuth.onAuthStateChanged(function(user) {
+      FIREBASE_ACTIF = !!user;
+      if (typeof majBandeauModeLocal === "function") {
+        try { majBandeauModeLocal(); } catch (e) {}
+      }
+    });
     return true;
   } catch (e) {
     fbApp = null; fbDb = null; fbAuth = null;
@@ -24020,7 +24027,7 @@ async function traiterUnCompteFirebase(item, code) {
     const fiche = ficheAnnuaire(item.profil, item.role, item.identifiant);
     let ecritureParDirection = false;
     if (fbAuth && fbAuth.currentUser && utilisateurConnecte
-        && utilisateurConnecte.role === "mfr" && utilisateurConnecte.sourceFirebase) {
+        && utilisateurConnecte.role === "mfr" && firebaseNousReconnait()) {
       try {
         await fbDb.collection("annuaire").doc(utilisateur.uid).set(fiche);
         ecritureParDirection = true;
@@ -24332,7 +24339,10 @@ async function lancerReceptionFirestore() {
 async function synchroniserALaConnexion() {
   try {
     const u = utilisateurConnecte;
-    if (!u || !u.sourceFirebase) return;
+    // Même correction : la synchronisation était sautée dès que la connexion
+    // était passée par le chemin local, alors que Firebase reconnaissait
+    // parfaitement l'utilisateur et aurait accepté les écritures.
+    if (!u || !firebaseNousReconnait()) return;
     const r = await recevoirDepuisFirestore(true);
     if (typeof recevoirMesDonneesPersonnelles === "function") {
       await recevoirMesDonneesPersonnelles();
@@ -42592,10 +42602,18 @@ function afficherSuiviSansContrat() {
   alert(m);
 }
 
+// La session Firebase persiste d'une connexion à l'autre dans le navigateur.
+// Savoir par quel chemin la connexion est passée ne dit donc rien de
+// l'état réel : seul compte le fait que Firebase nous reconnaisse au
+// moment d'écrire, puisque c'est ce que vérifient les règles de sécurité.
+function firebaseNousReconnait() {
+  try { return !!(fbAuth && fbAuth.currentUser); } catch (e) { return false; }
+}
+
 function majBandeauModeLocal() {
   const u = utilisateurConnecte;
   let bandeau = document.getElementById("bandeau-mode-local");
-  const enLocal = u && !u.sourceFirebase;
+  const enLocal = u && !firebaseNousReconnait();
   if (!enLocal) { if (bandeau) bandeau.remove(); return; }
   if (!bandeau) {
     bandeau = document.createElement("div");
