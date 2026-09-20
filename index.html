@@ -22934,7 +22934,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.80";
+const APP_VERSION = "4.81";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24286,6 +24286,9 @@ async function synchroniserALaConnexion() {
     const u = utilisateurConnecte;
     if (!u || !u.sourceFirebase) return;
     const r = await recevoirDepuisFirestore(true);
+    if (typeof recevoirMesDonneesPersonnelles === "function") {
+      await recevoirMesDonneesPersonnelles();
+    }
     if (r.recues > 0 && typeof rechargerDonneesEnMemoire === "function") {
       rechargerDonneesEnMemoire();
     }
@@ -24501,6 +24504,140 @@ function afficherRecensementMajorite() {
 }
 
 function recensementMajorite_fin() {}
+
+// =================================================================
+// FIREBASE — LOT 4 : DONNÉES ÉCRITES PAR L'UTILISATEUR
+// -----------------------------------------------------------------
+// Les lots précédents partagent des données que seule l'équipe écrit.
+// Restent celles que l'apprenti produit lui-même : son carnet de liaison,
+// ses réponses aux enquêtes, ses signatures de repas et de nuitées.
+//
+// Elles ne peuvent pas vivre dans un document commun : un apprenti qui
+// pourrait y écrire pourrait aussi écrire chez les autres. Chacun dispose
+// donc de son propre document, perso/<uid>, qu'il est seul à écrire et que
+// l'équipe peut lire.
+//
+// L'équipe agrège ces documents au moment d'en avoir besoin : c'est ce que
+// fait la validation hebdomadaire de la vie résidentielle.
+// =================================================================
+
+function clesPersonnelles(username) {
+  if (!username) return [];
+  return ["carnet_" + username, "enquetes_reponses_" + username,
+          "mfr_eval_dejafaites_" + username];
+}
+
+// Signatures de repas et de nuitées propres à un apprenti, extraites de
+// l'agrégat local pour être poussées dans son document personnel.
+function mesSignaturesVR(username) {
+  const tout = chargerEmargVR();
+  const mien = {};
+  Object.keys(tout).forEach(function(cle) {
+    if (cle.indexOf("__") === 0) return;          // __validations
+    if (tout[cle] && tout[cle][username]) mien[cle] = tout[cle][username];
+  });
+  return mien;
+}
+
+async function envoyerMesDonneesPersonnelles(silencieux) {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { envoyees: 0 };
+  const u = utilisateurConnecte;
+  if (!u) return { envoyees: 0 };
+
+  const paquet = { identifiant: u.id, role: u.role, modifieLe: new Date().toISOString() };
+  let envoyees = 0;
+
+  clesPersonnelles(u.id).forEach(function(cle) {
+    let brut = null;
+    try { brut = localStorage.getItem(cle); } catch (e) {}
+    if (brut && brut !== "[]" && brut !== "{}") { paquet[cle] = brut; envoyees++; }
+  });
+
+  if (u.role === "apprenti") {
+    const sig = mesSignaturesVR(u.id);
+    if (Object.keys(sig).length > 0) { paquet.signaturesVR = JSON.stringify(sig); envoyees++; }
+  }
+
+  try {
+    await fbDb.collection("perso").doc(fbAuth.currentUser.uid).set(paquet);
+    return { envoyees: envoyees };
+  } catch (e) {
+    if (!silencieux && window.console) console.warn("perso", e);
+    return { envoyees: 0, erreur: (e && e.code) || "erreur" };
+  }
+}
+
+async function recevoirMesDonneesPersonnelles() {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { recues: 0 };
+  try {
+    const doc = await fbDb.collection("perso").doc(fbAuth.currentUser.uid).get();
+    if (!doc.exists) return { recues: 0 };
+    const d = doc.data() || {};
+    let recues = 0;
+    Object.keys(d).forEach(function(cle) {
+      if (["identifiant", "role", "modifieLe", "signaturesVR"].indexOf(cle) >= 0) return;
+      if (typeof d[cle] !== "string") return;
+      try { JSON.parse(d[cle]); } catch (e) { return; }
+      localStorage.setItem(cle, d[cle]);
+      recues++;
+    });
+    // Les signatures rejoignent l'agrégat local, sans écraser celles des autres.
+    if (typeof d.signaturesVR === "string" && utilisateurConnecte) {
+      try {
+        const sig = JSON.parse(d.signaturesVR);
+        const tout = chargerEmargVR();
+        Object.keys(sig).forEach(function(cle) {
+          if (!tout[cle]) tout[cle] = {};
+          tout[cle][utilisateurConnecte.id] = sig[cle];
+        });
+        sauverEmargVR(tout);
+        recues++;
+      } catch (e) {}
+    }
+    return { recues: recues };
+  } catch (e) { return { recues: 0, erreur: (e && e.code) || "erreur" }; }
+}
+
+// --- Côté équipe : agrégation des signatures de toute une classe ---------
+async function agregerSignaturesVR(classe) {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { lus: 0, appliquees: 0 };
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) {
+      return (!classe || a.classe === classe) && (a.statut || "actif") !== "archive" && a.uidFirebase;
+    });
+
+  const tout = chargerEmargVR();
+  let lus = 0, appliquees = 0;
+  for (let i = 0; i < apprentis.length; i++) {
+    const a = apprentis[i];
+    try {
+      const doc = await fbDb.collection("perso").doc(a.uidFirebase).get();
+      if (!doc.exists) continue;
+      lus++;
+      const d = doc.data() || {};
+      if (typeof d.signaturesVR !== "string") continue;
+      const sig = JSON.parse(d.signaturesVR);
+      Object.keys(sig).forEach(function(cle) {
+        if (!tout[cle]) tout[cle] = {};
+        tout[cle][a.username] = sig[cle];
+        appliquees++;
+      });
+    } catch (e) { /* document inaccessible : on passe */ }
+  }
+  if (appliquees > 0) sauverEmargVR(tout);
+  return { lus: lus, appliquees: appliquees };
+}
+
+async function rafraichirSignaturesVR() {
+  const classe = (document.getElementById("vr-classe") || {}).value;
+  const r = await agregerSignaturesVR(classe);
+  alert("\u2705 " + r.lus + " dossier(s) consult\u00e9(s), " + r.appliquees +
+    " signature(s) r\u00e9cup\u00e9r\u00e9e(s).\n\n" +
+    (r.appliquees === 0
+      ? "Aucune nouvelle signature. Les apprentis signent depuis leur espace, dans la plage horaire du service."
+      : "Le tableau est \u00e0 jour. V\u00e9rifiez les cases orange avant de valider."));
+  if (typeof rafraichirValidationVR === "function") rafraichirValidationVR();
+}
 
 function normaliserIdentifiantConnexion(v) {
   return (v || "").toString().trim().toLowerCase()
@@ -42322,6 +42459,8 @@ function signerServiceVR(cle) {
     tardive: signatureTardive(service, new Date().toISOString())
   };
   if (!sauverEmargVR(donnees)) return;
+  // Remontée immédiate : sans elle, la signature resterait sur ce seul appareil.
+  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
   afficherVieResidentielle();
 }
 
@@ -42337,6 +42476,7 @@ function ecranVRValidation() {
       classes.map(function(c) { return '<option value="' + c + '">' + escapeHTML(CLASSES[c]) + '</option>'; }).join("") +
     '</select></label>' +
     '<label>Semaine du <input type="date" id="vr-lundi" value="' + lundi + '" onchange="rafraichirValidationVR()"></label>' +
+    '<button class="btn-mini" onclick="rafraichirSignaturesVR()">\u21bb R\u00e9cup\u00e9rer les signatures</button>' +
     '<button class="btn-mini" onclick="imprimerVieResidentielle()">\u{1F5A8}\uFE0F Imprimer / PDF</button>' +
     '</div><div id="vr-tableau"></div>';
   setTimeout(rafraichirValidationVR, 0);
@@ -42583,6 +42723,7 @@ function ouvrirAppreciationApprenti() {
       s2.observationJeuneLe = new Date().toISOString();
       try { localStorage.setItem("carnet_" + u.id, JSON.stringify(c)); }
       catch (e) { alert("M\u00e9moire satur\u00e9e : l\'appr\u00e9ciation n\'a pas \u00e9t\u00e9 enregistr\u00e9e."); return; }
+      if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
       alert("\u2705 Votre appr\u00e9ciation est enregistr\u00e9e.\n\nVotre moniteur y r\u00e9pondra.");
       if (typeof afficherAccueil === "function") afficherAccueil();
     }
