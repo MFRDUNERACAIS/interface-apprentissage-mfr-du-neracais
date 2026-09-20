@@ -22981,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.95";
+const APP_VERSION = "4.96";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -25474,6 +25474,12 @@ async function login() {
         };
       }
     }
+  }
+
+  if (user && !user.sourceFirebase && raisonFirebase) {
+    // On garde la raison pour l'expliquer dans le bandeau : « pas de
+    // synchronisation » sans cause laisse chercher longtemps.
+    user.raisonFirebase = raisonFirebase;
   }
 
   if (!user) {
@@ -42598,10 +42604,24 @@ function majBandeauModeLocal() {
     const app = document.querySelector(".app-main") || document.body;
     app.insertBefore(bandeau, app.firstChild);
   }
-  bandeau.innerHTML = '\u26A0\uFE0F <strong>Compte de secours \u2014 aucune synchronisation.</strong> ' +
-    'Vous \u00eates connect\u00e9\u00b7e avec un compte int\u00e9gr\u00e9 au fichier. Les donn\u00e9es de vos coll\u00e8gues, ' +
-    'les r\u00e9clamations et les r\u00e9ponses aux enqu\u00eates ne remonteront pas. ' +
-    'Reconnectez-vous avec votre compte Firebase pour travailler en r\u00e9seau.';
+  const causes = {
+    refuse: "Firebase a refus\u00e9 cet identifiant ou ce code. Votre mot de passe local " +
+      "et celui de Firebase ne sont plus les m\u00eames : utilisez \u{1F527} R\u00e9parer un compte Firebase, " +
+      "ou supprimez le compte dans la console puis relancez \u2601\uFE0F Cr\u00e9er les comptes.",
+    sans_annuaire: "Votre compte existe dans Firebase mais sa fiche d'annuaire est manquante. " +
+      "Publiez les r\u00e8gles de bascule, relancez \u2601\uFE0F Cr\u00e9er les comptes, puis refermez les r\u00e8gles.",
+    trop_de_tentatives: "Firebase a bloqu\u00e9 ce compte apr\u00e8s plusieurs tentatives. " +
+      "Patientez quelques minutes et reconnectez-vous.",
+    archive: "Ce compte est archiv\u00e9 dans Firebase.",
+    indisponible: "Firebase n'a pas r\u00e9pondu : connexion internet, ou blocage du navigateur."
+  };
+  const u2 = utilisateurConnecte;
+  const cause = (u2 && u2.raisonFirebase) ? causes[u2.raisonFirebase] : null;
+  bandeau.innerHTML = '\u26A0\uFE0F <strong>Aucune synchronisation \u2014 vous travaillez en local.</strong> ' +
+    (cause ? cause : "Vous \u00eates connect\u00e9\u00b7e avec un compte int\u00e9gr\u00e9 au fichier, qui ne dialogue pas avec Firebase.") +
+    '<br>Tant que ce bandeau s\'affiche, les donn\u00e9es de vos coll\u00e8gues, les r\u00e9clamations et ' +
+    'les r\u00e9ponses aux enqu\u00eates ne remonteront pas. ' +
+    '<button class="btn-mini" onclick="testerConnexionFirebase()" style="margin-left:0.5rem;">\u{1F525} Diagnostiquer</button>';
 }
 
 function majBadgeAttestationRgpd() {
