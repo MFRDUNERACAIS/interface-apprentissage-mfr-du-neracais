@@ -21956,7 +21956,7 @@
       <!-- Mode de stockage actuel (indicateur) -->
       <div class="droits-info-card alerte-douce">
         <h3>📌 Mode de fonctionnement actuel</h3>
-        <p id="modeStockageIndicateur">L'application est actuellement en <strong>mode test local</strong> : les profils créés sont stockés dans votre navigateur uniquement et ne sont pas partagés. Ce mode permet de valider l'ergonomie avant le branchement à Google Sheets (Livraison B).</p>
+        <p id="modeStockageIndicateur">…</p>
       </div>
 
       <!-- Administration technique (réservé Direction) -->
@@ -22981,7 +22981,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.97";
+const APP_VERSION = "4.99";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -25527,6 +25527,7 @@ async function login() {
   if (typeof majPopupCharte === "function") majPopupCharte();
   if (typeof majPopupConsentementFamille === "function") majPopupConsentementFamille();
   if (typeof majBandeauModeLocal === "function") majBandeauModeLocal();
+  if (typeof majIndicateurModeStockage === "function") majIndicateurModeStockage();
   if (typeof chargerAlertes === "function" && utilisateurConnecte && utilisateurConnecte.role === "mfr") {
     setTimeout(function() { try { chargerAlertes(); } catch(e){} }, 300);
   }
@@ -32667,6 +32668,7 @@ function changerSousPageProfils(souspage) {
   if (souspage === "salaries" && typeof filtrerSalaries === "function") {
     filtrerSalaries();
   }
+  if (typeof majIndicateurModeStockage === "function") majIndicateurModeStockage();
   if (souspage === "documents" && typeof filtrerDocuments === "function") {
     filtrerDocuments();
   }
@@ -42610,6 +42612,35 @@ function firebaseNousReconnait() {
   try { return !!(fbAuth && fbAuth.currentUser); } catch (e) { return false; }
 }
 
+// L'indicateur de mode annonçait un « mode test local » et un branchement
+// à venir sur Google Sheets, orientation abandonnée au profit de Firebase.
+// Il est désormais calculé à partir de l'état réel de la connexion.
+function majIndicateurModeStockage() {
+  const el = document.getElementById("modeStockageIndicateur");
+  if (!el) return;
+  const actif = (typeof firebaseNousReconnait === "function") && firebaseNousReconnait();
+  if (actif) {
+    let dernier = "";
+    try {
+      const doc = localStorage.getItem("mfr_profils_apprentis");
+      if (doc) dernier = "";
+    } catch (e) {}
+    el.innerHTML = "L'application fonctionne en <strong>mode partag\u00e9</strong> : les donn\u00e9es " +
+      "sont synchronis\u00e9es avec la base " +
+      "<strong>" + (typeof FIREBASE_CONFIG !== "undefined" ? FIREBASE_CONFIG.projectId : "") + "</strong>, " +
+      "h\u00e9berg\u00e9e dans l'Union europ\u00e9enne. Vos coll\u00e8gues voient les m\u00eames informations " +
+      "depuis leur poste.<br><br>" +
+      "Le stockage local subsiste en secours : si la base ne r\u00e9pond pas, l'application " +
+      "continue de fonctionner sur ce poste.";
+    el.parentNode.style.borderLeftColor = "#4C7A34";
+  } else {
+    el.innerHTML = "\u26A0\uFE0F L'application fonctionne <strong>en local sur ce poste</strong> : " +
+      "rien n'est partag\u00e9 avec vos coll\u00e8gues. " +
+      "Reconnectez-vous avec votre compte Firebase pour r\u00e9tablir la synchronisation.";
+    el.parentNode.style.borderLeftColor = "#C97A4F";
+  }
+}
+
 function majBandeauModeLocal() {
   const u = utilisateurConnecte;
   let bandeau = document.getElementById("bandeau-mode-local");
@@ -42639,7 +42670,7 @@ function majBandeauModeLocal() {
     (cause ? cause : "Vous \u00eates connect\u00e9\u00b7e avec un compte int\u00e9gr\u00e9 au fichier, qui ne dialogue pas avec Firebase.") +
     '<br>Tant que ce bandeau s\'affiche, les donn\u00e9es de vos coll\u00e8gues, les r\u00e9clamations et ' +
     'les r\u00e9ponses aux enqu\u00eates ne remonteront pas. ' +
-    '<button class="btn-mini" onclick="testerConnexionFirebase()" style="margin-left:0.5rem;">\u{1F525} Diagnostiquer</button>';
+    '<button class="btn-mini" onclick="testerConnexionFirebase()" style="margin-left:0.5rem;">🔥 Diagnostiquer</button>';
 }
 
 function majBadgeAttestationRgpd() {
