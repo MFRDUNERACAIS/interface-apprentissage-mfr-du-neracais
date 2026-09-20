@@ -9837,6 +9837,30 @@
     background: #EDE7F6; border-left: 4px solid #6A4FA3; border-radius: 8px;
     padding: 0.7rem 0.95rem; margin-bottom: 1rem; font-size: 0.89rem;
   }
+  /* Plan d'etude et travail a faire */
+  .plan-bloc { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 1.1rem 1.3rem; }
+  .plan-entete h3 { color: var(--olive-dark); margin-bottom: 0.2rem; }
+  .plan-meta { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.8rem; }
+  .plan-intro {
+    background: var(--beige); border-left: 4px solid var(--or);
+    padding: 0.7rem 0.9rem; border-radius: 6px; margin-bottom: 0.9rem; font-size: 0.92rem;
+  }
+  .plan-taches { list-style: none; padding: 0; margin: 0; }
+  .plan-tache { border-bottom: 1px solid var(--border); padding: 0.55rem 0.2rem; }
+  .plan-tache:last-child { border-bottom: none; }
+  .plan-tache label { display: flex; align-items: flex-start; gap: 0.55rem; cursor: pointer; font-size: 0.93rem; }
+  .plan-tache.est-fait label { color: var(--text-muted); text-decoration: line-through; }
+  .plan-case { font-size: 1.05rem; line-height: 1.2; }
+  .plan-module {
+    background: var(--beige); border-radius: 999px; padding: 0.05rem 0.55rem;
+    font-size: 0.76rem; color: var(--olive-dark); font-weight: 600; white-space: nowrap;
+  }
+  .plan-avancement {
+    margin-top: 0.8rem; padding: 0.5rem 0.8rem; background: #F1F8E9;
+    border-left: 4px solid var(--olive); border-radius: 6px; font-size: 0.9rem; font-weight: 600;
+  }
+  .plan-actions { margin-top: 1rem; display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .plan-vide { font-size: 0.9rem; color: var(--text-muted); font-style: italic; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -16465,6 +16489,9 @@
         <button class="tab" data-page="emargement" onclick="changerPage('emargement')">
           <span class="tab-icon">✍️</span><span class="tab-label">Émargement</span>
         </button>
+        <button class="tab" data-page="plan-etude" onclick="changerPage('plan-etude')">
+          <span class="tab-icon">📋</span><span class="tab-label">Travail à faire</span>
+        </button>
         <button class="tab" data-page="demandes-rdv" onclick="changerPage('demandes-rdv')">
           <span class="tab-icon">📅</span><span class="tab-label">Demandes de RDV <span id="badgeRdvAttente" class="tab-badge" style="display:none;">0</span></span>
         </button>
@@ -16515,7 +16542,7 @@
         <button class="tab" data-page="evaluations-competences" onclick="changerPage('evaluations-competences')">
           <span class="tab-icon">📋</span><span class="tab-label">Évaluations compétences <span id="badgeEvalCompetences" class="tab-badge" style="display:none;background:#C97A4F;">0</span></span>
         </button>
-        <button class="tab" data-page="suivi-carnets" onclick="changerPage('suivi-carnets')">
+        <button class="tab tab-mfr" data-page="suivi-carnets" onclick="changerPage('suivi-carnets')" style="display:none;">
           <span class="tab-icon">📊</span><span class="tab-label">Suivi des carnets <span id="badgeSuiviCarnets" class="tab-badge" style="display:none;background:#5C6F3E;">0</span></span>
         </button>
         <button class="tab" data-page="sante-securite" onclick="changerPage('sante-securite')">
@@ -16989,19 +17016,19 @@
             </div>
             <div class="carnet-champ">
               <label>Prénom du contact</label>
-              <input type="text" data-acteurs="urgence_prenom" data-roles-edit="mfr">
+              <input type="text" data-acteurs="urgence_prenom" data-roles-edit="mfr,apprenti">
             </div>
             <div class="carnet-champ">
               <label>Nom du contact</label>
-              <input type="text" data-acteurs="urgence_nom" data-roles-edit="mfr">
+              <input type="text" data-acteurs="urgence_nom" data-roles-edit="mfr,apprenti">
             </div>
             <div class="carnet-champ carnet-champ-full">
               <label>Téléphone</label>
-              <input type="tel" data-acteurs="urgence_tel" data-roles-edit="mfr">
+              <input type="tel" data-acteurs="urgence_tel" data-roles-edit="mfr,apprenti">
             </div>
             <div class="carnet-champ carnet-champ-full">
               <label>Lien avec l'apprenti·e</label>
-              <input type="text" data-acteurs="urgence_lien" placeholder="Ex. mère, père, tuteur, oncle…" data-roles-edit="mfr">
+              <input type="text" data-acteurs="urgence_lien" placeholder="Ex. mère, père, tuteur, oncle…" data-roles-edit="mfr,apprenti">
             </div>
           </div>
         </div>
@@ -21836,6 +21863,10 @@
     </div>
 
     <!-- PAGE ÉMARGEMENT (visible MFR uniquement) -->
+    <div id="page-plan-etude" class="page">
+      <div id="plan-etude-contenu"></div>
+    </div>
+
     <div id="page-emargement" class="page">
       <div class="emarg-header">
         <h2>✍️ Émargement des séances pédagogiques</h2>
@@ -22084,6 +22115,7 @@
           <button class="btn-secondary" onclick="creerComptesFirebase()">☁️ Créer les comptes Firebase</button>
           <button class="btn-secondary" onclick="lancerEnvoiFirestore()">⬆️ Envoyer les données vers la base partagée</button>
           <button class="btn-secondary" onclick="lancerReceptionFirestore()">⬇️ Récupérer les données partagées</button>
+          <button class="btn-secondary" onclick="ramasserDepots()">📥 Ramasser les réclamations et signalements</button>
           <button class="btn-secondary" onclick="reparerCompteFirebase()">🔧 Réparer un compte Firebase</button>
           <button class="btn-secondary" onclick="ouvrirImport('salarie')">📥 Importer depuis CSV</button>
           <button class="btn-secondary" onclick="exporterProfils('salarie')">📊 Exporter CSV</button>
@@ -22940,7 +22972,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "4.83";
+const APP_VERSION = "4.91";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24139,6 +24171,7 @@ const CLES_SYNC_EQUIPE = [
 
 // Lues par tout compte authentifié, écrites par l'équipe seule.
 const CLES_SYNC_PARTAGE = [
+  "mfr_plans_etude",
   "mfr_plannings_hebdo", "mfr_annees_scolaires", "mfr_annee_scolaire_courante",
   "mfr_profils_documents", "mfr_docs_rgpd_institutionnels", "mfr_eval_matieres",
   "mfr_enquetes_calendrier", "mfr_actualites", "mfr_erasmus_sejour",
@@ -24294,6 +24327,11 @@ async function synchroniserALaConnexion() {
     const r = await recevoirDepuisFirestore(true);
     if (typeof recevoirMesDonneesPersonnelles === "function") {
       await recevoirMesDonneesPersonnelles();
+    }
+    // L'équipe ramasse les dépôts au passage : une réclamation déposée la
+    // veille doit être visible dès l'ouverture, sans geste supplémentaire.
+    if (u.role === "mfr" && typeof ramasserDepotsSilencieux === "function") {
+      await ramasserDepotsSilencieux();
     }
     if (r.recues > 0 && typeof rechargerDonneesEnMemoire === "function") {
       rechargerDonneesEnMemoire();
@@ -24559,9 +24597,28 @@ async function envoyerMesDonneesPersonnelles(silencieux) {
     if (brut && brut !== "[]" && brut !== "{}") { paquet[cle] = brut; envoyees++; }
   });
 
+  // Réclamations, signalements et demandes de rendez-vous déposés par cet
+  // utilisateur, quel que soit son rôle : ils ne peuvent pas écrire dans
+  // l'espace équipe, ils passent donc par leur document personnel.
+  if (u.role !== "mfr") {
+    try {
+      const dep = mesDepots(u.id);
+      if (Object.keys(dep).length > 0) { paquet.depots = JSON.stringify(dep); envoyees++; }
+    } catch (e) {}
+  }
+
   if (u.role === "apprenti") {
     const sig = mesSignaturesVR(u.id);
     if (Object.keys(sig).length > 0) { paquet.signaturesVR = JSON.stringify(sig); envoyees++; }
+    // Coches du travail à faire, propres à cet apprenti.
+    try {
+      const tout = chargerTachesFaites();
+      const mien = {};
+      Object.keys(tout).forEach(function(cle) {
+        if (cle.indexOf(u.id + "|") === 0) mien[cle] = tout[cle];
+      });
+      if (Object.keys(mien).length > 0) { paquet.tachesFaites = JSON.stringify(mien); envoyees++; }
+    } catch (e) {}
   }
 
   try {
@@ -24581,12 +24638,20 @@ async function recevoirMesDonneesPersonnelles() {
     const d = doc.data() || {};
     let recues = 0;
     Object.keys(d).forEach(function(cle) {
-      if (["identifiant", "role", "modifieLe", "signaturesVR"].indexOf(cle) >= 0) return;
+      if (["identifiant", "role", "modifieLe", "signaturesVR", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
       if (typeof d[cle] !== "string") return;
       try { JSON.parse(d[cle]); } catch (e) { return; }
       localStorage.setItem(cle, d[cle]);
       recues++;
     });
+    if (typeof d.tachesFaites === "string") {
+      try {
+        const mien = JSON.parse(d.tachesFaites);
+        const tout = chargerTachesFaites();
+        Object.keys(mien).forEach(function(cle) { tout[cle] = mien[cle]; });
+        sauverTachesFaites(tout);
+      } catch (e) {}
+    }
     // Les signatures rejoignent l'agrégat local, sans écraser celles des autres.
     if (typeof d.signaturesVR === "string" && utilisateurConnecte) {
       try {
@@ -24628,6 +24693,15 @@ async function agregerSignaturesVR(classe) {
         tout[cle][a.username] = sig[cle];
         appliquees++;
       });
+      // Les coches du travail à faire remontent par le même chemin.
+      if (typeof d.tachesFaites === "string") {
+        try {
+          const mien = JSON.parse(d.tachesFaites);
+          const faites = chargerTachesFaites();
+          Object.keys(mien).forEach(function(c2) { faites[c2] = mien[c2]; });
+          sauverTachesFaites(faites);
+        } catch (e) {}
+      }
     } catch (e) { /* document inaccessible : on passe */ }
   }
   if (appliquees > 0) sauverEmargVR(tout);
@@ -24643,6 +24717,442 @@ async function rafraichirSignaturesVR() {
       ? "Aucune nouvelle signature. Les apprentis signent depuis leur espace, dans la plage horaire du service."
       : "Le tableau est \u00e0 jour. V\u00e9rifiez les cases orange avant de valider."));
   if (typeof rafraichirValidationVR === "function") rafraichirValidationVR();
+}
+
+// =================================================================
+// PLAN D'ÉTUDE ET TRAVAIL À FAIRE
+// -----------------------------------------------------------------
+// Le référent dépose chaque semaine le plan d'étude de sa classe. Il est
+// le plus souvent commun aux deux CAP : une case à cocher le publie alors
+// pour les deux d'un seul geste, sans dupliquer la saisie.
+//
+// L'apprenti coche ce qu'il a fait. Ses coches lui sont propres : elles
+// vivent dans son document personnel, comme ses signatures de repas.
+// =================================================================
+
+function chargerPlansEtude() {
+  try { return JSON.parse(localStorage.getItem("mfr_plans_etude") || "[]"); }
+  catch (e) { return []; }
+}
+
+function sauverPlansEtude(liste) {
+  try { localStorage.setItem("mfr_plans_etude", JSON.stringify(liste)); return true; }
+  catch (e) { alert("M\u00e9moire du navigateur satur\u00e9e : le plan n'a pas \u00e9t\u00e9 enregistr\u00e9."); return false; }
+}
+
+function planEtudePourSemaine(classe, lundiISO) {
+  return chargerPlansEtude().find(function(p) {
+    return p.lundi === lundiISO && Array.isArray(p.classes) && p.classes.indexOf(classe) >= 0;
+  }) || null;
+}
+
+// --- État des tâches, propre à chaque apprenti -------------------------
+function chargerTachesFaites() {
+  try { return JSON.parse(localStorage.getItem("mfr_plans_faits") || "{}"); }
+  catch (e) { return {}; }
+}
+
+function sauverTachesFaites(d) {
+  try { localStorage.setItem("mfr_plans_faits", JSON.stringify(d)); return true; }
+  catch (e) { return false; }
+}
+
+function tacheEstFaite(username, planId, tacheId) {
+  const d = chargerTachesFaites();
+  const cle = username + "|" + planId + "|" + tacheId;
+  return !!(d[cle] && d[cle].fait);
+}
+
+function basculerTache(planId, tacheId) {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  const d = chargerTachesFaites();
+  const cle = u.id + "|" + planId + "|" + tacheId;
+  if (d[cle] && d[cle].fait) delete d[cle];
+  else d[cle] = { fait: true, le: new Date().toISOString() };
+  if (!sauverTachesFaites(d)) return;
+  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
+  afficherPlanEtude();
+}
+
+function peutGererPlansEtude() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "mfr") return false;
+  if (["pascale.dauge", "secretariat", "test.admin"].indexOf(u.id) >= 0) return true;
+  return (typeof estReferentCAP === "function") ? estReferentCAP() : false;
+}
+
+// --- Écran ---------------------------------------------------------------
+function afficherPlanEtude() {
+  const zone = document.getElementById("plan-etude-contenu");
+  if (!zone) return;
+  const u = utilisateurConnecte;
+  if (!u) { zone.innerHTML = ""; return; }
+  if (peutGererPlansEtude()) zone.innerHTML = ecranPlanReferent();
+  else zone.innerHTML = ecranPlanConsultation(u);
+}
+
+// Vue de l'apprenti, de sa famille et de son maître d'apprentissage.
+function ecranPlanConsultation(u) {
+  let classe = "";
+  if (u.role === "apprenti") {
+    const a = PROFILS_APPRENTIS.find(function(x) { return x.username === u.id; });
+    classe = a ? a.classe : "";
+  } else if (u.role === "parent") {
+    const fam = PROFILS_FAMILLES.find(function(x) { return x.username === u.id; });
+    const enfants = fam ? apprentisDeFamille(fam) : [];
+    classe = enfants.length ? enfants[0].classe : "";
+  } else if (u.role === "maitre") {
+    const l = PROFILS_LIEUX.find(function(x) { return x.username === u.id; });
+    const app = l ? PROFILS_APPRENTIS.find(function(x) { return x.lieuId === l.id; }) : null;
+    classe = app ? app.classe : "";
+  }
+  if (!classe) return '<div class="vr-info">Aucune classe rattach\u00e9e \u00e0 votre compte.</div>';
+
+  const lundi = lundiDeLaSemaine(new Date());
+  const plan = planEtudePourSemaine(classe, lundi);
+  if (!plan) {
+    return '<div class="vr-info">\u{1F4C4} Aucun plan d\'\u00e9tude publi\u00e9 pour la semaine du ' +
+      dateFr(lundi) + '.</div>';
+  }
+  return blocPlan(plan, u.role === "apprenti" ? u.id : null, false);
+}
+
+function blocPlan(plan, usernameApprenti, pourImpression) {
+  let h = '<div class="plan-bloc">';
+  h += '<div class="plan-entete"><h3>\u{1F4CB} ' + escapeHTML(plan.titre || "Plan d\'\u00e9tude") + '</h3>';
+  h += '<div class="plan-meta">Semaine du ' + dateFr(plan.lundi) + ' \u2014 ' +
+    plan.classes.map(function(c) { return escapeHTML(libelleClasseCourte(c) || c); }).join(" \u00b7 ") + '</div></div>';
+  if (plan.intro) h += '<div class="plan-intro">' + escapeHTML(plan.intro).replace(/\n/g, "<br>") + '</div>';
+
+  const taches = plan.taches || [];
+  if (taches.length === 0) {
+    h += '<p class="plan-vide">Aucune t\u00e2che list\u00e9e.</p>';
+  } else {
+    let faites = 0;
+    h += '<ul class="plan-taches">';
+    taches.forEach(function(t) {
+      const fait = usernameApprenti ? tacheEstFaite(usernameApprenti, plan.id, t.id) : false;
+      if (fait) faites++;
+      h += '<li class="plan-tache' + (fait ? ' est-fait' : '') + '">';
+      if (usernameApprenti && !pourImpression) {
+        h += '<label><input type="checkbox" ' + (fait ? 'checked' : '') +
+          ' onchange="basculerTache(\'' + plan.id + '\',\'' + t.id + '\')"> ';
+      } else {
+        h += '<label><span class="plan-case">' + (pourImpression ? "\u2610" : (fait ? "\u2611" : "\u2610")) + '</span> ';
+      }
+      if (t.module) h += '<span class="plan-module">' + escapeHTML(t.module) + '</span> ';
+      h += escapeHTML(t.libelle) + '</label></li>';
+    });
+    h += '</ul>';
+    if (usernameApprenti && !pourImpression) {
+      h += '<div class="plan-avancement">' + faites + ' sur ' + taches.length +
+        ' \u2014 ' + Math.round((faites / taches.length) * 100) + ' %</div>';
+    }
+  }
+  h += '</div>';
+  return h;
+}
+
+// --- Écran du référent -------------------------------------------------
+function ecranPlanReferent() {
+  const classes = (typeof classesOuvertes === "function") ? classesOuvertes() : Object.keys(CLASSES);
+  const lundi = lundiDeLaSemaine(new Date());
+  let h = '<div class="vr-entete"><h3>\u{1F4CB} Plan d\'\u00e9tude et travail \u00e0 faire</h3>' +
+    '<p>D\u00e9posez ici le plan de la semaine. Les apprentis cochent ce qu\'ils ont fait ; ' +
+    'familles et ma\u00eetres d\'apprentissage le consultent.</p></div>';
+  h += '<div class="vr-filtres">' +
+    '<label>Classe <select id="plan-classe" onchange="rafraichirPlanReferent()">' +
+      classes.map(function(c) { return '<option value="' + c + '">' + escapeHTML(CLASSES[c] || c) + '</option>'; }).join("") +
+    '</select></label>' +
+    '<label>Semaine du <input type="date" id="plan-lundi" value="' + lundi + '" onchange="rafraichirPlanReferent()"></label>' +
+    '<button class="btn-primary btn-mini" onclick="ouvrirFormulairePlan()">+ Nouveau plan</button>' +
+    '</div><div id="plan-zone"></div>';
+  setTimeout(rafraichirPlanReferent, 0);
+  return h;
+}
+
+function rafraichirPlanReferent() {
+  const zone = document.getElementById("plan-zone");
+  if (!zone) return;
+  const classe = (document.getElementById("plan-classe") || {}).value;
+  const lundi = lundiDeLaSemaine((document.getElementById("plan-lundi") || {}).value || new Date());
+  const plan = planEtudePourSemaine(classe, lundi);
+  if (!plan) {
+    zone.innerHTML = '<div class="vr-info">Aucun plan pour cette classe et cette semaine. ' +
+      'Cliquez sur <strong>+ Nouveau plan</strong>.</div>';
+    return;
+  }
+  let h = blocPlan(plan, null, false);
+  h += '<div class="plan-actions">' +
+    '<button class="btn-secondaire btn-mini" onclick="ouvrirFormulairePlan(\'' + plan.id + '\')">\u270F\uFE0F Modifier</button> ' +
+    '<button class="btn-secondaire btn-mini" onclick="imprimerPlanEtude(\'' + plan.id + '\')">\u{1F5A8}\uFE0F Imprimer / PDF</button> ' +
+    '<button class="btn-secondaire btn-mini" onclick="avancementPlan(\'' + plan.id + '\')">\u{1F4CA} Qui a fait quoi</button> ' +
+    '<button class="btn-secondaire btn-mini" onclick="supprimerPlan(\'' + plan.id + '\')">\u{1F5D1}\uFE0F Supprimer</button>' +
+    '</div>';
+  zone.innerHTML = h;
+}
+
+function ouvrirFormulairePlan(planId) {
+  const plans = chargerPlansEtude();
+  const existant = planId ? plans.find(function(p) { return p.id === planId; }) : null;
+  const classe = (document.getElementById("plan-classe") || {}).value;
+  const lundi = lundiDeLaSemaine((document.getElementById("plan-lundi") || {}).value || new Date());
+  const classesCAP = (typeof classesCAP === "function") ? classesCAP() :
+    Object.keys(CLASSES).filter(function(c) { return c.indexOf("CAP_") === 0; });
+  const commun = existant ? (existant.classes.length > 1) : false;
+
+  // Les tâches peuvent être pré-remplies depuis les activités d'alternance
+  // du carnet : c'est déjà ce que les moniteurs y consignent.
+  const ancien = document.getElementById("modale-plan");
+  if (ancien) ancien.remove();
+  const m = document.createElement("div");
+  m.id = "modale-plan";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal" style="max-width:46rem;">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F4CB}</span>' +
+        '<h2>' + (existant ? "Modifier le plan d\'\u00e9tude" : "Nouveau plan d\'\u00e9tude") + '</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<div class="impr-champ"><label>Titre</label>' +
+          '<input type="text" id="plan-titre" value="' + escapeHTML(existant ? existant.titre : "Plan d\'\u00e9tude de la semaine") + '"></div>' +
+        '<div class="impr-champ"><label>Semaine du</label>' +
+          '<input type="date" id="plan-f-lundi" value="' + (existant ? existant.lundi : lundi) + '"></div>' +
+        '<label class="impr-case"><input type="checkbox" id="plan-commun" ' + (commun ? "checked" : "") + '> ' +
+          '<strong>Plan commun \u00e0 toutes les classes CAP</strong></label>' +
+        '<p class="impr-aide">Coch\u00e9, le plan est publi\u00e9 d\'un seul geste pour ' +
+          classesCAP.map(function(c) { return escapeHTML(libelleClasseCourte(c) || c); }).join(" et ") +
+          '. D\u00e9coch\u00e9, il ne concerne que la classe s\u00e9lectionn\u00e9e.</p>' +
+        '<div class="impr-champ"><label>Consignes g\u00e9n\u00e9rales (facultatif)</label>' +
+          '<textarea id="plan-intro" rows="3">' + escapeHTML(existant ? (existant.intro || "") : "") + '</textarea></div>' +
+        '<div class="impr-champ"><label>Travail \u00e0 faire \u2014 une t\u00e2che par ligne</label>' +
+          '<textarea id="plan-taches" rows="9" placeholder="Fran\u00e7ais : terminer la fiche de lecture&#10;EP1 : relever les proc\u00e9dures de r\u00e9ception chez votre employeur">' +
+          escapeHTML(existant ? (existant.taches || []).map(function(t) {
+            return (t.module ? t.module + " : " : "") + t.libelle; }).join("\n") : "") +
+          '</textarea></div>' +
+        '<p class="impr-aide">Une ligne par t\u00e2che. Un deux-points s\u00e9pare le module du travail demand\u00e9 : ' +
+          '\u00ab Fran\u00e7ais : terminer la fiche de lecture \u00bb affichera \u00ab Fran\u00e7ais \u00bb en pastille.</p>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="enregistrerPlan(' +
+          (existant ? "\'" + existant.id + "\'" : "null") + ',\'' + classe + '\')">\u2713 Publier</button> ' +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-plan\').remove()">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function enregistrerPlan(planId, classeCourante) {
+  if (!peutGererPlansEtude()) return;
+  const titre = (document.getElementById("plan-titre") || {}).value || "Plan d'\u00e9tude";
+  const lundi = lundiDeLaSemaine((document.getElementById("plan-f-lundi") || {}).value);
+  const commun = !!(document.getElementById("plan-commun") || {}).checked;
+  const intro = (document.getElementById("plan-intro") || {}).value || "";
+  const brut = (document.getElementById("plan-taches") || {}).value || "";
+
+  const taches = brut.split("\n").map(function(l) { return l.trim(); })
+    .filter(function(l) { return l; })
+    .map(function(l, i) {
+      const sep = l.indexOf(" : ");
+      return {
+        id: "T" + (i + 1),
+        module: sep > 0 ? l.substring(0, sep).trim() : "",
+        libelle: sep > 0 ? l.substring(sep + 3).trim() : l
+      };
+    });
+  if (taches.length === 0) { alert("Renseignez au moins une t\u00e2che."); return; }
+
+  const cap = (typeof classesCAP === "function") ? classesCAP()
+    : Object.keys(CLASSES).filter(function(c) { return c.indexOf("CAP_") === 0; });
+  const classes = commun ? cap : [classeCourante];
+
+  const plans = chargerPlansEtude();
+  const u = utilisateurConnecte;
+  if (planId) {
+    const p = plans.find(function(x) { return x.id === planId; });
+    if (p) {
+      p.titre = titre; p.lundi = lundi; p.classes = classes;
+      p.intro = intro; p.taches = taches;
+      p.modifieLe = new Date().toISOString();
+      p.modifiePar = u ? u.id : "";
+    }
+  } else {
+    plans.push({
+      id: "PE-" + Date.now(),
+      titre: titre, lundi: lundi, classes: classes,
+      intro: intro, taches: taches,
+      creeLe: new Date().toISOString(), creePar: u ? u.id : ""
+    });
+  }
+  if (!sauverPlansEtude(plans)) return;
+  const m = document.getElementById("modale-plan");
+  if (m) m.remove();
+  alert("\u2705 Plan publi\u00e9 pour " + classes.map(function(c) {
+    return libelleClasseCourte(c) || c; }).join(" et ") + ".\n\n" +
+    taches.length + " t\u00e2che(s). Les apprentis le verront \u00e0 leur prochaine connexion.");
+  rafraichirPlanReferent();
+}
+
+function supprimerPlan(planId) {
+  if (!peutGererPlansEtude()) return;
+  if (!confirm("Supprimer ce plan d'\u00e9tude ?\n\nLes coches des apprentis seront perdues.")) return;
+  const plans = chargerPlansEtude().filter(function(p) { return p.id !== planId; });
+  if (!sauverPlansEtude(plans)) return;
+  rafraichirPlanReferent();
+}
+
+// Qui a fait quoi : tableau croisé apprentis / tâches.
+function avancementPlan(planId) {
+  const plan = chargerPlansEtude().find(function(p) { return p.id === planId; });
+  if (!plan) return;
+  const apprentis = PROFILS_APPRENTIS.filter(function(a) {
+    return plan.classes.indexOf(a.classe) >= 0 && (a.statut || "actif") !== "archive";
+  }).sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || ""); });
+  if (apprentis.length === 0) { alert("Aucun apprenti dans cette ou ces classes."); return; }
+
+  let msg = "AVANCEMENT \u2014 " + plan.titre + "\nSemaine du " + dateFr(plan.lundi) +
+    "\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n";
+  const total = (plan.taches || []).length;
+  apprentis.forEach(function(a) {
+    const faites = (plan.taches || []).filter(function(t) {
+      return tacheEstFaite(a.username, plan.id, t.id); }).length;
+    const nom = ((a.nom || "").toUpperCase() + " " + (a.prenom || "")).trim();
+    msg += "   " + nom.padEnd(26, " ").substring(0, 26) + " " + faites + " / " + total +
+      (faites === total ? "  \u2713" : "") + "\n";
+  });
+  const aucun = apprentis.filter(function(a) {
+    return (plan.taches || []).every(function(t) { return !tacheEstFaite(a.username, plan.id, t.id); });
+  });
+  if (aucun.length) {
+    msg += "\n\u26A0 " + aucun.length + " apprenti(s) n'ont rien coch\u00e9.";
+    msg += "\n   Les coches remontent \u00e0 leur connexion : relancez d'abord la r\u00e9ception.";
+  }
+  alert(msg);
+}
+
+function imprimerPlanEtude(planId) {
+  const plan = chargerPlansEtude().find(function(p) { return p.id === planId; });
+  if (!plan) return;
+  const corps = '<table class="meta"><tbody>' +
+    '<tr><th>Semaine du</th><td>' + dateFr(plan.lundi) + '</td>' +
+    '<th>Classe(s)</th><td>' + plan.classes.map(function(c) {
+      return escapeHTML(CLASSES[c] || c); }).join(" \u00b7 ") + '</td></tr>' +
+    '</tbody></table>' + blocPlan(plan, null, true) +
+    '<div class="totaux">\u00c0 rendre \u00e0 votre retour \u00e0 la MFR. Cochez au fur et \u00e0 mesure.</div>' +
+    blocSignatures(true);
+  const fin = (function() { const d = new Date(plan.lundi + "T12:00:00"); d.setDate(d.getDate() + 4); return isoDeDate(d); })();
+  telechargerEmargementsPDF("Plan d'\u00e9tude \u2014 " + plan.titre, plan.lundi, fin, corps,
+    "Plan-etude_" + plan.classes.join("-") + "_" + plan.lundi + ".pdf");
+}
+
+function ecranPlanReferent_fin() {}
+
+// -----------------------------------------------------------------
+// DÉPÔTS DES UTILISATEURS VERS L'ÉQUIPE
+// -----------------------------------------------------------------
+// Réclamations, signalements et demandes de rendez-vous sont déposés par
+// des apprentis, des familles ou des entreprises, mais ils atterrissent
+// dans des clés de l'espace équipe, que ces rôles n'ont pas le droit
+// d'écrire. Ils restaient donc sur l'appareil de leur auteur, sans jamais
+// parvenir à la MFR.
+//
+// Ils transitent désormais par le document personnel de leur auteur, que
+// l'équipe agrège à la réception. Chacun écrit chez soi, la MFR ramasse.
+
+const CLES_DEPOTS = ["mfr_reclamations", "mfr_signalements", "mfr_demandes_rdv",
+                     "mfr_eval_reponses"];
+
+// Extrait les éléments dont l'utilisateur est l'auteur.
+function mesDepots(username) {
+  const out = {};
+  CLES_DEPOTS.forEach(function(cle) {
+    let liste = [];
+    try { liste = JSON.parse(localStorage.getItem(cle) || "[]"); } catch (e) { return; }
+    if (!Array.isArray(liste)) return;
+    const miens = liste.filter(function(x) {
+      return x && (x.auteurId === username || x.demandeurId === username || x.apprentiUsername === username);
+    });
+    if (miens.length > 0) out[cle] = miens;
+  });
+  return out;
+}
+
+// Fusionne des dépôts reçus dans les listes locales, sans doublon.
+// L'identifiant de chaque élément fait foi : un dépôt déjà connu n'est
+// jamais dupliqué, et un dépôt déjà traité par l'équipe n'est pas écrasé.
+function fusionnerDepots(recus) {
+  let ajoutes = 0;
+  Object.keys(recus || {}).forEach(function(cle) {
+    if (CLES_DEPOTS.indexOf(cle) < 0) return;
+    let liste = [];
+    try { liste = JSON.parse(localStorage.getItem(cle) || "[]"); } catch (e) { liste = []; }
+    if (!Array.isArray(liste)) liste = [];
+    const connus = liste.map(function(x) { return x && x.id; });
+    (recus[cle] || []).forEach(function(item) {
+      if (!item || !item.id) return;
+      if (connus.indexOf(item.id) >= 0) return;
+      liste.push(item);
+      ajoutes++;
+    });
+    try { localStorage.setItem(cle, JSON.stringify(liste)); } catch (e) {}
+  });
+  return ajoutes;
+}
+
+// Ramasse les dépôts de tous les comptes, pour l'équipe.
+// Variante silencieuse, appelée à la connexion de l'équipe.
+async function ramasserDepotsSilencieux() {
+  try {
+    if (!initialiserFirebase() || !fbAuth.currentUser) return 0;
+    const comptes = []
+      .concat(typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+      .concat(typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [])
+      .concat(typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [])
+      .filter(function(x) { return x.uidFirebase && (x.statut || "actif") !== "archive"; });
+    let ajoutes = 0;
+    for (let i = 0; i < comptes.length; i++) {
+      try {
+        const doc = await fbDb.collection("perso").doc(comptes[i].uidFirebase).get();
+        if (!doc.exists) continue;
+        const d = doc.data() || {};
+        if (typeof d.depots !== "string") continue;
+        ajoutes += fusionnerDepots(JSON.parse(d.depots));
+      } catch (e) {}
+    }
+    return ajoutes;
+  } catch (e) { return 0; }
+}
+
+async function ramasserDepots() {
+  if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
+    alert("Op\u00e9ration r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat."); return;
+  }
+  if (!initialiserFirebase() || !fbAuth.currentUser) {
+    alert("Connectez-vous avec votre compte Firebase pour ramasser les d\u00e9p\u00f4ts."); return;
+  }
+  const comptes = []
+    .concat(typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .concat(typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [])
+    .concat(typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [])
+    .filter(function(x) { return x.uidFirebase && (x.statut || "actif") !== "archive"; });
+
+  let lus = 0, ajoutes = 0;
+  for (let i = 0; i < comptes.length; i++) {
+    try {
+      const doc = await fbDb.collection("perso").doc(comptes[i].uidFirebase).get();
+      if (!doc.exists) continue;
+      lus++;
+      const d = doc.data() || {};
+      if (typeof d.depots !== "string") continue;
+      ajoutes += fusionnerDepots(JSON.parse(d.depots));
+    } catch (e) { /* document inaccessible : on passe */ }
+  }
+  alert("\u2705 " + lus + " dossier(s) consult\u00e9(s), " + ajoutes + " d\u00e9p\u00f4t(s) r\u00e9cup\u00e9r\u00e9(s)." +
+    (ajoutes > 0
+      ? "\n\nR\u00e9clamations, signalements et demandes de rendez-vous sont d\u00e9sormais visibles dans leurs pages respectives."
+      : "\n\nAucun nouveau d\u00e9p\u00f4t."));
+  if (ajoutes > 0 && typeof changerPage === "function") changerPage("reclamations");
 }
 
 function normaliserIdentifiantConnexion(v) {
@@ -25030,6 +25540,7 @@ function changerPage(nomPage) {
   if (nomPage === "evaluations-competences" && typeof afficherEvaluationsCompetences === "function") afficherEvaluationsCompetences();
   if (nomPage === "erasmus" && typeof afficherPageErasmus === "function") afficherPageErasmus();
   if (nomPage === "suivi-carnets" && typeof afficherPageSuiviCarnets === "function") afficherPageSuiviCarnets();
+  if (nomPage === "plan-etude" && typeof afficherPlanEtude === "function") afficherPlanEtude();
   if (nomPage === "alertes" && typeof chargerAlertes === "function") chargerAlertes();
   if (nomPage === "accessibilite" && typeof afficherPageAccessibilite === "function") afficherPageAccessibilite();
   if (nomPage === "firebase-admin" && typeof fbAfficherEtat === "function") fbAfficherEtat();
@@ -27229,6 +27740,13 @@ function afficherAlertesSuivi() {
 function filtrerSuiviCarnets() {
   const contenu = document.getElementById("suivi-contenu");
   if (!contenu) return;
+  // Le contrôle d'accès manquait ici : l'affichage initial était bien
+  // protégé, mais la recherche, elle, interrogeait tous les profils.
+  if (!peutAccederSuiviCarnets()) {
+    contenu.innerHTML = '<div class="msg-vide-bloc"><p>Cette page est r\u00e9serv\u00e9e \u00e0 l\'\u00e9quipe de la MFR.</p>' +
+      '<p>Pour consulter votre carnet, utilisez l\'onglet <strong>Carnet de liaison</strong>.</p></div>';
+    return;
+  }
   const classes = classesSuiviAccessibles();
   const recherche = (document.getElementById("suivi-recherche")?.value || "").toLowerCase().trim();
   const filtreClasse = document.getElementById("suivi-filtre-classe")?.value || "";
@@ -33273,6 +33791,20 @@ function exporterPublipostage() {
     "\n\nSupprimez ce fichier d\u00e8s l\'envoi effectu\u00e9 : il contient les mots de passe en clair.");
 }
 
+// Découpe une adresse saisie en une ligne en lignes postales.
+// Les fiches contiennent « 12 rue des Lilas, 47230 Barbaste » : pour un
+// envoi sous pli, il faut la voie sur une ligne et le code postal avec la
+// commune sur la suivante.
+function lignesAdressePostale(adresse) {
+  if (!adresse) return [];
+  const txt = String(adresse).replace(/\s+/g, " ").trim();
+  if (!txt) return [];
+  // Un code postal à cinq chiffres marque le début de la dernière ligne.
+  const m = txt.match(/^(.*?)[,\s]+(\d{5}\s+.+)$/);
+  if (m) return [m[1].replace(/,\s*$/, "").trim(), m[2].trim()];
+  return txt.split(",").map(function(x) { return x.trim(); }).filter(function(x) { return x; });
+}
+
 function genererCourrierInstitutionnel(type, profil, contexteApprenti) {
   const urlApp = window.location.origin + window.location.pathname;
   const dateJour = new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
@@ -33285,10 +33817,8 @@ function genererCourrierInstitutionnel(type, profil, contexteApprenti) {
   let passwordAffiche = profil.password || "";
 
   if (type === "apprenti") {
-    destinataireLignes = [
-      profil.prenom + " " + profil.nom.toUpperCase(),
-      profil.adresse || ""
-    ];
+    destinataireLignes = [profil.prenom + " " + profil.nom.toUpperCase()]
+      .concat(lignesAdressePostale(profil.adresse));
     if (profil.dateNaissance) {
       // Genre grammatical selon prénom : heuristique très simple (à améliorer)
       formuleAppel = "Cher/Chère apprenti(e),";
@@ -33298,10 +33828,8 @@ function genererCourrierInstitutionnel(type, profil, contexteApprenti) {
   }
   else if (type === "famille") {
     destinataireLignes = [
-      "Famille " + profil.nom.toUpperCase(),
-      profil.prenom + " " + profil.nom,
-      profil.adresse || ""
-    ];
+      (profil.prenom || "") + " " + (profil.nom || "").toUpperCase()
+    ].concat(lignesAdressePostale(profil.adresse));
     const apprentiLie = contexteApprenti ? (contexteApprenti.prenom + " " + contexteApprenti.nom) : "votre enfant";
     contexteTexte = "Dans le cadre du suivi pédagogique de <strong>" + apprentiLie + "</strong>" +
       (contexteApprenti ? ", en formation " + (CLASSES[contexteApprenti.classe] || contexteApprenti.classe) : "") +
@@ -33310,11 +33838,9 @@ function genererCourrierInstitutionnel(type, profil, contexteApprenti) {
   }
   else if (type === "lieu" || type === "maitre") {
     destinataireLignes = [
-      profil.prenomMA + " " + profil.nomMA.toUpperCase(),
-      "Maître d'apprentissage",
-      profil.entreprise,
-      profil.adresseEntreprise || ""
-    ];
+      ((profil.prenomMA || "") + " " + (profil.nomMA || "").toUpperCase()).trim(),
+      profil.entreprise || ""
+    ].concat(lignesAdressePostale(profil.adresse || profil.adresseEntreprise));
     const apprentiLie = contexteApprenti ? (contexteApprenti.prenom + " " + contexteApprenti.nom) : "de votre apprenti(e)";
     contexteTexte = "Dans le cadre de votre mission de maître d'apprentissage pour <strong>" + apprentiLie + "</strong>" +
       (contexteApprenti ? ", inscrit(e) en " + (CLASSES[contexteApprenti.classe] || contexteApprenti.classe) : "") +
@@ -33406,14 +33932,19 @@ function stylesCourriers() {
     '.courrier-controle { position: sticky; top: 0; background: white; border-bottom: 1px solid #ddd; padding: 0.8rem 1.5rem; text-align: right; z-index: 100; }' +
     '.courrier-controle button { padding: 0.5rem 1.2rem; margin-left: 0.5rem; border: 1px solid #5C6F3E; background: #5C6F3E; color: white; border-radius: 4px; cursor: pointer; font-family: inherit; font-size: 0.95rem; }' +
     '.courrier-controle button.secondary { background: white; color: #5C6F3E; }' +
-    '.courrier-page { background: white; max-width: 21cm; min-height: 27cm; margin: 1.5cm auto; padding: 1.5cm; box-shadow: 0 2px 8px rgba(0,0,0,0.1); page-break-after: always; position: relative; }' +
+    /* box-sizing indispensable : sans lui, le padding s'ajoutait a la
+       hauteur et le bloc mesurait 30 cm pour 26,7 cm imprimables. */
+    '.courrier-page { box-sizing: border-box; background: white; width: 21cm; max-width: 100%; min-height: 26.5cm; margin: 1.5cm auto; padding: 1.5cm; box-shadow: 0 2px 8px rgba(0,0,0,0.1); page-break-after: always; display: flex; flex-direction: column; }' +
     '.courrier-page:last-child { page-break-after: auto; }' +
     '.courrier-entete { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 1rem; border-bottom: 2px solid #5C6F3E; margin-bottom: 1.5rem; }' +
     '.courrier-logo img { max-height: 90px; width: auto; }' +
     '.courrier-coord { text-align: right; font-size: 0.88rem; line-height: 1.4; }' +
     '.courrier-coord strong { color: #3E4A29; font-size: 1rem; }' +
     '.courrier-date-lieu { text-align: right; margin: 1rem 0 1.5rem; font-style: italic; }' +
-    '.courrier-destinataire { margin-left: 55%; margin-bottom: 1.5rem; line-height: 1.4; }' +
+    /* Bloc destinataire calé pour apparaître dans la fenêtre d'une
+       enveloppe à fenêtre normalisée (110 x 220 mm). */
+    '.courrier-destinataire { margin-left: 10.5cm; margin-top: 0.5cm; margin-bottom: 2rem; line-height: 1.45; min-height: 2.5cm; }' +
+    '.courrier-destinataire div:first-child { font-weight: bold; }' +
     '.courrier-objet { margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px dashed #999; }' +
     '.courrier-corps { text-align: justify; }' +
     '.courrier-corps p { margin: 0 0 0.8rem 0; }' +
@@ -33427,8 +33958,12 @@ function stylesCourriers() {
     '.courrier-corps ol li { margin-bottom: 0.3rem; }' +
     '.courrier-signature { margin-top: 2rem; text-align: right; }' +
     '.courrier-signature-fonction { font-size: 0.88rem; color: #555; margin-top: 0.2rem; }' +
-    '.courrier-pied { position: absolute; bottom: 1.5cm; left: 1.5cm; right: 1.5cm; padding-top: 0.8rem; border-top: 1px solid #ddd; font-size: 0.72rem; color: #888; line-height: 1.4; text-align: center; }' +
-    '@media print { body { background: white; } .courrier-controle { display: none; } .courrier-page { box-shadow: none; margin: 0; page-break-after: always; } .courrier-page:last-child { page-break-after: auto; } }' +
+    /* Le pied revient dans le flux : margin-top auto le colle en bas quand
+       la page est courte, et le laisse suivre le contenu quand elle est
+       longue. En absolu, il passait par-dessus la signature. */
+    '.courrier-pied { margin-top: auto; padding-top: 0.8rem; border-top: 1px solid #ddd; font-size: 0.72rem; color: #888; line-height: 1.4; text-align: center; }' +
+    '.courrier-signature { break-inside: avoid; page-break-inside: avoid; }' +
+    '@media print { body { background: white; } .courrier-controle { display: none; } .courrier-page { box-shadow: none; margin: 0; width: auto; min-height: 0; padding: 0; page-break-after: always; } .courrier-page:last-child { page-break-after: auto; } }' +
   '</style>';
 }
 
@@ -36357,6 +36892,41 @@ function rapatrierPlanningDansUneSession(numeroSession) {
   container.innerHTML = html;
 }
 
+// Reprise automatique des modules à l'ouverture d'une session : le moniteur
+// a déjà saisi les matières au planning, les ressaisir n'aurait aucun sens.
+// Une matière dispensée plusieurs fois dans la semaine n'ouvre qu'une ligne :
+// les thèmes abordés s'y cumulent. Les lignes déjà renseignées ne bougent pas.
+function preremplirModulesSession(session) {
+  if (!session || !Array.isArray(session.activites)) return 0;
+  const plan = (typeof trouverPlanningHebdoPourSession === "function")
+    ? trouverPlanningHebdoPourSession(session.numero) : null;
+  if (!plan) return 0;
+
+  const matieres = [];
+  JOURS_SEMAINE.forEach(function(j) {
+    (plan.jours[j.code] || []).forEach(function(c) {
+      if (c.matiere && matieres.indexOf(c.matiere) < 0) matieres.push(c.matiere);
+    });
+  });
+  if (matieres.length === 0) return 0;
+
+  const dejaPresentes = session.activites
+    .map(function(a) { return a.module; })
+    .filter(function(m) { return m; });
+  const aAjouter = matieres.filter(function(m) { return dejaPresentes.indexOf(m) < 0; });
+  if (aAjouter.length === 0) return 0;
+
+  let n = 0;
+  session.activites.forEach(function(act) {
+    if (!act.module && aAjouter.length > 0) { act.module = aAjouter.shift(); n++; }
+  });
+  while (aAjouter.length > 0) {
+    session.activites.push({ module: aAjouter.shift(), themes: "" });
+    n++;
+  }
+  return n;
+}
+
 function rapatrierMatieresDansActivites(numeroSession) {
   if (!carnetEnCours || !carnetEnCours.sessions) return;
   const session = carnetEnCours.sessions.find(function(s) { return s.numero === numeroSession; });
@@ -36402,6 +36972,17 @@ function rapatrierMatieresDansActivites(numeroSession) {
 function construireSessionsMfr() {
   const container = document.getElementById("carnetSessionsContainer");
   if (!container) return;
+
+  // Pré-remplissage des modules depuis le planning du moniteur, avant rendu.
+  // Sans cela, chaque apprenti ressaisissait à la main ce qui est déjà saisi.
+  if (carnetEnCours && Array.isArray(carnetEnCours.sessions)
+      && typeof preremplirModulesSession === "function") {
+    let modifie = 0;
+    carnetEnCours.sessions.forEach(function(sess) {
+      try { modifie += preremplirModulesSession(sess); } catch (e) {}
+    });
+    if (modifie > 0) { try { sauverCarnet(); } catch (e) {} }
+  }
 
   // Modules de formation CAP EPC (depuis le livret papier)
   const MODULES_FORMATION_EPC = [
@@ -41416,16 +41997,65 @@ function afficherRgpd() {
 }
 
 // Récupère le profil correspondant à l'utilisateur connecté (dans la bonne collection)
+// Les comptes intégrés au fichier — comptes de démonstration et comptes de
+// secours — n'ont pas de fiche dans les profils. Sans fiche, aucune des
+// étapes de signature ne pouvait aboutir : ni l'attestation RGPD, ni la
+// charte, ni le choix du mot de passe. Ils reçoivent donc une fiche
+// technique, conservée à part et jamais mêlée aux profils réels.
+function estCompteIntegre(identifiant) {
+  if (typeof UTILISATEURS === "undefined") return false;
+  const id = normaliserIdentifiantConnexion(identifiant);
+  return UTILISATEURS.some(function(x) { return normaliserIdentifiantConnexion(x.id) === id; });
+}
+
+function chargerFichesTechniques() {
+  try { return JSON.parse(localStorage.getItem("mfr_comptes_integres") || "{}"); }
+  catch (e) { return {}; }
+}
+
+function sauverFichesTechniques(d) {
+  try { localStorage.setItem("mfr_comptes_integres", JSON.stringify(d)); return true; }
+  catch (e) { return false; }
+}
+
+function ficheTechniqueDuCompte(u) {
+  const fiches = chargerFichesTechniques();
+  if (!fiches[u.id]) {
+    fiches[u.id] = {
+      id: "INTEGRE-" + u.id,
+      username: u.id,
+      nom: u.nom || u.id,
+      prenom: "",
+      role: u.role,
+      compteIntegre: true,
+      statut: "actif"
+    };
+    sauverFichesTechniques(fiches);
+  }
+  return fiches[u.id];
+}
+
 function trouverProfilConnecte(u) {
   if (!u) return null;
-  if (u.role === "apprenti") return PROFILS_APPRENTIS.find(p => p.username === u.id);
-  if (u.role === "parent") return PROFILS_FAMILLES.find(p => p.username === u.id);
-  if (u.role === "maitre") return PROFILS_LIEUX.find(p => p.username === u.id);
-  if (u.role === "mfr") return PROFILS_SALARIES.find(p => p.username === u.id || p.identifiant === u.id);
+  let p = null;
+  if (u.role === "apprenti") p = PROFILS_APPRENTIS.find(x => x.username === u.id);
+  else if (u.role === "parent") p = PROFILS_FAMILLES.find(x => x.username === u.id);
+  else if (u.role === "maitre") p = PROFILS_LIEUX.find(x => x.username === u.id);
+  else if (u.role === "mfr") p = PROFILS_SALARIES.find(x => x.username === u.id || x.identifiant === u.id);
+  if (p) return p;
+  if (estCompteIntegre(u.id)) return ficheTechniqueDuCompte(u);
   return null;
 }
 
 function sauvegarderProfilConnecte(u) {
+  // Une fiche technique se sauvegarde dans son propre stockage : elle ne
+  // doit jamais apparaître dans les listes de profils réels.
+  if (estCompteIntegre(u.id)) {
+    const fiches = chargerFichesTechniques();
+    const f = trouverProfilConnecte(u);
+    if (f) { fiches[u.id] = f; sauverFichesTechniques(fiches); }
+    return;
+  }
   if (u.role === "apprenti") localStorage.setItem("mfr_profils_apprentis", JSON.stringify(PROFILS_APPRENTIS));
   else if (u.role === "parent") localStorage.setItem("mfr_profils_familles", JSON.stringify(PROFILS_FAMILLES));
   else if (u.role === "maitre") localStorage.setItem("mfr_profils_lieux", JSON.stringify(PROFILS_LIEUX));
@@ -42464,12 +43094,21 @@ function afficherVieResidentielle() {
 function ecranVRApprenti(u) {
   const apprenti = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
     .find(function(a) { return a.username === u.id; });
-  const classe = apprenti ? apprenti.classe : (Array.isArray(u.classes) ? u.classes[0] : "");
+  let classe = apprenti ? apprenti.classe : (Array.isArray(u.classes) ? u.classes[0] : "");
+  // Un compte de démonstration n'a pas de classe : en mode test, on lui
+  // attribue la première classe ouverte pour que l'écran soit visitable.
+  if (!classe && (typeof testVROuvert === "function") && testVROuvert()) {
+    const ouvertes = (typeof classesOuvertes === "function") ? classesOuvertes() : Object.keys(CLASSES);
+    classe = ouvertes[0] || "";
+  }
   if (!classe) return '<div class="vr-info">Votre classe n\'est pas renseign\u00e9e. Signalez-le au secr\u00e9tariat.</div>';
 
   const lundi = lundiDeLaSemaine(new Date());
+  const enTest = (typeof testVROuvert === "function") && testVROuvert();
   const sem = (typeof semaineEnCoursPour === "function") ? semaineEnCoursPour(classe) : null;
-  if (!sem || sem.type !== "M") {
+  // La fenêtre de test lève aussi le contrôle de semaine MFR : sans cela,
+  // aucun test n'était possible en dehors des semaines de cours.
+  if (!enTest && (!sem || sem.type !== "M")) {
     return '<div class="vr-info">\u{1F3E0} Vous \u00eates en entreprise cette semaine : aucun repas ni nuit\u00e9e \u00e0 signer.</div>';
   }
 
@@ -48457,7 +49096,8 @@ function creerSignalementDepuisRupture(apprentiId, motifRupture, precisionsRuptu
  * Stockage :
  *   - "mfr_eval_matieres" : liste des matières évaluables
  *   - "mfr_eval_campagnes" : liste des campagnes créées
- *   - "mfr_eval_reponses" : liste des réponses (anonymes)
+ *   - "mfr_eval_reponses" : liste des réponses (nominatives depuis le 20/09/2026,
+ *     sur décision de la Direction : chaque réponse porte son auteur)
  *   - "mfr_eval_reunions" : comptes-rendus de réunions pédagogiques
  *
  * Une campagne : { id, matiere, formateurId, formateurNom, classe, anneeScolaire,
@@ -48691,7 +49331,7 @@ function afficherOngletCampagnesDirection(campagnes, reponses, matieres) {
     html += '<div class="msg-vide-bloc">';
     html += '<p><strong>Aucune campagne d\'évaluation lancée pour le moment.</strong></p>';
     html += '<p style="font-size:0.88rem;color:var(--text-muted);margin-top:0.5rem;">Créez votre première campagne en cliquant sur le bouton ci-dessus. ';
-    html += 'Chaque campagne cible une matière et une classe, et permet aux apprentis d\'évaluer les contenus et enseignements de manière anonyme.</p>';
+    html += 'Chaque campagne cible une matière et une classe, et permet aux apprentis d\'évaluer les contenus et enseignements. <strong>Les réponses sont nominatives.</strong></p>';
     html += '</div>';
     return html;
   }
@@ -48857,7 +49497,7 @@ function afficherEvalFormateur(container) {
   html += '<div class="eval-banner-v10" style="border-left-color:var(--olive);background:linear-gradient(135deg,#F1F8E9 0%,#FEFAF3 100%);">';
   html += '<div class="titre" style="color:var(--olive-dark);">👤 Espace formateur — ' + escapeHtml(u.nom || u.id) + '</div>';
   html += '<div class="desc">Vous voyez ici <strong>uniquement les campagnes qui vous concernent</strong>. ';
-  html += 'Les résultats sont accessibles après clôture de la campagne. Les réponses sont anonymes.</div>';
+  html += 'Les résultats sont accessibles après clôture de la campagne. Les réponses sont nominatives.</div>';
   html += '</div>';
 
   if (campagnes.length === 0) {
@@ -48901,7 +49541,7 @@ function afficherEvalApprenti(container) {
   html += '<div class="eval-banner-v10" style="border-left-color:var(--olive);background:linear-gradient(135deg,#F1F8E9 0%,#FEFAF3 100%);">';
   html += '<div class="titre" style="color:var(--olive-dark);">🎓 Votre avis compte !</div>';
   html += '<div class="desc">Votre évaluation nous aide à améliorer les cours pour vous et pour les futures promotions. ';
-  html += '<strong>Toutes vos réponses sont anonymes</strong> — personne ne saura ce que vous avez répondu individuellement. ';
+  html += '<strong>Vos réponses sont nominatives</strong> — la MFR saura qui a répondu quoi. ';
   html += 'Soyez sincère : c\'est la seule façon d\'améliorer les choses.</div>';
   html += '</div>';
 
@@ -49185,7 +49825,7 @@ function ouvrirFormReponseApprenti(campagneId) {
   html += '<div class="contexte">';
   html += '<strong>Formateur·rice :</strong> ' + escapeHtml(c.formateurNom || "—") + '<br>';
   html += '<strong>Votre classe :</strong> ' + escapeHtml(libelleClasseCourte(c.classe)) + '<br><br>';
-  html += '🔒 <strong>Vos réponses sont totalement anonymes.</strong> Répondez librement — c\'est ainsi que les enseignements pourront s\'améliorer.';
+  html += 'ℹ️ <strong>Vos réponses sont nominatives.</strong> Elles sont associées à votre nom et l\'équipe de la MFR peut les consulter. Répondez sincèrement — c\'est ainsi que les enseignements pourront s\'améliorer.';
   html += '</div>';
 
   (c.questions || QUESTIONS_EVAL_ENSEIGNEMENT).forEach(q => {
@@ -49235,17 +49875,29 @@ function envoyerReponseEval(campagneId) {
     return;
   }
 
-  if (!confirm("Envoyer votre évaluation anonyme ?\n\nUne fois envoyée, vous ne pourrez plus la modifier.")) return;
+  if (!confirm("Envoyer votre évaluation ?\n\n⚠ Vos réponses sont NOMINATIVES : elles seront associées à votre nom et consultables par l'équipe de la MFR.\n\nUne fois envoyée, vous ne pourrez plus la modifier.")) return;
 
+  const uRep = utilisateurConnecte;
+  const profilRep = (typeof PROFILS_APPRENTIS !== "undefined" && uRep)
+    ? PROFILS_APPRENTIS.find(function(x) { return x.username === uRep.id; }) : null;
   const nouveau = {
     id: "REP-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
     campagneId: campagneId,
     dateReponse: new Date().toISOString(),
-    reponses: reponses
+    reponses: reponses,
+    // Réponses nominatives sur décision de la Direction (20/09/2026).
+    auteurId: uRep ? uRep.id : "",
+    auteurNom: profilRep
+      ? ((profilRep.prenom || "") + " " + (profilRep.nom || "")).trim()
+      : (uRep ? (uRep.nom || uRep.id) : ""),
+    auteurClasse: profilRep ? profilRep.classe : ""
   };
   const toutes = chargerReponsesEval();
   toutes.push(nouveau);
   sauverReponsesEval(toutes);
+  // Sans cette remontée, la réponse resterait sur l'appareil de l'apprenti :
+  // mfr_eval_reponses appartient à l'espace équipe, qu'il ne peut pas écrire.
+  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
 
   // Marquer localement comme fait (pour éviter double vote)
   const u = utilisateurConnecte;
@@ -49258,7 +49910,7 @@ function envoyerReponseEval(campagneId) {
     '<div class="signalement-confirmation">' +
     '<div class="icon">✅</div>' +
     '<h3>Merci pour votre évaluation !</h3>' +
-    '<p>Vos réponses ont été enregistrées de manière anonyme.</p>' +
+    '<p>Vos réponses ont été enregistrées.</p>' +
     '<p style="font-size:0.9rem;color:var(--text-muted);margin-top:1rem;">Elles serviront à améliorer les enseignements pour vous et pour les futures promotions.</p>' +
     '<button class="btn-signer" style="margin-top:1.5rem;" onclick="afficherEvalApprenti(document.getElementById(\'evaluationContenu\'))">Retour</button>' +
     '</div>';
@@ -49888,6 +50540,9 @@ function envoyerReclamation(estFormateur) {
   const recs = chargerReclamations();
   recs.push(nouveau);
   sauverReclamations(recs);
+  // Remontée immédiate : sans elle, la réclamation resterait sur l'appareil
+  // de son auteur et ne parviendrait jamais à la MFR.
+  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
 
   const container = document.getElementById("reclamationsContenu");
   container.innerHTML =
@@ -51252,7 +51907,10 @@ function initPageVisites() {
     afficherVisitesMFR(container);
   } else if (u.role === "apprenti") {
     afficherVisitesApprenti(container);
-  } else if (u.role === "famille") {
+  } else if (u.role === "famille" || u.role === "parent") {
+    // Le rôle enregistré est « parent » : « famille » ne correspondait à
+    // aucun compte, et les responsables légaux se voyaient donc refuser
+    // l'accès aux visites en entreprise de leur propre enfant.
     afficherVisitesFamille(container);
   } else {
     container.innerHTML =
