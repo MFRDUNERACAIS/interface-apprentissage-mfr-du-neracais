@@ -22741,6 +22741,14 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.21 (21/09/2026) — Défaut critique : l'apprenti ne trouvait pas sa fiche.
+//        Les profils vivent dans l'espace équipe, illisible pour les
+//        apprentis, familles et entreprises. Sur leur appareil, aucune fiche :
+//        attestation RGPD, charte et signature de présence échouaient.
+//        L'équipe publie désormais un document fiches/<uid> lisible par son
+//        seul propriétaire, reçu à la connexion. Filet de secours : une
+//        fiche minimale bâtie depuis l'annuaire si rien n'est encore publié.
+//        Les attestations remontent désormais vers la MFR.
 //   v5.20 (21/09/2026) — Défaut critique : mot de passe non propagé à Firebase.
 //        Changer son mot de passe ne modifiait que la copie locale ;
 //        Firebase conservait l'ancien. Le compte ne s'ouvrait plus que sur
@@ -23085,7 +23093,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.20";
+const APP_VERSION = "5.21";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24516,7 +24524,13 @@ async function lancerEnvoiFirestore() {
       "et apr\u00e8s avoir v\u00e9rifi\u00e9 que vos donn\u00e9es locales sont \u00e0 jour.")) return;
 
   const r = await envoyerVersFirestore(false);
-  let msg = "\u2705 " + r.envoyees + " jeu(x) de donn\u00e9es envoy\u00e9(s) :\n   " +
+  // Fiches individuelles : sans elles, apprentis, familles et entreprises
+  // ne retrouvent pas leur propre fiche sur leur appareil.
+  let fi = { publiees: 0, echecs: 0 };
+  if (typeof publierFichesIndividuelles === "function") fi = await publierFichesIndividuelles();
+  let msg = "\u2705 " + fi.publiees + " fiche(s) individuelle(s) publi\u00e9e(s)" +
+    (fi.echecs ? " \u2014 " + fi.echecs + " \u00e9chec(s)" : "") + ".\n\n" +
+    "\u2705 " + r.envoyees + " jeu(x) de donn\u00e9es envoy\u00e9(s) :\n   " +
     (r.detail || []).join("\n   ");
   if (r.vides) {
     msg += "\n\n\u2139 " + r.vides + " cl\u00e9(s) sans donn\u00e9e, ignor\u00e9e(s) :\n   " +
@@ -24554,6 +24568,10 @@ async function synchroniserALaConnexion() {
     // parfaitement l'utilisateur et aurait accepté les écritures.
     if (!u || !firebaseNousReconnait()) return;
     const r = await recevoirDepuisFirestore(true);
+    if (typeof recevoirMaFiche === "function") {
+      const ok = await recevoirMaFiche();
+      if (ok && typeof majPopupRgpd === "function") { try { majPopupRgpd(); } catch (e) {} }
+    }
     if (typeof recevoirMesDonneesPersonnelles === "function") {
       await recevoirMesDonneesPersonnelles();
     }
@@ -25298,7 +25316,7 @@ function ecranPlanReferent_fin() {}
 
 const CLES_DEPOTS = ["mfr_reclamations", "mfr_signalements", "mfr_demandes_rdv",
                      "mfr_eval_reponses", "mfr_messages_entreprise",
-                     "mfr_couverture_entreprise"];
+                     "mfr_couverture_entreprise", "mfr_profils_attestations"];
 
 // Extrait les éléments dont l'utilisateur est l'auteur.
 function mesDepots(username) {
@@ -25314,6 +25332,7 @@ function mesDepots(username) {
       return x.auteurId === username || x.demandeurId === username
         || x.apprentiUsername === username
         || x.saisiPar === username
+        || x.utilisateurId === username
         || (x.expediteur === "entreprise" && x.destinataire === username);
     });
     if (miens.length > 0) out[cle] = miens;
@@ -42914,6 +42933,101 @@ function afficherRgpd() {
 // étapes de signature ne pouvait aboutir : ni l'attestation RGPD, ni la
 // charte, ni le choix du mot de passe. Ils reçoivent donc une fiche
 // technique, conservée à part et jamais mêlée aux profils réels.
+// =================================================================
+// FICHES INDIVIDUELLES LISIBLES PAR LEUR PROPRIÉTAIRE
+// -----------------------------------------------------------------
+// Les profils vivent dans l'espace équipe, que les apprentis, les familles
+// et les entreprises ne peuvent pas lire. Conséquence : sur son propre
+// téléphone, un apprenti ne trouvait pas sa fiche. Tout ce qui en dépend
+// échouait — attestation RGPD, charte, signature de présence, qui a
+// besoin de connaître sa classe.
+//
+// L'équipe publie donc, pour chaque compte, un document fiches/<uid> que
+// seul son propriétaire peut lire. Il contient sa fiche, et pour une
+// famille ou un maître d'apprentissage celles des apprentis qui lui sont
+// rattachés — rien de plus.
+// =================================================================
+
+// Champs transmis : le strict nécessaire au fonctionnement, jamais les
+// codes d'accès ni les empreintes de mot de passe.
+function ficheAllegee(p) {
+  if (!p) return null;
+  const garder = ["id", "username", "prenom", "nom", "classe", "statut", "role",
+    "lieuId", "familleId", "famillesIds", "dateNaissance", "email", "telephone",
+    "entreprise", "prenomMA", "nomMA", "lien", "consentementFamille",
+    "rechercheContrat", "uidFirebase"];
+  const out = {};
+  garder.forEach(function(k) { if (p[k] !== undefined) out[k] = p[k]; });
+  return out;
+}
+
+async function publierFichesIndividuelles() {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { publiees: 0, echecs: 0 };
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : []);
+  const familles = (typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : []);
+  const lieux = (typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : []);
+  let publiees = 0, echecs = 0;
+
+  async function ecrire(uid, contenu) {
+    try {
+      await fbDb.collection("fiches").doc(uid).set({
+        contenu: JSON.stringify(contenu), modifieLe: new Date().toISOString()
+      });
+      publiees++;
+    } catch (e) { echecs++; }
+  }
+
+  for (const a of apprentis) {
+    if (!a.uidFirebase) continue;
+    await ecrire(a.uidFirebase, { role: "apprenti", moi: ficheAllegee(a), apprentis: [ficheAllegee(a)] });
+  }
+  for (const f of familles) {
+    if (!f.uidFirebase) continue;
+    const enfants = apprentis.filter(function(a) {
+      const ids = Array.isArray(a.famillesIds) ? a.famillesIds : (a.familleId ? [a.familleId] : []);
+      return ids.indexOf(f.id) >= 0;
+    });
+    await ecrire(f.uidFirebase, { role: "parent", moi: ficheAllegee(f), apprentis: enfants.map(ficheAllegee) });
+  }
+  for (const l of lieux) {
+    if (!l.uidFirebase) continue;
+    const accueillis = apprentis.filter(function(a) { return a.lieuId === l.id; });
+    await ecrire(l.uidFirebase, { role: "maitre", moi: ficheAllegee(l), apprentis: accueillis.map(ficheAllegee) });
+  }
+  return { publiees: publiees, echecs: echecs };
+}
+
+// À la connexion d'un apprenti, d'une famille ou d'une entreprise : on
+// récupère sa fiche et on l'injecte dans les listes locales, que le reste
+// de l'application lit comme si elles avaient toujours été là.
+async function recevoirMaFiche() {
+  try {
+    if (!initialiserFirebase() || !fbAuth.currentUser) return false;
+    const u = utilisateurConnecte;
+    if (!u || u.role === "mfr") return false;
+    const doc = await fbDb.collection("fiches").doc(fbAuth.currentUser.uid).get();
+    if (!doc.exists) return false;
+    const d = JSON.parse((doc.data() || {}).contenu || "{}");
+    const fusionner = function(liste, fiche, cle) {
+      if (!fiche) return;
+      const i = liste.findIndex(function(x) { return x[cle] === fiche[cle]; });
+      if (i >= 0) liste[i] = Object.assign({}, liste[i], fiche);
+      else liste.push(fiche);
+    };
+    (d.apprentis || []).forEach(function(a) { fusionner(PROFILS_APPRENTIS, a, "username"); });
+    if (d.role === "parent") fusionner(PROFILS_FAMILLES, d.moi, "username");
+    if (d.role === "maitre") fusionner(PROFILS_LIEUX, d.moi, "username");
+    try {
+      localStorage.setItem("mfr_profils_apprentis", JSON.stringify(PROFILS_APPRENTIS));
+      localStorage.setItem("mfr_profils_familles", JSON.stringify(PROFILS_FAMILLES));
+      localStorage.setItem("mfr_profils_lieux", JSON.stringify(PROFILS_LIEUX));
+    } catch (e) {}
+    return true;
+  } catch (e) { return false; }
+}
+
+function ficheAllegee_fin() {}
+
 function estCompteIntegre(identifiant) {
   if (typeof UTILISATEURS === "undefined") return false;
   const id = normaliserIdentifiantConnexion(identifiant);
@@ -42956,6 +43070,21 @@ function trouverProfilConnecte(u) {
   else if (u.role === "mfr") p = PROFILS_SALARIES.find(x => x.username === u.id || x.identifiant === u.id);
   if (p) return p;
   if (estCompteIntegre(u.id)) return ficheTechniqueDuCompte(u);
+  // Compte Firebase dont la fiche n'est pas encore arrivée sur l'appareil :
+  // on bâtit une fiche minimale à partir de l'annuaire, plutôt que de
+  // bloquer l'attestation RGPD ou la charte sur un « profil introuvable ».
+  if (u.sourceFirebase || (typeof firebaseNousReconnait === "function" && firebaseNousReconnait())) {
+    const liste = u.role === "apprenti" ? PROFILS_APPRENTIS
+      : u.role === "parent" ? PROFILS_FAMILLES
+      : u.role === "maitre" ? PROFILS_LIEUX : null;
+    if (liste) {
+      const fiche = { id: "FB-" + u.id, username: u.id, nom: u.nom || u.id, prenom: "",
+        role: u.role, statut: "actif", provisoire: true,
+        classe: Array.isArray(u.classes) ? u.classes[0] : "" };
+      liste.push(fiche);
+      return fiche;
+    }
+  }
   return null;
 }
 
@@ -43076,6 +43205,22 @@ async function validerAttestationRgpd() {
   }
 
   profil.attestationRgpd = attestation;
+  // Trace aussi dans la liste des attestations, qui remonte vers la MFR par
+  // le document personnel : la fiche de l'apprenti, elle, n'y remonte pas.
+  try {
+    if (typeof PROFILS_ATTESTATIONS !== "undefined") {
+      PROFILS_ATTESTATIONS.push({
+        id: "ATT-RGPD-" + Date.now(),
+        documentId: "RGPD", documentTitre: "Documentation relative \u00e0 la protection des donn\u00e9es",
+        versionAttestee: attestation.versionApp || "",
+        utilisateurId: u.id, utilisateurNom: u.nom, utilisateurRole: u.role,
+        dateAttestation: attestation.dateAttestation,
+        hashAttestation: attestation.hashAttestation || ""
+      });
+      localStorage.setItem("mfr_profils_attestations", JSON.stringify(PROFILS_ATTESTATIONS));
+    }
+    if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
+  } catch (e) {}
   sauvegarderProfilConnecte(u);
 
   // Rafraîchir la vue
