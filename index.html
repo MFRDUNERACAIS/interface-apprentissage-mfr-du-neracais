@@ -22741,6 +22741,12 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.20 (21/09/2026) — Défaut critique : mot de passe non propagé à Firebase.
+//        Changer son mot de passe ne modifiait que la copie locale ;
+//        Firebase conservait l'ancien. Le compte ne s'ouvrait plus que sur
+//        l'appareil où le changement avait été fait. Le nouveau mot de passe
+//        est désormais porté à Firebase d'abord, avec ré-authentification si
+//        nécessaire ; en cas d'échec, rien n'est enregistré en local.
 //   v4.34 (17/09/2026) — Diagnostic d'accès salarié (bouton 🩺 sur
 //        chaque fiche). Reproduit les contrôles exacts de login(), y
 //        compris la lecture depuis localStorage et non depuis la mémoire,
@@ -23079,7 +23085,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.18";
+const APP_VERSION = "5.20";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -25467,6 +25473,10 @@ function afficherPopupMotDePasse(volontaire) {
           ? '<p>Choisissez un nouveau mot de passe. Il remplacera imm\u00e9diatement le pr\u00e9c\u00e9dent.</p>'
           : '<p>Le code que la MFR vous a remis \u00e9tait <strong>provisoire</strong>. Choisissez maintenant ' +
             'un mot de passe personnel, que vous serez seul\u00b7e \u00e0 conna\u00eetre.</p>') +
+        (volontaire
+          ? '<div class="mdp-champ"><label for="mdp-actuel">Mot de passe actuel</label>' +
+            '<input type="password" id="mdp-actuel" autocomplete="current-password"></div>'
+          : '') +
         '<div class="mdp-champ"><label for="mdp-nouveau">Nouveau mot de passe</label>' +
           '<input type="password" id="mdp-nouveau" autocomplete="new-password" oninput="evaluerForceMotDePasse()"></div>' +
         '<div class="mdp-jauge"><div class="mdp-jauge-barre" id="mdp-jauge-barre"></div></div>' +
@@ -25563,6 +25573,48 @@ async function validerNouveauMotDePasse(volontaire) {
   if (!empreinte) {
     afficherErreur("Le chiffrement n'est pas disponible sur ce navigateur. Contactez le secr\u00e9tariat.");
     return;
+  }
+
+  // Le mot de passe doit changer AUSSI dans Firebase, et d'abord là.
+  // Ne le changer qu'en local produisait deux mots de passe divergents :
+  // l'ancien accepté par Firebase, le nouveau par ce seul appareil. Le
+  // compte ne s'ouvrait plus que sur le téléphone où il avait été modifié.
+  if (typeof fbAuth !== "undefined" && fbAuth && fbAuth.currentUser) {
+    const ancien = volontaire
+      ? ((document.getElementById("mdp-actuel") || {}).value || "")
+      : (u.code || "");
+    try {
+      await fbAuth.currentUser.updatePassword(nouveau);
+    } catch (e) {
+      const code = (e && e.code) || "";
+      if (code === "auth/requires-recent-login" && ancien) {
+        // Firebase exige une authentification récente pour changer un
+        // mot de passe : on la refait avec l'ancien, puis on réessaie.
+        try {
+          const cred = firebase.auth.EmailAuthProvider.credential(fbAuth.currentUser.email, ancien);
+          await fbAuth.currentUser.reauthenticateWithCredential(cred);
+          await fbAuth.currentUser.updatePassword(nouveau);
+        } catch (e2) {
+          const c2 = (e2 && e2.code) || "";
+          afficherErreur(c2 === "auth/wrong-password" || c2 === "auth/invalid-credential"
+            ? "Le mot de passe actuel est incorrect."
+            : "Le serveur a refus\u00e9 le changement (" + c2 + "). R\u00e9essayez, ou contactez le secr\u00e9tariat.");
+          return;
+        }
+      } else if (code === "auth/requires-recent-login") {
+        afficherErreur("Pour des raisons de s\u00e9curit\u00e9, saisissez votre mot de passe actuel.");
+        return;
+      } else if (code === "auth/weak-password") {
+        afficherErreur("Mot de passe jug\u00e9 trop faible par le serveur. Allongez-le.");
+        return;
+      } else {
+        // On n'enregistre RIEN en local : créer une divergence serait pire
+        // que de ne rien changer.
+        afficherErreur("Le mot de passe n'a pas pu \u00eatre modifi\u00e9 sur le serveur (" + code + "). " +
+          "Rien n'a \u00e9t\u00e9 chang\u00e9. V\u00e9rifiez votre connexion et r\u00e9essayez.");
+        return;
+      }
+    }
   }
 
   profil.passwordHash = empreinte;
@@ -41283,6 +41335,137 @@ const MODE_EMPLOI_CONTENU = {
                       ],
                       "attention": "Seules les séances <strong>clôturées et signées</strong> figurent dans ces documents. Une séance restée ouverte est invisible, donc inexistante pour le financeur.",
                       "ou": "Mon espace > Émargement > Historique"
+                  }
+              ]
+          },
+          {
+              "titre": "📖 Couverture du référentiel — pas à pas",
+              "actions": [
+                  {
+                      "titre": "Pourquoi on vous le demande",
+                      "comment": "À lire une fois. Deux minutes qui évitent bien des questions.",
+                      "etapes": [
+                          "Le CAP EPC et le programme de PSE comptent <strong>98 items</strong>, répartis en quatre ensembles : Bloc 1, Bloc 2, Bloc 3 et PSE.",
+                          "La MFR doit pouvoir prouver que <strong>chacun a été traité</strong>, à quelle date, et par qui.",
+                          "Jusqu'ici, cela passait par un tableau rempli à la main. Désormais, c'est vous qui l'alimentez, séance après séance, en trente secondes.",
+                          "Date, classe et intervenant sont repris automatiquement de votre séance : vous n'avez rien à ressaisir."
+                      ],
+                      "attention": "Un item jamais coché est un item que l'on ne peut pas prouver avoir enseigné. En audit comme devant un jury, c'est la même chose que s'il n'avait pas été traité.",
+                      "ou": "—"
+                  },
+                  {
+                      "titre": "1. La fenêtre s'ouvre toute seule",
+                      "comment": "Vous n'avez rien à chercher : elle apparaît au bon moment.",
+                      "etapes": [
+                          "Clôturez votre séance d'émargement comme d'habitude, avec <strong>🔐 Clôturer et signer la séance</strong>.",
+                          "Juste après le message de confirmation, une fenêtre s'ouvre : <strong>📖 Ce que cette séance a couvert</strong>.",
+                          "En haut, un rappel de votre séance : matière, date, classe.",
+                          "C'est le bon moment : vous avez encore votre cours en tête."
+                      ],
+                      "ou": "Après la clôture d'une séance"
+                  },
+                  {
+                      "titre": "2. Vérifier le bloc proposé",
+                      "comment": "Il est déjà sélectionné d'après votre matière.",
+                      "etapes": [
+                          "Le champ <strong>Bloc du référentiel</strong> est pré-rempli.",
+                          "« EP1 » ouvre le Bloc 1, « EP2 » le Bloc 2, « EP3 » ou « Vente et relation client » le Bloc 3, « PSE » les thématiques de PSE.",
+                          "Si le bloc proposé ne correspond pas à ce que vous avez fait, changez-le dans la liste.",
+                          "Pour une matière générale — français, mathématiques, anglais — aucun bloc n'est proposé. Vous pouvez en choisir un si votre séance a touché un item du référentiel."
+                      ],
+                      "attention": "Un cours de français peut parfaitement traiter un item du Bloc 3 — rédiger une argumentation de vente, par exemple. Dans ce cas, choisissez le bloc et cochez-le : c'est justement ce qui se perdait dans l'ancien tableau.",
+                      "ou": "Après la clôture d'une séance"
+                  },
+                  {
+                      "titre": "3. Choisir la compétence",
+                      "comment": "Quatre ou cinq propositions, pas davantage.",
+                      "etapes": [
+                          "Dans le champ <strong>Compétence travaillée</strong>, ouvrez la liste.",
+                          "Chaque compétence affiche entre parenthèses son nombre d'items.",
+                          "Choisissez celle que votre séance a travaillée.",
+                          "Ses items apparaissent aussitôt en dessous."
+                      ],
+                      "ou": "Après la clôture d'une séance"
+                  },
+                  {
+                      "titre": "4. Cocher les items traités",
+                      "comment": "Trois à onze cases, selon la compétence.",
+                      "etapes": [
+                          "Chaque item s'affiche avec son code — par exemple <strong>1.2.3</strong> — et son intitulé.",
+                          "Cochez ceux que vous avez <strong>réellement traités</strong> pendant la séance.",
+                          "La mention <em>« déjà vu le 22/09 »</em> signale un item couvert lors d'une séance précédente. Vous pouvez le cocher à nouveau si vous y êtes revenu.",
+                          "En bas, un encadré doré récapitule ce que vous avez coché."
+                      ],
+                      "attention": "Ne cochez que ce qui a été fait, pas ce qui était prévu. Une couverture déclarée par anticipation fausse le tableau de bord de toute l'équipe : vos collègues croiront l'item traité et ne le programmeront pas.",
+                      "ou": "Après la clôture d'une séance"
+                  },
+                  {
+                      "titre": "5. Plusieurs compétences dans la même séance",
+                      "comment": "C'est fréquent, et c'est prévu.",
+                      "etapes": [
+                          "Après avoir coché les items d'une première compétence, <strong>revenez au champ Compétence</strong>.",
+                          "Choisissez la seconde compétence : ses items s'affichent.",
+                          "Vos premières coches sont conservées : l'encadré doré les montre toujours.",
+                          "Cochez les nouveaux items, puis enregistrez une seule fois pour l'ensemble."
+                      ],
+                      "attention": "Vous pouvez même changer de bloc en cours de route : rien n'est perdu tant que vous n'avez pas fermé la fenêtre.",
+                      "ou": "Après la clôture d'une séance"
+                  },
+                  {
+                      "titre": "6. Enregistrer",
+                      "comment": "Un clic, et c'est fait.",
+                      "etapes": [
+                          "Cliquez sur <strong>✓ Enregistrer</strong>.",
+                          "Un message confirme le nombre d'items enregistrés.",
+                          "Pour une séance regroupant deux classes, la couverture est enregistrée pour chacune d'elles."
+                      ],
+                      "ou": "Après la clôture d'une séance"
+                  },
+                  {
+                      "titre": "Ma séance ne relève pas du référentiel",
+                      "comment": "Méthodologie, orientation, heure de vie de classe, évaluation.",
+                      "etapes": [
+                          "Deux possibilités, au choix.",
+                          "Cliquez sur <strong>Passer</strong> : la fenêtre se ferme, rien n'est enregistré.",
+                          "Ou choisissez <strong>— Aucun (séance hors référentiel) —</strong> dans le champ Bloc, puis enregistrez : la séance sera tracée comme ne couvrant aucun item."
+                      ],
+                      "attention": "Passer ne pose aucun problème. Mais si vous passez une séance qui a bien traité un item, cet item restera « non couvert » dans le tableau de bord de toute l'équipe.",
+                      "ou": "Après la clôture d'une séance"
+                  },
+                  {
+                      "titre": "J'ai oublié de cocher, ou j'ai fermé trop vite",
+                      "comment": "La fenêtre ne réapparaît pas d'elle-même.",
+                      "etapes": [
+                          "Prévenez la Direction ou le référent de classe, en précisant la date, la classe et les items concernés.",
+                          "La couverture sera ajoutée depuis le tableau de bord.",
+                          "Faites-le rapidement : un rattrapage tardif reste possible, mais la date de saisie sera tracée."
+                      ],
+                      "ou": "Direction"
+                  },
+                  {
+                      "titre": "Consulter ce qui reste à couvrir",
+                      "comment": "Le tableau de bord de toute l'équipe, pour préparer vos séances.",
+                      "etapes": [
+                          "Menu > <strong>📖 Couverture du référentiel</strong>.",
+                          "Choisissez votre classe en haut.",
+                          "Un pourcentage global s'affiche, puis une barre de progression par bloc.",
+                          "Plus bas, compétence par compétence, les <strong>items non encore traités</strong> sont nommés.",
+                          "Consultez-le avant de bâtir votre progression : il vous dit exactement ce qui n'a été vu par personne."
+                      ],
+                      "attention": "C'est l'usage le plus utile de ce dispositif. Il vous évite de refaire ce qu'un collègue a déjà traité, et de laisser un trou que personne n'aurait vu.",
+                      "ou": "Menu > Couverture du référentiel"
+                  },
+                  {
+                      "titre": "Extraire le suivi",
+                      "comment": "Pour une réunion pédagogique, un jury, ou une famille.",
+                      "etapes": [
+                          "Sur la même page, cliquez sur <strong>📊 Extraire le suivi</strong>.",
+                          "Choisissez la <strong>portée</strong> : une classe, une formation toutes années confondues, ou un apprenti.",
+                          "Cochez ou non le détail item par item, et la mise en évidence de ce qui reste à traiter.",
+                          "Cliquez sur <strong>📄 Télécharger en PDF</strong> ou <strong>📥 Exporter en CSV</strong>."
+                      ],
+                      "attention": "La portée « formation » réunit les deux années du CAP. C'est la seule qui réponde à la vraie question : un apprenti sortant aura-t-il vu l'ensemble du référentiel ?",
+                      "ou": "Menu > Couverture du référentiel"
                   }
               ]
           },
