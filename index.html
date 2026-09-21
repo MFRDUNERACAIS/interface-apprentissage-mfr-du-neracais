@@ -9890,6 +9890,70 @@
     border-radius: 8px; padding: 0.9rem 1.1rem; font-size: 0.92rem; margin-bottom: 1.2rem;
   }
   .emarg-signe { color: #3B6B28; font-size: 0.78rem; font-weight: 600; }
+  /* Couverture du referentiel */
+  .cov-intro { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 0.9rem; }
+  .cov-aide { font-size: 0.85rem; color: var(--text-muted); margin-top: 0.6rem; }
+  .cov-liste { display: grid; gap: 0.3rem; max-height: 22rem; overflow-y: auto; }
+  .cov-item {
+    display: flex; align-items: flex-start; gap: 0.5rem; cursor: pointer;
+    padding: 0.5rem 0.7rem; border: 1px solid var(--border); border-radius: 7px;
+    font-size: 0.9rem; background: #fff;
+  }
+  .cov-item.est-coche { background: #F1F8E9; border-color: var(--olive); }
+  .cov-code {
+    font-family: monospace; background: var(--beige); border-radius: 4px;
+    padding: 0.05rem 0.35rem; font-size: 0.8rem; color: var(--olive-dark); font-weight: 600;
+  }
+  .cov-deja { font-size: 0.76rem; color: var(--text-muted); font-style: italic; margin-left: auto; white-space: nowrap; }
+  .cov-panier {
+    margin-top: 0.7rem; padding: 0.5rem 0.8rem; background: #FFF8E1;
+    border-left: 4px solid var(--or); border-radius: 6px; font-size: 0.85rem;
+  }
+  .cov-synthese {
+    display: flex; align-items: center; gap: 1.2rem;
+    background: #fff; border: 1px solid var(--border); border-left: 5px solid var(--olive);
+    border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1.2rem;
+  }
+  .cov-pct { font-size: 2.4rem; font-weight: 700; color: var(--olive-dark); line-height: 1; }
+  .cov-reste { font-size: 0.86rem; color: var(--text-muted); }
+  .cov-bloc-ligne { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.45rem; font-size: 0.88rem; }
+  .cov-bloc-nom { flex: 0 0 18rem; color: var(--olive-dark); font-weight: 600; }
+  .cov-barre { flex: 1; height: 14px; background: var(--beige-dark); border-radius: 999px; overflow: hidden; }
+  .cov-barre-pleine { height: 100%; background: var(--olive); }
+  .cov-bloc-chiffre { flex: 0 0 5rem; text-align: right; color: var(--text-muted); }
+  .cov-titre-bloc { margin: 1.6rem 0 0.6rem; color: var(--olive-dark); font-size: 1.05rem; }
+  .cov-comp { margin-bottom: 0.9rem; padding-left: 0.9rem; border-left: 3px solid var(--border); }
+  .cov-comp-titre { font-weight: 600; font-size: 0.93rem; color: var(--olive-dark); }
+  .cov-comp-chiffre { font-weight: 400; color: var(--text-muted); font-size: 0.85rem; }
+  .cov-complet { font-size: 0.86rem; color: #3B6B28; }
+  .cov-manquants { margin: 0.35rem 0 0 0; padding-left: 1.1rem; font-size: 0.86rem; color: var(--text-muted); }
+  .cov-manquants li { margin-bottom: 0.15rem; }
+  .cov-legende { display: flex; gap: 1.4rem; flex-wrap: wrap; font-size: 0.84rem; color: var(--text-muted); margin-bottom: 1rem; }
+  .cov-pastille { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 0.3rem; }
+  .cov-pastille.acquis { background: #4C7A34; }
+  .cov-pastille.partiel { background: var(--or); }
+  .cov-pastille.absent { background: var(--mfr-red); }
+  .tableau-simple { width: 100%; border-collapse: collapse; font-size: 0.87rem; }
+  .tableau-simple th {
+    background: var(--olive); color: #fff; text-align: left;
+    padding: 0.5rem 0.7rem; font-weight: 600;
+  }
+  .tableau-simple td { padding: 0.45rem 0.7rem; border-bottom: 1px solid var(--border); }
+  .tableau-simple tr:nth-child(even) td { background: #FAFAF7; }
+  /* Attestation hebdomadaire du maitre d'apprentissage */
+  .att-carte {
+    border-radius: 10px; padding: 1.1rem 1.3rem; margin-bottom: 1.2rem;
+    border: 1px solid var(--border); border-left: 5px solid var(--or); background: #FFFDF5;
+  }
+  .att-carte.att-faite { border-left-color: #4C7A34; background: #F1F8E9; }
+  .att-titre { font-size: 1.02rem; font-weight: 700; color: var(--olive-dark); margin-bottom: 0.35rem; }
+  .att-carte p { font-size: 0.9rem; margin-bottom: 0.7rem; }
+  .att-liste { list-style: none; padding: 0; margin: 0; }
+  .att-liste li {
+    display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+    padding: 0.45rem 0; border-bottom: 1px solid var(--border); font-size: 0.9rem;
+  }
+  .att-liste li:last-child { border-bottom: none; }
   .enquetes-tabs {
     display: flex;
     gap: 0.4rem;
@@ -16571,6 +16635,9 @@
         <button class="tab" data-page="evaluations-competences" onclick="changerPage('evaluations-competences')">
           <span class="tab-icon">📋</span><span class="tab-label">Évaluations compétences <span id="badgeEvalCompetences" class="tab-badge" style="display:none;background:#C97A4F;">0</span></span>
         </button>
+        <button class="tab tab-mfr" data-page="couverture" onclick="changerPage('couverture')" style="display:none;">
+          <span class="tab-icon">📖</span><span class="tab-label">Couverture du référentiel</span>
+        </button>
         <button class="tab tab-mfr" data-page="suivi-carnets" onclick="changerPage('suivi-carnets')" style="display:none;">
           <span class="tab-icon">📊</span><span class="tab-label">Suivi des carnets <span id="badgeSuiviCarnets" class="tab-badge" style="display:none;background:#5C6F3E;">0</span></span>
         </button>
@@ -21892,6 +21959,15 @@
     </div>
 
     <!-- PAGE ÉMARGEMENT (visible MFR uniquement) -->
+    <div id="page-couverture" class="page">
+      <div class="page-entete">
+        <h2>📖 Couverture du référentiel</h2>
+        <p>Suivi des 98 items du référentiel CAP Équipier polyvalent du commerce et du programme de PSE.
+        Un item est couvert dès qu'une séance l'a traité en centre.</p>
+      </div>
+      <div id="couvertureContenu"></div>
+    </div>
+
     <div id="page-plan-etude" class="page">
       <div id="plan-etude-contenu"></div>
     </div>
@@ -23003,7 +23079,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.08";
+const APP_VERSION = "5.18";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24300,6 +24376,7 @@ async function creerComptesFirebase() {
 // Clés relevées dans le code, et non supposées : une clé mal orthographiée
 // ne provoque aucune erreur, elle est simplement comptée comme vide.
 const CLES_SYNC_EQUIPE = [
+  "mfr_couverture_referentiel", "mfr_couverture_entreprise",
   "mfr_profils_apprentis", "mfr_profils_familles", "mfr_profils_lieux",
   "mfr_profils_salaries", "mfr_profils_attestations", "mfr_absences",
   "mfr_bulletins_scolaires", "mfr_evaluations_competences", "mfr_livret_evaluations",
@@ -25214,7 +25291,8 @@ function ecranPlanReferent_fin() {}
 // l'équipe agrège à la réception. Chacun écrit chez soi, la MFR ramasse.
 
 const CLES_DEPOTS = ["mfr_reclamations", "mfr_signalements", "mfr_demandes_rdv",
-                     "mfr_eval_reponses", "mfr_messages_entreprise"];
+                     "mfr_eval_reponses", "mfr_messages_entreprise",
+                     "mfr_couverture_entreprise"];
 
 // Extrait les éléments dont l'utilisateur est l'auteur.
 function mesDepots(username) {
@@ -25229,6 +25307,7 @@ function mesDepots(username) {
       // qui désigne en réalité le compte maître d'apprentissage de la conversation.
       return x.auteurId === username || x.demandeurId === username
         || x.apprentiUsername === username
+        || x.saisiPar === username
         || (x.expediteur === "entreprise" && x.destinataire === username);
     });
     if (miens.length > 0) out[cle] = miens;
@@ -25738,6 +25817,7 @@ function changerPage(nomPage) {
   if (nomPage === "erasmus" && typeof afficherPageErasmus === "function") afficherPageErasmus();
   if (nomPage === "suivi-carnets" && typeof afficherPageSuiviCarnets === "function") afficherPageSuiviCarnets();
   if (nomPage === "plan-etude" && typeof afficherPlanEtude === "function") afficherPlanEtude();
+  if (nomPage === "couverture" && typeof afficherTableauCouverture === "function") afficherTableauCouverture();
   if (nomPage === "alertes" && typeof chargerAlertes === "function") chargerAlertes();
   if (nomPage === "accessibilite" && typeof afficherPageAccessibilite === "function") afficherPageAccessibilite();
   if (nomPage === "firebase-admin" && typeof fbAfficherEtat === "function") fbAfficherEtat();
@@ -25788,6 +25868,8 @@ function initDashboard() {
       carteAppr = carteAppreciationApprenti(u);
     } else if (u.role === "mfr" && typeof carteAppreciationMoniteur === "function") {
       carteAppr = carteAppreciationMoniteur();
+    } else if (u.role === "maitre" && typeof carteAttestationEntreprise === "function") {
+      carteAppr = carteAttestationEntreprise();
     }
     if (carteAppr) {
       const bloc = document.createElement("div");
@@ -40021,7 +40103,7 @@ const MODE_EMPLOI_CONTENU = {
   "apprenti": {
       "icone": "👨‍🎓",
       "titre": "Mode d'emploi — Apprenti·e",
-      "accroche": "Chaque fiche est un pas à pas : suivez les étapes dans l'ordre, elles sont écrites pour être faites en même temps qu'on les lit. Si quelque chose ne marche pas, la réponse est souvent juste en dessous.",
+      "accroche": "Chaque fiche est un pas à pas : suivez les étapes dans l'ordre. La première chose à savoir : <strong>c'est vous qui signez votre présence en cours</strong>, et personne ne peut le faire à votre place.",
       "sections": [
           {
               "titre": "🔑 Me connecter",
@@ -40073,6 +40155,79 @@ const MODE_EMPLOI_CONTENU = {
                           "Si ça ne marche toujours pas, passez au secrétariat."
                       ],
                       "ou": "Écran de connexion"
+                  }
+              ]
+          },
+          {
+              "titre": "✍️ Signer ma présence en cours",
+              "actions": [
+                  {
+                      "titre": "Pourquoi c'est vous qui signez",
+                      "comment": "À lire une fois. C'est la chose la plus importante de ce guide.",
+                      "etapes": [
+                          "Votre présence en cours doit être prouvée : c'est elle qui justifie le financement de votre formation.",
+                          "<strong>Personne ne peut signer à votre place.</strong> Ni votre formateur, ni un camarade.",
+                          "Chaque signature est enregistrée avec l'heure exacte, à la minute."
+                      ],
+                      "attention": "Si vous ne signez pas, votre formateur devra vous pointer lui-même. C'est possible, mais moins solide. Prenez l'habitude de signer, c'est dix secondes.",
+                      "ou": "—"
+                  },
+                  {
+                      "titre": "Signer, étape par étape",
+                      "comment": "À faire au début de chaque cours, dès que votre formateur ouvre la séance.",
+                      "etapes": [
+                          "Sortez votre téléphone et ouvrez l'application.",
+                          "Dans le menu, rubrique <strong>Mon espace</strong>, appuyez sur <strong>✍️ Émargement</strong>.",
+                          "Une carte apparaît en haut : la matière, la date, l'horaire du cours.",
+                          "Appuyez sur <strong>✍️ Je signe ma présence</strong>.",
+                          "Un message vous demande de confirmer. Appuyez sur <strong>OK</strong>.",
+                          "La carte devient verte et affiche l'heure de votre signature. C'est fait."
+                      ],
+                      "attention": "Une fois signée, votre présence ne peut plus être retirée. Ne signez donc que si vous êtes réellement en cours.",
+                      "ou": "Mon espace > Émargement"
+                  },
+                  {
+                      "titre": "Je ne vois aucune carte",
+                      "comment": "Trois raisons possibles, dans l'ordre de fréquence.",
+                      "etapes": [
+                          "<strong>Votre formateur n'a pas encore ouvert la séance.</strong> Patientez, ou demandez-lui.",
+                          "<strong>Vous êtes en semaine entreprise.</strong> Il n'y a pas de cours à signer.",
+                          "<strong>Votre classe n'est pas renseignée</strong> sur votre fiche. Signalez-le au secrétariat."
+                      ],
+                      "ou": "Mon espace > Émargement"
+                  },
+                  {
+                      "titre": "J'ai oublié de signer",
+                      "comment": "Dites-le tout de suite à votre formateur, avant la fin du cours.",
+                      "etapes": [
+                          "Il pourra vous pointer présent avant de clôturer la séance.",
+                          "Une fois la séance clôturée, il est trop tard : vous ne pourrez plus signer, et lui non plus ne pourra plus rien changer.",
+                          "Ne laissez pas passer : une absence non corrigée peut avoir un effet sur votre salaire."
+                      ],
+                      "attention": "C'est le cas le plus fréquent en début d'année. Prenez le réflexe dès le premier cours.",
+                      "ou": "Mon espace > Émargement"
+                  },
+                  {
+                      "titre": "Je n'ai pas de téléphone avec moi",
+                      "comment": "Cela arrive, et ce n'est pas un problème.",
+                      "etapes": [
+                          "Prévenez votre formateur en début de cours.",
+                          "Il vous pointera présent lui-même.",
+                          "Si cela se répète souvent, parlez-en à votre référent : un poste peut être mis à disposition en salle."
+                      ],
+                      "ou": "Mon espace > Émargement"
+                  },
+                  {
+                      "titre": "Voir mes émargements passés",
+                      "comment": "Pour vérifier ce qui a été enregistré vous concernant.",
+                      "etapes": [
+                          "Même page : <strong>Mon espace</strong> puis <strong>✍️ Émargement</strong>.",
+                          "Sous la carte de signature, la liste de toutes vos séances s'affiche.",
+                          "Chaque ligne indique la date, la matière, et si vous étiez présent, en retard ou absent.",
+                          "Si quelque chose vous paraît faux, dites-le à votre référent sans attendre."
+                      ],
+                      "attention": "Vérifiez cette liste une fois par mois. Une erreur signalée en octobre se corrige ; la même découverte en juin, beaucoup moins.",
+                      "ou": "Mon espace > Émargement"
                   }
               ]
           },
@@ -40360,6 +40515,58 @@ const MODE_EMPLOI_CONTENU = {
               ]
           },
           {
+              "titre": "📱 Ce que fait votre enfant chaque semaine",
+              "actions": [
+                  {
+                      "titre": "Il signe sa présence en cours",
+                      "comment": "C'est son geste quotidien, et il lui appartient.",
+                      "etapes": [
+                          "À chaque cours, son formateur ouvre la séance dans l'application.",
+                          "Votre enfant ouvre alors <strong>Mon espace</strong> puis <strong>✍️ Émargement</strong>, et appuie sur <strong>Je signe ma présence</strong>.",
+                          "Sa signature est enregistrée avec l'heure exacte.",
+                          "<strong>Personne ne peut signer à sa place</strong> — ni son formateur, ni un camarade, ni vous.",
+                          "S'il oublie, son formateur peut le pointer présent, mais c'est moins solide."
+                      ],
+                      "attention": "Cette signature justifie le financement de sa formation, et son assiduité conditionne sa rémunération. Demandez-lui de temps en temps s'il pense à signer — c'est dix secondes par cours.",
+                      "ou": "—"
+                  },
+                  {
+                      "titre": "Il signe ses repas et ses nuitées",
+                      "comment": "Douze services par semaine quand il est à la MFR.",
+                      "etapes": [
+                          "Repas de midi, repas du soir et nuitée, du lundi au jeudi.",
+                          "Il signe chacun depuis <strong>Mon espace</strong> puis <strong>✍️ Émargement</strong>, onglet <strong>🍽️ Repas et nuitées</strong>.",
+                          "Chaque service a sa plage horaire : midi entre 11 h 30 et 14 h, soir entre 18 h 30 et 21 h, nuitée entre 20 h et 23 h.",
+                          "En fin de semaine, la MFR vérifie et valide."
+                      ],
+                      "attention": "Ce qu'il signe est ce qui vous sera facturé : 3 € le repas, 6 € la nuitée, régularisés fin juillet. S'il signe un repas qu'il n'a pas pris, vous le paierez.",
+                      "ou": "—"
+                  },
+                  {
+                      "titre": "Il dépose son appréciation du jeudi",
+                      "comment": "Chaque jeudi en fin d'après-midi, son moniteur lui répond le vendredi.",
+                      "etapes": [
+                          "Il écrit ce qu'il retient de sa semaine : ce qui a été difficile, ce qu'il a aimé, ce qu'il veut approfondir.",
+                          "Son moniteur y répond par écrit.",
+                          "L'échange se retrouve dans son <strong>carnet de liaison</strong>, que vous pouvez lire."
+                      ],
+                      "attention": "C'est la meilleure fenêtre sur la façon dont il vit sa formation — bien plus parlante qu'une note. Lisez-la chaque semaine.",
+                      "ou": "Menu > Carnet de liaison"
+                  },
+                  {
+                      "titre": "Il coche son travail à faire",
+                      "comment": "Le plan d'étude déposé par son référent.",
+                      "etapes": [
+                          "Menu > <strong>Travail à faire</strong>.",
+                          "Il y trouve les tâches de la semaine, module par module.",
+                          "Il coche au fur et à mesure, et voit son avancement en pourcentage.",
+                          "Vous pouvez consulter la même page pour savoir ce qui lui est demandé."
+                      ],
+                      "ou": "Menu > Travail à faire"
+                  }
+              ]
+          },
+          {
               "titre": "👁️ Suivre mon enfant au quotidien",
               "actions": [
                   {
@@ -40375,13 +40582,16 @@ const MODE_EMPLOI_CONTENU = {
                   },
                   {
                       "titre": "Lire le carnet de liaison",
-                      "comment": "C'est le cœur du suivi : ce que votre enfant écrit, ce que son formateur répond, ce que son maître d'apprentissage observe.",
+                      "comment": "C'est le cœur du suivi : ce que votre enfant écrit, ce que son moniteur répond, ce que son maître d'apprentissage observe.",
                       "etapes": [
                           "Menu > <strong>Carnet de liaison</strong>.",
-                          "Les échanges sont classés par semaine de formation.",
-                          "Vous pouvez y écrire vous aussi : appuyez sur <strong>+ Nouvel échange</strong>."
+                          "Les échanges sont classés par semaine de formation, sous forme de fiches dépliables.",
+                          "Ouvrez la semaine qui vous intéresse.",
+                          "Vous y trouvez l'appréciation de votre enfant, la réponse de son moniteur, et les observations de l'entreprise.",
+                          "Vous pouvez écrire vous aussi : appuyez sur <strong>+ Nouvel échange</strong>.",
+                          "Ce que vous écrivez est lu par votre enfant, son moniteur et son maître d'apprentissage."
                       ],
-                      "attention": "Chaque jeudi, votre enfant dépose une appréciation de sa semaine, et son moniteur y répond le vendredi. C'est le meilleur endroit pour comprendre comment il vit sa formation — bien mieux qu'une note.",
+                      "attention": "Prenez l'habitude de le lire chaque dimanche soir. Dix minutes par semaine vous en diront plus que n'importe quel bulletin.",
                       "ou": "Menu > Carnet de liaison"
                   },
                   {
@@ -40677,11 +40887,13 @@ const MODE_EMPLOI_CONTENU = {
                       "comment": "À chaque retour de l'apprenti en entreprise. Trois lignes suffisent.",
                       "etapes": [
                           "Menu > <strong>Carnet de liaison</strong>.",
-                          "Appuyez sur <strong>+ Nouvel échange</strong>.",
+                          "Les sessions sont présentées sous forme de fiches dépliables. Ouvrez celle de la période écoulée.",
+                          "Cliquez sur <strong>+ Nouvel échange</strong>.",
                           "Dites ce qu'il a fait pendant la période, ce qui s'est bien passé, ce qui reste à travailler.",
-                          "Enregistrez."
+                          "Enregistrez.",
+                          "Votre message apparaît aussitôt pour l'apprenti, sa famille et l'équipe de la MFR."
                       ],
-                      "attention": "Le carnet est lu par l'apprenti, sa famille et l'équipe de la MFR. C'est le moyen le plus simple de dire quelque chose sans passer un appel.",
+                      "attention": "Le carnet est lu par tout le monde, l'apprenti compris. Écrivez ce que vous pourriez lui dire en face — ni plus dur, ni plus tiède.",
                       "ou": "Menu > Carnet de liaison"
                   },
                   {
@@ -40694,6 +40906,92 @@ const MODE_EMPLOI_CONTENU = {
                       ],
                       "attention": "L'application n'envoie aucun courriel. Si vous ne vous connectez jamais, vous ne serez jamais sollicité — et votre avis manquera au bilan annuel.",
                       "ou": "Menu > Enquêtes"
+                  }
+              ]
+          },
+          {
+              "titre": "✅ La grille de compétences — pas à pas",
+              "actions": [
+                  {
+                      "titre": "Ce que vous allez remplir",
+                      "comment": "À lire une fois avant la première grille. Deux minutes qui font gagner du temps ensuite.",
+                      "etapes": [
+                          "La grille du CAP EPC comporte <strong>trois blocs de compétences</strong> et <strong>huit attitudes professionnelles</strong>.",
+                          "<strong>Bloc 1</strong> — Recevoir et suivre les commandes.",
+                          "<strong>Bloc 2</strong> — Mettre en valeur et approvisionner.",
+                          "<strong>Bloc 3</strong> — Conseiller et accompagner le client dans son parcours d'achat.",
+                          "Chaque compétence se cote sur quatre niveaux : <strong>Pas vu</strong>, <strong>Insuffisant</strong>, <strong>Fragile</strong>, <strong>Satisfaisant</strong>.",
+                          "Les attitudes n'ont que trois niveaux : « Pas vu » n'y existe pas, puisqu'elles s'observent en permanence."
+                      ],
+                      "attention": "Votre grille est la pièce que l'examinateur regardera. C'est le seul document qui atteste ce que l'apprenti a réellement fait chez vous.",
+                      "ou": "—"
+                  },
+                  {
+                      "titre": "Remplir la grille, étape par étape",
+                      "comment": "Toutes les six semaines de présence. Comptez dix minutes.",
+                      "etapes": [
+                          "Menu > <strong>Livret d'apprentissage</strong>.",
+                          "Sélectionnez la période en cours si plusieurs vous sont proposées.",
+                          "Parcourez le <strong>bloc 1</strong>, compétence par compétence.",
+                          "Pour chacune, cliquez sur le niveau qui correspond. Le bouton se colore.",
+                          "Faites de même pour les blocs 2 et 3.",
+                          "Descendez jusqu'aux <strong>huit attitudes professionnelles</strong> et cotez-les.",
+                          "Rédigez votre <strong>appréciation</strong> en quelques lignes : ce qui progresse, ce qui reste à travailler.",
+                          "Enregistrez."
+                      ],
+                      "ou": "Menu > Livret d'apprentissage"
+                  },
+                  {
+                      "titre": "Les huit attitudes professionnelles",
+                      "comment": "Elles comptent autant que les gestes techniques, et souvent davantage pour l'employabilité.",
+                      "etapes": [
+                          "<strong>Adopter une tenue adaptée</strong> — conforme au poste et à l'enseigne.",
+                          "<strong>Adopter un comportement adapté</strong> — avec les clients, les collègues, la hiérarchie.",
+                          "<strong>Respecter les horaires</strong> — arrivée, pauses, fin de service.",
+                          "<strong>Appliquer les consignes</strong> — celles qui sont données, et celles qui sont écrites.",
+                          "<strong>S'impliquer dans son travail</strong> — l'engagement, pas seulement l'exécution.",
+                          "<strong>S'intégrer à l'équipe</strong> — la place qu'il prend, celle qu'on lui fait.",
+                          "<strong>Prendre des initiatives</strong> — ce qu'il fait sans qu'on le lui demande.",
+                          "<strong>S'organiser et s'adapter aux méthodes de travail</strong> — les vôtres, pas celles de l'école."
+                      ],
+                      "attention": "Ce sont ces huit lignes que lisent en premier un examinateur et un futur employeur. Une compétence technique se rattrape ; une attitude, beaucoup moins.",
+                      "ou": "Menu > Livret d'apprentissage"
+                  },
+                  {
+                      "titre": "Comment coter juste",
+                      "comment": "La question que tout le monde se pose devant la première grille.",
+                      "etapes": [
+                          "<strong>Pas vu</strong> — l'apprenti n'a pas encore rencontré cette situation chez vous. C'est une réponse normale et utile.",
+                          "<strong>Insuffisant</strong> — il l'a fait, mais le résultat n'est pas acceptable en l'état.",
+                          "<strong>Fragile</strong> — il y arrive, avec de l'aide ou de façon irrégulière.",
+                          "<strong>Satisfaisant</strong> — il le fait seul, correctement, de façon fiable.",
+                          "Ne cherchez pas à « encourager » en surcotant : vous priveriez la MFR de l'information dont elle a besoin pour l'aider."
+                      ],
+                      "attention": "Cotez « Pas vu » plutôt que d'inventer. Une grille où tout est satisfaisant dès la première période ne renseigne personne et se repère immédiatement.",
+                      "ou": "Menu > Livret d'apprentissage"
+                  },
+                  {
+                      "titre": "Remplir la grille avec l'apprenti",
+                      "comment": "Le conseil le plus utile de ce guide, et le plus souvent négligé.",
+                      "etapes": [
+                          "Ouvrez la grille devant lui, pas après son départ.",
+                          "Cotez ensemble, compétence par compétence.",
+                          "Là où vous mettez <em>Fragile</em>, dites pourquoi et ce que vous attendez concrètement.",
+                          "Là où vous mettez <em>Satisfaisant</em>, dites-le aussi : c'est souvent la seule reconnaissance qu'il reçoit.",
+                          "Terminez par un objectif pour les six semaines suivantes."
+                      ],
+                      "attention": "Une grille remplie seul le dimanche soir est une formalité administrative. Remplie avec lui, c'est un entretien de progression — et c'est exactement ce que l'examinateur cherchera à vérifier.",
+                      "ou": "Menu > Livret d'apprentissage"
+                  },
+                  {
+                      "titre": "Je ne sais pas quoi mettre sur une compétence",
+                      "comment": "Trois réflexes, dans l'ordre.",
+                      "etapes": [
+                          "Si la situation ne s'est pas présentée : <strong>Pas vu</strong>, sans hésiter.",
+                          "Si vous hésitez entre deux niveaux : prenez le plus bas, et notez pourquoi dans l'appréciation.",
+                          "Si la compétence vous paraît hors de votre activité : signalez-le au formateur référent lors de sa visite."
+                      ],
+                      "ou": "Menu > Livret d'apprentissage"
                   }
               ]
           },
@@ -40849,6 +41147,17 @@ const MODE_EMPLOI_CONTENU = {
               "titre": "✍️ Émarger — le pas à pas complet",
               "actions": [
                   {
+                      "titre": "Qui signe quoi, et pourquoi",
+                      "comment": "À lire une fois. Le reste de la section en découle.",
+                      "etapes": [
+                          "<strong>L'apprenti signe sa propre présence.</strong> C'est lui qui atteste être là ; personne ne peut le faire à sa place.",
+                          "<strong>Vous constatez et contresignez.</strong> Vous ouvrez la séance, complétez les absences, et scellez l'ensemble par votre signature.",
+                          "Cette répartition n'est pas une commodité : une présence déclarée par un tiers n'a pas la même valeur qu'une signature devant un financeur."
+                      ],
+                      "attention": "Si vous pointez « présent » à la place d'un apprenti qui n'a pas signé, vous produisez une déclaration, pas une signature. Réservez ce geste aux cas où il n'a pas pu signer, et dites-le.",
+                      "ou": "—"
+                  },
+                  {
                       "titre": "1. Ouvrir la séance",
                       "comment": "À faire au début de chaque cours, avant de commencer.",
                       "etapes": [
@@ -40856,62 +41165,85 @@ const MODE_EMPLOI_CONTENU = {
                           "Trois onglets s'affichent en haut : <strong>🟢 Séance en cours</strong>, <strong>📋 Historique</strong>, <strong>🍽️ Repas et nuitées</strong>. Restez sur le premier.",
                           "Cliquez sur <strong>+ Ouvrir une nouvelle séance</strong>.",
                           "<strong>Classe</strong> : choisissez la vôtre dans la liste.",
-                          "<strong>Classes regroupées</strong> : si le cours réunit plusieurs classes — les deux années de CAP, le plus souvent — cochez les autres classes concernées. Laissez vide dans tous les autres cas.",
-                          "<strong>Matière / séquence pédagogique</strong> : saisissez l'intitulé. Reprenez celui du planning, mot pour mot — c'est ce qui permet de recouper les deux.",
-                          "<strong>Date</strong> : celle du jour s'affiche seule. Ne la changez que pour rattraper une séance passée.",
+                          "<strong>Classes regroupées</strong> : si le cours réunit plusieurs classes, cochez les autres. Laissez vide sinon.",
+                          "<strong>Matière / séquence pédagogique</strong> : reprenez l'intitulé du planning, mot pour mot.",
+                          "<strong>Date</strong> : celle du jour s'affiche seule.",
                           "<strong>Début</strong> et <strong>Fin</strong> : les horaires réels du cours.",
-                          "Cliquez sur <strong>Ouvrir la séance</strong>. La liste de vos apprentis apparaît."
+                          "Cliquez sur <strong>Ouvrir la séance</strong>.",
+                          "<strong>Annoncez-le aux apprentis</strong> : tant que vous n'avez pas ouvert la séance, ils n'ont rien à signer."
                       ],
-                      "attention": "Une séance ouverte pour la mauvaise classe ne se déplace pas : il faut la supprimer et recommencer. Vérifiez la classe avant de valider.",
+                      "attention": "Une séance ouverte pour la mauvaise classe ne se déplace pas : supprimez-la et recommencez. Vérifiez la classe avant de valider.",
                       "ou": "Mon espace > Émargement > Séance en cours"
                   },
                   {
-                      "titre": "Regrouper deux classes sur une même séance",
-                      "comment": "Quand un cours réunit les deux années de CAP, une seule feuille suffit.",
+                      "titre": "2. Les apprentis signent",
+                      "comment": "C'est leur geste, pas le vôtre. Deux minutes en début de cours.",
                       "etapes": [
-                          "Ouvrez la séance normalement, en choisissant l'une des deux classes comme <strong>classe principale</strong>.",
-                          "Dans <strong>Classes regroupées</strong>, cochez l'autre classe.",
-                          "Validez : les apprentis des deux classes apparaissent sur la même liste.",
-                          "Pointez et clôturez comme pour une séance ordinaire, une seule fois.",
-                          "Le bandeau affiche les deux classes, séparées par un signe plus."
+                          "Chaque apprenti ouvre son application : <strong>Mon espace</strong> puis <strong>✍️ Émargement</strong>.",
+                          "Une carte affiche la matière, la date et l'horaire de votre séance.",
+                          "Il clique sur <strong>✍️ Je signe ma présence</strong> et confirme.",
+                          "Sa signature est horodatée à la minute, et ne peut plus être retirée.",
+                          "La carte passe au vert et affiche l'heure de sa signature.",
+                          "Un apprenti d'une classe regroupée signe la même séance que les autres."
                       ],
-                      "attention": "La séance apparaîtra dans les impressions de <strong>chacune</strong> des classes cochées : vous pouvez toujours sortir les émargements d'une seule classe pour un financeur. Inutile donc de dédoubler la saisie.",
+                      "attention": "Un apprenti sans téléphone ni tablette ne peut pas signer. Prévoyez un poste disponible en salle, ou pointez-le vous-même en le mentionnant.",
+                      "ou": "Espace de l'apprenti"
+                  },
+                  {
+                      "titre": "3. Récupérer les signatures",
+                      "comment": "Les signatures arrivent depuis les appareils des apprentis : il faut aller les chercher.",
+                      "etapes": [
+                          "Sur votre écran de séance, cliquez sur <strong>↻ Récupérer les signatures</strong>.",
+                          "Le message vous indique combien de dossiers ont été consultés et combien de signatures sont arrivées.",
+                          "Les apprentis ayant signé apparaissent en présents, avec l'heure de leur signature.",
+                          "Relancez le bouton si des retardataires signent après votre première récupération."
+                      ],
+                      "attention": "Sans cette récupération, votre écran restera vide alors que les apprentis auront bien signé. C'est la manœuvre que l'on oublie le plus souvent.",
                       "ou": "Mon espace > Émargement > Séance en cours"
                   },
                   {
-                      "titre": "2. Pointer les apprentis",
-                      "comment": "Un clic par apprenti. Trois états possibles, et aucun par défaut.",
+                      "titre": "4. Compléter les absences",
+                      "comment": "Ce qui reste après les signatures : les absents et les retards.",
                       "etapes": [
-                          "Chaque apprenti apparaît sur une ligne, avec trois boutons à droite.",
-                          "<strong>✅ Présent</strong> — il est là, à l'heure.",
-                          "<strong>⏱ Retard</strong> — il est arrivé après le début. Utilisez-le vraiment : un retard pointé comme présence efface une information utile au suivi.",
-                          "<strong>✗ Absent</strong> — il n'est pas là.",
-                          "Le bouton choisi se colore. Vous pouvez le changer tant que la séance n'est pas clôturée.",
-                          "Un compteur en haut indique combien de présents, de retards et d'absents ont été saisis."
+                          "Parcourez la liste : les apprentis qui n'ont pas signé n'ont aucun état.",
+                          "Pour chacun, cliquez sur <strong>⏱ Retard</strong> ou <strong>✗ Absent</strong> selon le cas.",
+                          "Si un apprenti est présent mais n'a pas pu signer, cliquez sur <strong>✅ Présent</strong> : ce pointage sera distingué d'une signature.",
+                          "Un compteur en haut récapitule présents, retards et absents."
                       ],
-                      "attention": "Un apprenti sans aucun bouton coché n'est ni présent ni absent : il est <strong>non renseigné</strong>. En audit, cela ne prouve rien. Parcourez la liste entière avant de clôturer.",
+                      "attention": "Un apprenti sans aucun état n'est ni présent ni absent : il est <strong>non renseigné</strong>. En audit, cela ne prouve rien. Parcourez la liste entière avant de clôturer.",
                       "ou": "Mon espace > Émargement > Séance en cours"
                   },
                   {
-                      "titre": "3. Clôturer et signer",
-                      "comment": "Le geste qui transforme votre saisie en justificatif. Sans lui, la séance ne vaut rien.",
+                      "titre": "5. Clôturer et signer",
+                      "comment": "Votre contresignature. Elle scelle la séance.",
                       "etapes": [
-                          "En fin de cours, cliquez sur <strong>🔐 Clôturer et signer la séance</strong>, en bas de la liste.",
-                          "Une fenêtre vous demande de <strong>confirmer votre nom</strong> pour la signature. Il est pré-rempli : validez, ou corrigez-le.",
+                          "Cliquez sur <strong>🔐 Clôturer et signer la séance</strong>, en bas de la liste.",
+                          "Confirmez votre nom : il est pré-rempli.",
                           "Un second message vous avertit que l'action est <strong>irréversible</strong> et qu'une empreinte numérique sera générée. Confirmez.",
                           "Le message <em>✅ Séance clôturée et signée avec succès</em> confirme l'enregistrement.",
                           "La séance bascule dans l'onglet <strong>📋 Historique</strong>."
                       ],
-                      "attention": "Irréversible veut dire irréversible : ni vous ni la Direction ne pourrez modifier un pointage après clôture. Relisez la liste avant de signer.",
+                      "attention": "Après clôture, <strong>plus aucune signature d'apprenti n'est acceptée</strong>. Récupérez les signatures une dernière fois juste avant de clôturer.",
+                      "ou": "Mon espace > Émargement > Séance en cours"
+                  },
+                  {
+                      "titre": "Un apprenti n'a pas signé et le cours est fini",
+                      "comment": "Deux situations, deux réponses.",
+                      "etapes": [
+                          "<strong>Il était présent</strong> : pointez-le vous-même en présent avant de clôturer, et signalez-le au secrétariat pour la traçabilité.",
+                          "<strong>Il était absent</strong> : pointez-le absent, comme toute absence.",
+                          "Ne laissez jamais une ligne sans état : c'est le seul cas qui ne prouve rien."
+                      ],
+                      "attention": "Un pointage par le formateur reste valable, mais il est moins solide qu'une signature. Si le cas se répète pour le même apprenti, cherchez pourquoi — appareil, code oublié, refus.",
                       "ou": "Mon espace > Émargement > Séance en cours"
                   },
                   {
                       "titre": "Je me suis trompé·e avant de clôturer",
-                      "comment": "Tant que la séance est ouverte, tout reste modifiable.",
+                      "comment": "Tant que la séance est ouverte, vos pointages restent modifiables.",
                       "etapes": [
                           "Cliquez simplement sur le bon bouton : il remplace le précédent.",
                           "Si la classe ou la matière est fausse, supprimez la séance et rouvrez-en une.",
-                          "Aucune trace n'est conservée des états successifs avant clôture."
+                          "<strong>Les signatures des apprentis, elles, ne sont pas modifiables</strong> : elles leur appartiennent."
                       ],
                       "ou": "Mon espace > Émargement > Séance en cours"
                   },
@@ -40927,40 +41259,30 @@ const MODE_EMPLOI_CONTENU = {
                       "ou": "Direction"
                   },
                   {
-                      "titre": "J'ai oublié d'émarger une séance passée",
-                      "comment": "Rattrapage possible, mais à faire vite.",
+                      "titre": "J'ai oublié d'ouvrir la séance",
+                      "comment": "Rattrapage possible, mais les apprentis ne pourront plus signer.",
                       "etapes": [
-                          "Ouvrez une nouvelle séance comme d'habitude.",
-                          "Dans le champ <strong>Date</strong>, saisissez la date réelle du cours — pas celle du jour.",
-                          "Renseignez les horaires réels, pointez, clôturez."
+                          "Ouvrez une séance en saisissant la <strong>date réelle</strong> du cours dans le champ Date.",
+                          "Les apprentis ne verront pas cette séance : elle est passée. Vous devrez donc pointer vous-même.",
+                          "Mentionnez-le : une séance entièrement pointée par le formateur se repère, et mieux vaut l'expliquer que la laisser interroger."
                       ],
-                      "attention": "Un émargement saisi trois semaines après le cours reste traçable comme tel : l'horodatage de la signature ne ment pas. Faites-le le jour même ou le lendemain.",
+                      "attention": "L'horodatage de la signature ne ment pas. Une séance ouverte trois semaines après le cours reste traçable comme telle.",
                       "ou": "Mon espace > Émargement > Séance en cours"
                   },
                   {
-                      "titre": "Retrouver et imprimer mes émargements",
-                      "comment": "Pour un contrôle, une demande de financeur, ou votre propre suivi.",
+                      "titre": "Retrouver et imprimer les émargements",
+                      "comment": "Pour un contrôle, une demande de financeur, ou votre suivi.",
                       "etapes": [
                           "Onglet <strong>📋 Historique</strong>.",
-                          "Vos séances clôturées s'affichent, de la plus récente à la plus ancienne, avec le nombre de présents.",
+                          "Vos séances clôturées s'affichent, de la plus récente à la plus ancienne.",
                           "Cliquez sur <strong>🖨️ Imprimer les émargements</strong>.",
                           "Choisissez la <strong>portée</strong> : une classe, un apprenti, ou toutes les classes.",
                           "Ajustez les <strong>dates</strong> : la semaine en cours est proposée par défaut.",
                           "Cliquez sur <strong>📄 Télécharger en PDF</strong>, ou sur <strong>Aperçu et impression</strong> si le téléchargement échoue.",
-                          "Le bouton <strong>📥 Exporter en CSV</strong> produit un tableau exploitable dans un tableur."
+                          "<strong>📥 Exporter en CSV</strong> produit un tableau exploitable dans un tableur."
                       ],
                       "attention": "Seules les séances <strong>clôturées et signées</strong> figurent dans ces documents. Une séance restée ouverte est invisible, donc inexistante pour le financeur.",
                       "ou": "Mon espace > Émargement > Historique"
-                  },
-                  {
-                      "titre": "Pourquoi tout cela compte",
-                      "comment": "Deux minutes de contexte, qui font gagner du temps ensuite.",
-                      "etapes": [
-                          "L'émargement est la <strong>preuve de réalisation</strong> de la formation : c'est lui qui justifie le financement versé par l'OPCO.",
-                          "L'empreinte numérique générée à la signature garantit qu'aucun pointage n'a été modifié après coup.",
-                          "En cas de contrôle, un émargement manquant peut entraîner le remboursement des heures concernées."
-                      ],
-                      "ou": "—"
                   }
               ]
           },
@@ -42977,6 +43299,975 @@ const EMARG_STATUTS = {
   "absent": { libelle: "✗ Absent", classe: "emarg-absent" }
 };
 
+// Référentiel CAP Équipier polyvalent du commerce (RNCP 40994) —
+// arrêté du 29 octobre 2019 — et programme de PSE.
+// 98 items répartis en trois blocs professionnels et quatre thématiques PSE.
+// Repris à l'identique du tableau de suivi de couverture tenu jusqu'ici.
+const REFERENTIEL_COUVERTURE = [
+  { bloc: "Bloc 1 – Recevoir et suivre les commandes", competences: [
+    { libelle: "Participer à la passation des commandes fournisseurs", items: [{c:"1.1.1",l:"Surveiller l'état des stocks"}, {c:"1.1.2",l:"Préparer les propositions de commandes"}, {c:"1.1.3",l:"Utiliser le mode de transmission adapté"}, {c:"1.1.4",l:"Transmettre la commande après validation"}, {c:"1.1.5",l:"Assurer le suivi des commandes"}] },
+    { libelle: "Réceptionner", items: [{c:"1.2.1",l:"Identifier les documents de livraison et de traçabilité"}, {c:"1.2.2",l:"Contrôler la qualité et la quantité"}, {c:"1.2.3",l:"Comparer le bon de commande et le bon de livraison"}, {c:"1.2.4",l:"Relever les anomalies éventuelles et les transmettre au responsable"}, {c:"1.2.5",l:"Classer les documents de réception et de traçabilité"}] },
+    { libelle: "Stocker", items: [{c:"1.3.1",l:"Utiliser le matériel de manutention adapté"}, {c:"1.3.2",l:"Ranger les produits dans le lieu approprié en réalisant la rotation"}, {c:"1.3.3",l:"Trier et évacuer les contenants"}, {c:"1.3.4",l:"Maintenir l'organisation et la propreté de la réserve"}] },
+    { libelle: "Préparer les commandes destinées aux clients", items: [{c:"1.4.1",l:"Prélever et rassembler les produits commandés"}, {c:"1.4.2",l:"Reconditionner et stocker les produits selon leur spécificité"}, {c:"1.4.3",l:"Vérifier l'adéquation entre la commande et la préparation"}, {c:"1.4.4",l:"Enregistrer et entreposer les colis destinés aux clients ou retournés"}] }
+  ] },
+  { bloc: "Bloc 2 – Mettre en valeur et approvisionner", competences: [
+    { libelle: "Approvisionner, mettre en rayon et ranger selon la nature des produits", items: [{c:"2.1.1",l:"Déterminer les quantités à mettre en rayon"}, {c:"2.1.2",l:"Anticiper les ruptures en rayon"}, {c:"2.1.3",l:"Identifier les produits à mettre en rayon"}, {c:"2.1.4",l:"Acheminer les produits de la réserve vers la surface de vente"}, {c:"2.1.5",l:"Déballer les produits à mettre en rayon"}, {c:"2.1.6",l:"Appliquer les règles de présentation marchande"}, {c:"2.1.7",l:"Effectuer le remplissage des linéaires, le facing et le réassortiment"}, {c:"2.1.8",l:"Procéder à la rotation des produits"}, {c:"2.1.9",l:"Détecter les produits impropres à la vente et les retirer"}] },
+    { libelle: "Mettre en valeur les produits et l'espace commercial", items: [{c:"2.2.1",l:"Participer à la mise en valeur des produits"}, {c:"2.2.2",l:"Participer à l'aménagement de l'espace d'exposition, de vente, des vitrines"}, {c:"2.2.3",l:"Veiller à la propreté et nettoyer les surfaces de vente"}, {c:"2.2.4",l:"Veiller à conserver tous les lieux de vente rangés"}] },
+    { libelle: "Participer aux opérations de conditionnement des produits", items: [{c:"2.3.1",l:"Préparer et nettoyer les équipements et le mobilier"}, {c:"2.3.2",l:"Rassembler le matériel et les fournitures nécessaires"}, {c:"2.3.3",l:"Sélectionner le(s) produit(s) selon les références, les quantités, les prix"}, {c:"2.3.4",l:"Conditionner et/ou emballer le produit"}, {c:"2.3.5",l:"Calculer le prix de vente"}, {c:"2.3.6",l:"Appliquer les règles d'hygiène, de sécurité et de conservation du produit"}] },
+    { libelle: "Installer et mettre à jour la signalétique", items: [{c:"2.4.1",l:"Éditer des étiquettes prix, produits, promotionnelles"}, {c:"2.4.2",l:"Installer et mettre à jour l'ILV et la PLV"}, {c:"2.4.3",l:"Mettre en place et vérifier le balisage"}, {c:"2.4.4",l:"Vérifier l'exactitude de l'affichage et alerter en cas d'anomalies"}] },
+    { libelle: "Lutter contre la démarque et participer aux opérations d'inventaire", items: [{c:"2.5.1",l:"Poser les antivols sur les produits"}, {c:"2.5.2",l:"Identifier, repérer et implanter les produits à dates courtes"}, {c:"2.5.3",l:"Repérer et enregistrer la démarque connue"}, {c:"2.5.4",l:"Ranger et compter les produits"}, {c:"2.5.5",l:"Enregistrer le comptage et rendre compte"}] }
+  ] },
+  { bloc: "Bloc 3 – Conseiller et accompagner le client", competences: [
+    { libelle: "Préparer son environnement de travail", items: [{c:"3.1.1",l:"Préparer son matériel"}, {c:"3.1.2",l:"Respecter une tenue professionnelle adaptée au contexte et à l'image de l'unité commerciale"}, {c:"3.1.3",l:"Vérifier le bon fonctionnement du matériel et des outils d'aide à la vente"}] },
+    { libelle: "Prendre contact avec le client", items: [{c:"3.2.1",l:"Accueillir le client"}, {c:"3.2.2",l:"S'adapter au contexte commercial et au comportement du client"}, {c:"3.2.3",l:"Adopter une attitude d'accueil"}, {c:"3.2.4",l:"Favoriser un climat de confiance"}] },
+    { libelle: "Accompagner le parcours client dans un contexte omnicanal", items: [{c:"3.3.1",l:"Adopter une écoute active"}, {c:"3.3.2",l:"Identifier la demande du client, la prendre en compte et/ou la transférer au responsable"}, {c:"3.3.3",l:"Orienter le client"}, {c:"3.3.4",l:"Informer le client"}, {c:"3.3.5",l:"Conseiller le client"}, {c:"3.3.6",l:"Accompagner le client dans l'utilisation des outils digitaux"}, {c:"3.3.7",l:"Présenter le ou les produits"}, {c:"3.3.8",l:"Proposer des services associés et complémentaires"}, {c:"3.3.9",l:"Renseigner le bon de commande, le document de vente et rédiger un message"}, {c:"3.3.10",l:"Remettre les colis, les sacs et les produits réservés aux clients"}, {c:"3.3.11",l:"Réaliser des livraisons"}] },
+    { libelle: "Finaliser la prise en charge du client", items: [{c:"3.4.1",l:"Enregistrer les achats et/ou les retours"}, {c:"3.4.2",l:"Proposer un moyen de fidélisation"}, {c:"3.4.3",l:"Encaisser et/ou accompagner l'encaissement digital, automatique et/ou mobile"}, {c:"3.4.4",l:"Réaliser les opérations complémentaires à l'encaissement"}, {c:"3.4.5",l:"Prendre congé"}, {c:"3.4.6",l:"Collecter et actualiser l'information sur le client"}, {c:"3.4.7",l:"Fermer la caisse et procéder aux opérations de clôture"}] },
+    { libelle: "Recevoir les réclamations courantes", items: [{c:"3.5.1",l:"Écouter et identifier clairement le type de réclamation"}, {c:"3.5.2",l:"Proposer une action corrective dans le cas d'une réclamation simple"}, {c:"3.5.3",l:"Transférer les réclamations non solutionnées au responsable"}, {c:"3.5.4",l:"Expliquer au client la solution proposée"}] }
+  ] },
+  { bloc: "PSE", competences: [
+    { libelle: "Thématique A — L'individu responsable de son capital santé", items: [{c:"A.1.1",l:"Le système de santé"}, {c:"A.1.2",l:"Le sommeil, un rythme biologique"}, {c:"A.1.3",l:"L'activité physique"}, {c:"A.1.4",l:"Les addictions"}, {c:"A.1.5",l:"La sexualité et la contraception"}, {c:"A.1.6",l:"Les infections sexuellement transmissibles"}, {c:"A.1.7",l:"L'alimentation adaptée à son activité"}] },
+    { libelle: "Thématique B — L'individu responsable dans son environnement", items: [{c:"B.1.1",l:"L'alimentation éco-responsable"}, {c:"B.1.2",l:"Les risques majeurs (naturels et technologiques)"}, {c:"B.1.3",l:"Le bruit au quotidien"}, {c:"B.1.4",l:"La gestion de l'eau et le développement durable"}, {c:"B.1.5",l:"La gestion des ressources en énergie"}] },
+    { libelle: "Thématique C — L'individu dans son milieu professionnel, impliqué dans la prévention des risques", items: [{c:"C.1.1",l:"Les différents contrats de travail"}, {c:"C.1.2",l:"Les enjeux de la santé et de la sécurité au travail"}, {c:"C.1.3",l:"Les accidents du travail et les maladies professionnelles"}, {c:"C.1.4",l:"La démarche de prévention appliquée à une activité de travail"}, {c:"C.1.5",l:"Les risques spécifiques du métier (bruit, produits, mécanique, électrique, incendie…)"}, {c:"C.1.6",l:"Les risques liés à l'activité physique"}, {c:"C.1.7",l:"Les acteurs et organismes de la prévention"}, {c:"C.1.8",l:"Le suivi de la santé au travail"}] },
+    { libelle: "Thématique D — L'individu consommateur averti", items: [{c:"D.1.1",l:"Les achats et la consommation responsable"}, {c:"D.1.2",l:"Le budget"}, {c:"D.1.3",l:"Les assurances"}] }
+  ] }
+];
+
+// =================================================================
+// COUVERTURE DU RÉFÉRENTIEL
+// -----------------------------------------------------------------
+// Prouver que les 98 items du référentiel ont été traités suppose de
+// les cocher. Les faire tous défiler à chaque séance serait intenable :
+// la matière déjà saisie au planning détermine le bloc, l'intervenant
+// choisit la compétence, et trois à onze items seulement s'affichent.
+//
+// Une couverture porte la date de la séance, la classe et l'intervenant :
+// ce sont exactement les trois colonnes du tableau tenu jusqu'ici.
+// =================================================================
+
+// =================================================================
+// COUVERTURE EN ENTREPRISE
+// -----------------------------------------------------------------
+// Pendant individuel de la couverture en centre. Un item pratiqué en
+// entreprise l'est par un apprenti donné, à une date donnée : la
+// couverture ne peut donc pas être collective comme celle de la MFR.
+//
+// Deux personnes peuvent l'attester, chacune dans son périmètre : le
+// maître d'apprentissage pour l'apprenti qu'il accueille, l'équipe de la
+// MFR pour tous. L'apprenti en est volontairement exclu : une
+// auto-évaluation n'a aucune valeur probante devant un auditeur.
+// L'auteur de chaque saisie est conservé avec son rôle.
+// =================================================================
+
+// Les trois premiers blocs sont des épreuves professionnelles, pratiquées
+// en entreprise. Le quatrième, la PSE, est enseigné au centre.
+function blocPratiqueEnEntreprise(i) {
+  const b = REFERENTIEL_COUVERTURE[i];
+  return !!b && b.bloc.toUpperCase().indexOf("PSE") !== 0;
+}
+
+// --- Attestation par période en entreprise -----------------------------
+// Une période est une suite de semaines consécutives passées en entreprise.
+// Le maître d'apprentissage atteste une fois par période, et non une fois
+// par semaine : trois semaines d'affilée forment un seul séjour, avec une
+// seule progression à décrire.
+
+function periodeAttestee(username, debutISO) {
+  return chargerCouvEntreprise().some(function(c) {
+    return c.apprenti === username && c.periodeDebut === debutISO;
+  });
+}
+
+// Reconstitue les périodes entreprise écoulées, de la plus récente à la
+// plus ancienne. Une période n'est proposée qu'une fois terminée :
+// l'apprenti est rentré, le maître d'apprentissage a le recul nécessaire.
+function periodesEntreprise(apprenti, nbMax) {
+  if (!apprenti || !apprenti.classe) return [];
+  if (typeof semaineEnCoursPour !== "function") return [];
+  const out = [];
+  let courante = null;
+  // On balaie de la semaine la plus ancienne à la plus récente pour que les
+  // semaines consécutives se regroupent naturellement.
+  for (let k = 20; k >= 0; k--) {
+    const d = new Date();
+    d.setDate(d.getDate() - 7 * k);
+    const lundi = lundiDeLaSemaine(d);
+    const sem = semaineEnCoursPour(apprenti.classe, d);
+    const enEntreprise = !!sem && sem.type === "E";
+    if (enEntreprise) {
+      if (!courante) courante = { debut: lundi, fin: lundi, semaines: 1 };
+      else { courante.fin = lundi; courante.semaines++; }
+    } else if (courante) {
+      out.push(courante); courante = null;
+    }
+  }
+  // Une période encore en cours n'est pas proposée : elle n'est pas finie.
+  const finies = out.reverse();
+  return finies.slice(0, nbMax || 3);
+}
+
+function periodesEntrepriseAAttester(apprenti, nbMax) {
+  return periodesEntreprise(apprenti, 12).filter(function(p) {
+    return !periodeAttestee(apprenti.username, p.debut);
+  }).slice(0, nbMax || 3);
+}
+
+function libellePeriode(p) {
+  if (p.semaines === 1) return "semaine du " + dateFr(p.debut);
+  const finSemaine = (function() {
+    const d = new Date(p.fin + "T12:00:00"); d.setDate(d.getDate() + 4);
+    return isoDeDate(d);
+  })();
+  return p.semaines + " semaines, du " + dateFr(p.debut) + " au " + dateFr(finSemaine);
+}
+
+function carteAttestationEntreprise() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "maitre") return "";
+  const miens = apprentisSaisissablesEntreprise();
+  if (miens.length === 0) return "";
+
+  const enRetard = [];
+  miens.forEach(function(a) {
+    const per = periodesEntrepriseAAttester(a, 3);
+    if (per.length > 0) enRetard.push({ apprenti: a, periodes: per });
+  });
+  if (enRetard.length === 0) {
+    return '<div class="att-carte att-faite">' +
+      '<div class="att-titre">\u2713 Vous \u00eates \u00e0 jour</div>' +
+      '<p>Toutes les p\u00e9riodes pass\u00e9es en entreprise ont \u00e9t\u00e9 attest\u00e9es. Merci.</p>' +
+      '<button class="btn-secondaire btn-mini" onclick="ouvrirSaisieEntreprise()">Attester malgr\u00e9 tout</button>' +
+      '</div>';
+  }
+  const total = enRetard.reduce(function(n, x) { return n + x.periodes.length; }, 0);
+  let h = '<div class="att-carte">';
+  h += '<div class="att-titre">\u{1F3E2} ' + total + ' p\u00e9riode(s) \u00e0 attester</div>';
+  h += '<p>\u00c0 chaque retour de votre apprenti \u00e0 la MFR, indiquez ce qu\'il a pratiqu\u00e9 ' +
+    'pendant son s\u00e9jour, sur les trois \u00e9preuves professionnelles. Comptez cinq minutes.</p>';
+  h += '<ul class="att-liste">';
+  enRetard.forEach(function(x) {
+    const nom = ((x.apprenti.prenom || "") + " " + (x.apprenti.nom || "")).trim();
+    x.periodes.forEach(function(per) {
+      h += '<li><strong>' + escapeHTML(nom) + '</strong> \u2014 ' + libellePeriode(per) +
+        ' <button class="btn-mini" onclick="ouvrirSaisieEntreprise(\'' + x.apprenti.username +
+        '\',\'' + per.debut + '\',' + per.semaines + ')">Attester</button></li>';
+    });
+  });
+  h += '</ul></div>';
+  return h;
+}
+
+function chargerCouvEntreprise() {
+  try { return JSON.parse(localStorage.getItem("mfr_couverture_entreprise") || "[]"); }
+  catch (e) { return []; }
+}
+
+function sauverCouvEntreprise(liste) {
+  try { localStorage.setItem("mfr_couverture_entreprise", JSON.stringify(liste)); return true; }
+  catch (e) { alert("M\u00e9moire satur\u00e9e : la saisie n'a pas \u00e9t\u00e9 enregistr\u00e9e."); return false; }
+}
+
+// Items pratiqués par un apprenti : la première attestation fait foi.
+function itemsEntreprisePour(username) {
+  const out = {};
+  chargerCouvEntreprise().forEach(function(c) {
+    if (c.apprenti !== username) return;
+    (c.items || []).forEach(function(code) { if (!out[code]) out[code] = c; });
+  });
+  return out;
+}
+
+// Qui peut attester pour quel apprenti.
+function apprentisSaisissablesEntreprise() {
+  const u = utilisateurConnecte;
+  if (!u) return [];
+  const actifs = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return (a.statut || "actif") !== "archive"; });
+  if (u.role === "mfr") return actifs;
+  // L'apprenti n'atteste pas sa propre pratique : une auto-évaluation n'a
+  // aucune valeur probante devant un auditeur, et placerait le jeune dans
+  // une position intenable vis-à-vis de son employeur comme de la MFR.
+  if (u.role === "maitre") {
+    const l = (typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [])
+      .find(function(x) { return x.username === u.id; });
+    return l ? actifs.filter(function(a) { return a.lieuId === l.id; }) : [];
+  }
+  return [];
+}
+
+// --- Saisie -------------------------------------------------------------
+let COUV_ENT_EN_COURS = { apprenti: null, items: [] };
+
+function ouvrirSaisieEntreprise(username, debutISO, nbSemaines) {
+  const liste = apprentisSaisissablesEntreprise();
+  if (liste.length === 0) {
+    alert("Aucun apprenti ne rel\u00e8ve de votre p\u00e9rim\u00e8tre."); return;
+  }
+  const choisi = username || liste[0].username;
+  COUV_ENT_EN_COURS = { apprenti: choisi, items: [],
+    periodeDebut: debutISO || "", periodeSemaines: nbSemaines || 1 };
+
+  const ancien = document.getElementById("modale-couv-ent");
+  if (ancien) ancien.remove();
+  const m = document.createElement("div");
+  m.id = "modale-couv-ent";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal" style="max-width:44rem;">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F3E2}</span>' +
+        '<h2>Ce qui a \u00e9t\u00e9 pratiqu\u00e9 en entreprise</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        (liste.length > 1
+          ? '<div class="impr-champ"><label>Apprenti\u00b7e</label><select id="ce-apprenti" onchange="changerApprentiEntreprise()">' +
+            liste.map(function(a) {
+              return '<option value="' + a.username + '"' + (a.username === choisi ? ' selected' : '') + '>' +
+                escapeHTML(((a.prenom || "") + " " + (a.nom || "")).trim()) + '</option>'; }).join("") +
+            '</select></div>'
+          : '<p class="cov-intro">' + escapeHTML((function() {
+              const a = liste[0]; return ((a.prenom || "") + " " + (a.nom || "")).trim(); })()) + '</p>') +
+        '<div class="impr-champ"><label>D\u00e9but de la p\u00e9riode en entreprise</label>' +
+          '<input type="date" id="ce-date" value="' +
+            (debutISO || lundiDeLaSemaine(new Date())) + '"></div>' +
+        '<p class="impr-aide">' +
+          (nbSemaines > 1
+            ? 'P\u00e9riode de ' + nbSemaines + ' semaines cons\u00e9cutives. Une seule attestation pour l\'ensemble.'
+            : 'Une attestation par p\u00e9riode pass\u00e9e en entreprise, quelle que soit sa dur\u00e9e.') +
+          '</p>' +
+        '<div class="impr-champ"><label>Bloc du r\u00e9f\u00e9rentiel</label>' +
+          '<select id="ce-bloc" onchange="majCompetencesEntreprise()">' +
+          '<option value="">\u2014 Choisir \u2014</option>' +
+          // La PSE ne se pratique pas en entreprise : elle est enseignée au
+          // centre. La proposer ici n'aurait aucun sens et allongerait la liste.
+          REFERENTIEL_COUVERTURE.map(function(b, i) {
+            return blocPratiqueEnEntreprise(i)
+              ? '<option value="' + i + '">' + escapeHTML(b.bloc) + '</option>' : ""; }).join("") +
+          '</select></div>' +
+        '<div class="impr-champ"><label>Comp\u00e9tence</label>' +
+          '<select id="ce-comp" onchange="majItemsEntreprise()" disabled></select></div>' +
+        '<div id="ce-items"></div>' +
+        '<div id="ce-panier" class="cov-panier"></div>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="enregistrerCouvEntreprise()">\u2713 Enregistrer</button> ' +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-couv-ent\').remove()">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function changerApprentiEntreprise() {
+  const sel = document.getElementById("ce-apprenti");
+  if (!sel) return;
+  COUV_ENT_EN_COURS = { apprenti: sel.value, items: [] };
+  majItemsEntreprise();
+  majPanierEntreprise();
+}
+
+function majCompetencesEntreprise() {
+  const sb = document.getElementById("ce-bloc");
+  const sc = document.getElementById("ce-comp");
+  const zi = document.getElementById("ce-items");
+  if (!sb || !sc) return;
+  if (sb.value === "") { sc.innerHTML = ""; sc.disabled = true; if (zi) zi.innerHTML = ""; return; }
+  sc.disabled = false;
+  const b = REFERENTIEL_COUVERTURE[parseInt(sb.value, 10)];
+  sc.innerHTML = '<option value="">\u2014 Choisir une comp\u00e9tence \u2014</option>' +
+    b.competences.map(function(c, i) {
+      return '<option value="' + i + '">' + escapeHTML(c.libelle) + ' (' + c.items.length + ')</option>'; }).join("");
+  if (zi) zi.innerHTML = '<p class="cov-aide">Choisissez la comp\u00e9tence : ses items s\'afficheront ici.</p>';
+}
+
+function majItemsEntreprise() {
+  const sb = document.getElementById("ce-bloc");
+  const sc = document.getElementById("ce-comp");
+  const zi = document.getElementById("ce-items");
+  if (!sb || !sc || !zi || sc.value === "" || sb.value === "") { if (zi) zi.innerHTML = ""; return; }
+  const comp = REFERENTIEL_COUVERTURE[parseInt(sb.value, 10)].competences[parseInt(sc.value, 10)];
+  const deja = itemsEntreprisePour(COUV_ENT_EN_COURS.apprenti);
+
+  let h = '<div class="cov-liste">';
+  comp.items.forEach(function(it) {
+    const coche = COUV_ENT_EN_COURS.items.indexOf(it.c) >= 0;
+    const vu = deja[it.c];
+    h += '<label class="cov-item' + (coche ? ' est-coche' : '') + '">' +
+      '<input type="checkbox" ' + (coche ? 'checked' : '') +
+      ' onchange="basculerItemEntreprise(\'' + it.c + '\')"> ' +
+      '<span class="cov-code">' + escapeHTML(it.c) + '</span> ' + escapeHTML(it.l) +
+      (vu ? '<span class="cov-deja">attest\u00e9 le ' + dateFr(vu.date) + '</span>' : '') +
+      '</label>';
+  });
+  h += '</div>';
+  zi.innerHTML = h;
+}
+
+function basculerItemEntreprise(code) {
+  const i = COUV_ENT_EN_COURS.items.indexOf(code);
+  if (i >= 0) COUV_ENT_EN_COURS.items.splice(i, 1);
+  else COUV_ENT_EN_COURS.items.push(code);
+  majItemsEntreprise();
+  majPanierEntreprise();
+}
+
+function majPanierEntreprise() {
+  const z = document.getElementById("ce-panier");
+  if (!z) return;
+  const n = COUV_ENT_EN_COURS.items.length;
+  z.innerHTML = n === 0 ? "" :
+    '<strong>' + n + ' item(s) coch\u00e9(s)</strong> : ' + COUV_ENT_EN_COURS.items.join(", ");
+}
+
+function enregistrerCouvEntreprise() {
+  const u = utilisateurConnecte;
+  if (!u || COUV_ENT_EN_COURS.items.length === 0) {
+    alert("Cochez au moins un item."); return;
+  }
+  const date = (document.getElementById("ce-date") || {}).value || isoDeDate(new Date());
+  const debut = lundiDeLaSemaine(date);
+  const liste = chargerCouvEntreprise();
+  liste.push({
+    id: "CE-" + Date.now(),
+    apprenti: COUV_ENT_EN_COURS.apprenti,
+    date: date,
+    periodeDebut: debut,
+    periodeSemaines: COUV_ENT_EN_COURS.periodeSemaines || 1,
+    items: COUV_ENT_EN_COURS.items.slice(),
+    saisiPar: u.id,
+    saisiParNom: u.nom || u.id,
+    saisiParRole: u.role,
+    saisiLe: new Date().toISOString()
+  });
+  if (!sauverCouvEntreprise(liste)) return;
+  if (u.role !== "mfr" && typeof envoyerMesDonneesPersonnelles === "function") {
+    envoyerMesDonneesPersonnelles(true);
+  }
+  const m = document.getElementById("modale-couv-ent");
+  if (m) m.remove();
+  alert("\u2705 " + COUV_ENT_EN_COURS.items.length + " item(s) attest\u00e9(s) comme pratiqu\u00e9(s) en entreprise.");
+  if (typeof afficherTableauCouverture === "function") afficherTableauCouverture();
+}
+
+// --- Synthèse : la règle du tableau ------------------------------------
+// Un item est acquis s'il est vu en CENTRE (toute la promotion) OU
+// pratiqué en ENTREPRISE par CHAQUE apprenti. Volontairement exigeant.
+function syntheseCouverture(classe) {
+  const centre = itemsCouverts(classe);
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return a.classe === classe && (a.statut || "actif") !== "archive"; });
+  const parApprenti = {};
+  apprentis.forEach(function(a) { parApprenti[a.username] = itemsEntreprisePour(a.username); });
+
+  const lignes = [];
+  let acquis = 0, partiels = 0, absents = 0;
+  REFERENTIEL_COUVERTURE.forEach(function(bloc) {
+    bloc.competences.forEach(function(comp) {
+      comp.items.forEach(function(it) {
+        const vuCentre = !!centre[it.c];
+        let nbEnt = 0;
+        apprentis.forEach(function(a) { if (parApprenti[a.username][it.c]) nbEnt++; });
+        const tousEnt = apprentis.length > 0 && nbEnt === apprentis.length;
+        let statut;
+        if (vuCentre || tousEnt) { statut = "acquis"; acquis++; }
+        else if (nbEnt > 0) { statut = "partiel"; partiels++; }
+        else { statut = "absent"; absents++; }
+        lignes.push({ code: it.c, bloc: bloc.bloc, competence: comp.libelle, item: it.l,
+          centre: vuCentre, nbEntreprise: nbEnt, effectif: apprentis.length, statut: statut });
+      });
+    });
+  });
+  return { lignes: lignes, acquis: acquis, partiels: partiels, absents: absents,
+           total: lignes.length, effectif: apprentis.length };
+}
+
+function chargerCouvEntreprise_fin() {}
+
+// =================================================================
+// EXTRACTION DU SUIVI DES APPRENTISSAGES
+// -----------------------------------------------------------------
+// Trois portées, qui ne répondent pas aux mêmes questions.
+//   • par classe     — ce que ce groupe a couvert, pour piloter la programmation
+//   • par formation  — les deux années d'un même diplôme réunies, seule vue
+//                      qui dise si un apprenti aura tout vu à l'examen
+//   • par apprenti   — le parcours individuel, pour un jury ou une famille
+// =================================================================
+
+// Une formation regroupe les classes d'un même diplôme, toutes années
+// confondues : CAP_EPC_1 et CAP_EPC_2 forment le CAP EPC.
+function formationDeClasse(code) {
+  const m = String(code || "").match(/^([A-Z]+_[A-Z]+)/);
+  return m ? m[1] : code;
+}
+
+function formationsOuvertes() {
+  const dispo = (typeof classesOuvertes === "function") ? classesOuvertes() : Object.keys(CLASSES);
+  const out = {};
+  dispo.forEach(function(c) {
+    const f = formationDeClasse(c);
+    if (!out[f]) out[f] = { code: f, classes: [] };
+    out[f].classes.push(c);
+  });
+  return Object.keys(out).map(function(k) { return out[k]; });
+}
+
+function libelleFormation(f) {
+  return String(f.code).replace(/_/g, " ");
+}
+
+// Couverture consolidée sur plusieurs classes : un item vu dans l'une
+// des années compte comme vu pour la formation.
+function couvertureFormation(classes) {
+  const vus = {};
+  chargerCouverture().forEach(function(c) {
+    if (classes.indexOf(c.classe) < 0) return;
+    (c.items || []).forEach(function(code) { if (!vus[code]) vus[code] = c; });
+  });
+  return vus;
+}
+
+// --- Écran d'extraction ---------------------------------------------------
+function ouvrirExtractionSuivi() {
+  const ancien = document.getElementById("modale-extraction");
+  if (ancien) ancien.remove();
+  const classes = (typeof classesOuvertes === "function") ? classesOuvertes() : Object.keys(CLASSES);
+  const formations = formationsOuvertes();
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return (a.statut || "actif") !== "archive"; })
+    .sort(function(a, b) { return (a.nom || "").localeCompare(b.nom || ""); });
+
+  const m = document.createElement("div");
+  m.id = "modale-extraction";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F4CA}</span>' +
+        '<h2>Extraire le suivi des apprentissages</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<div class="impr-champ"><label>Port\u00e9e</label>' +
+          '<select id="ext-portee" onchange="majPorteeExtraction()">' +
+          '<option value="classe">Une classe</option>' +
+          '<option value="formation">Une formation \u2014 toutes ann\u00e9es confondues</option>' +
+          '<option value="apprenti">Un apprenti</option>' +
+          '</select></div>' +
+        '<div class="impr-champ" id="ext-bloc-classe"><label>Classe</label>' +
+          '<select id="ext-classe">' + classes.map(function(c) {
+            return '<option value="' + c + '">' + escapeHTML(CLASSES[c] || c) + '</option>'; }).join("") +
+          '</select></div>' +
+        '<div class="impr-champ" id="ext-bloc-formation" style="display:none;"><label>Formation</label>' +
+          '<select id="ext-formation">' + formations.map(function(f) {
+            return '<option value="' + f.code + '">' + escapeHTML(libelleFormation(f)) +
+              ' (' + f.classes.length + ' ann\u00e9e' + (f.classes.length > 1 ? 's' : '') + ')</option>'; }).join("") +
+          '</select></div>' +
+        '<div class="impr-champ" id="ext-bloc-apprenti" style="display:none;"><label>Apprenti\u00b7e</label>' +
+          '<select id="ext-apprenti">' + apprentis.map(function(a) {
+            return '<option value="' + a.username + '">' +
+              escapeHTML(((a.nom || "").toUpperCase() + " " + (a.prenom || "")).trim()) +
+              ' \u2014 ' + escapeHTML(libelleClasseCourte(a.classe) || a.classe) + '</option>'; }).join("") +
+          '</select></div>' +
+        '<label class="impr-case"><input type="checkbox" id="ext-detail" checked> ' +
+          'Inclure le d\u00e9tail item par item</label>' +
+        '<label class="impr-case"><input type="checkbox" id="ext-manquants" checked> ' +
+          'Mettre en \u00e9vidence ce qui reste \u00e0 traiter</label>' +
+        '<p class="impr-aide">L\'extraction reprend la couverture en centre et, le cas \u00e9ch\u00e9ant, ' +
+          'les pratiques attest\u00e9es en entreprise.</p>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="lancerExtraction(\'pdf\')">\u{1F4C4} T\u00e9l\u00e9charger en PDF</button> ' +
+        '<button class="btn-secondaire" onclick="lancerExtraction(\'csv\')">\u{1F4E5} Exporter en CSV</button> ' +
+        '<button class="btn-secondaire" onclick="document.getElementById(\'modale-extraction\').remove()">Annuler</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+}
+
+function majPorteeExtraction() {
+  const p = (document.getElementById("ext-portee") || {}).value;
+  [["classe", "ext-bloc-classe"], ["formation", "ext-bloc-formation"], ["apprenti", "ext-bloc-apprenti"]]
+    .forEach(function(x) {
+      const el = document.getElementById(x[1]);
+      if (el) el.style.display = (p === x[0]) ? "block" : "none";
+    });
+}
+
+// Construit les lignes de l'extraction selon la portée demandée.
+function lignesExtraction(portee, cible) {
+  const lignes = [];
+  let classes = [], apprenti = null;
+  if (portee === "classe") classes = [cible];
+  else if (portee === "formation") {
+    const f = formationsOuvertes().find(function(x) { return x.code === cible; });
+    classes = f ? f.classes : [];
+  } else {
+    apprenti = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+      .find(function(a) { return a.username === cible; });
+    classes = apprenti ? [apprenti.classe] : [];
+  }
+  const centre = couvertureFormation(classes);
+  const ent = apprenti ? itemsEntreprisePour(apprenti.username) : null;
+
+  REFERENTIEL_COUVERTURE.forEach(function(bloc) {
+    bloc.competences.forEach(function(comp) {
+      comp.items.forEach(function(it) {
+        const c = centre[it.c];
+        const e = ent ? ent[it.c] : null;
+        lignes.push({
+          code: it.c, bloc: bloc.bloc, competence: comp.libelle, item: it.l,
+          centre: c ? "Oui" : "Non",
+          dateCentre: c ? c.date : "", matiere: c ? c.matiere : "",
+          intervenant: c ? c.intervenantNom : "",
+          entreprise: ent ? (e ? "Oui" : "Non") : "",
+          dateEntreprise: e ? e.date : "",
+          attestePar: e ? e.saisiParNom : "",
+          traite: (c || e) ? true : false
+        });
+      });
+    });
+  });
+  return lignes;
+}
+
+function titreExtraction(portee, cible) {
+  if (portee === "classe") return CLASSES[cible] || cible;
+  if (portee === "formation") {
+    const f = formationsOuvertes().find(function(x) { return x.code === cible; });
+    return f ? libelleFormation(f) + " \u2014 toutes ann\u00e9es" : cible;
+  }
+  const a = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(x) { return x.username === cible; });
+  return a ? (((a.prenom || "") + " " + (a.nom || "")).trim() + " \u2014 " +
+    (libelleClasseCourte(a.classe) || a.classe)) : cible;
+}
+
+function lancerExtraction(format) {
+  const portee = (document.getElementById("ext-portee") || {}).value;
+  const cible = (document.getElementById("ext-" + (portee === "formation" ? "formation" : portee)) || {}).value;
+  const detail = !!(document.getElementById("ext-detail") || {}).checked;
+  const surligner = !!(document.getElementById("ext-manquants") || {}).checked;
+  if (!cible) { alert("S\u00e9lectionnez une cible."); return; }
+
+  const lignes = lignesExtraction(portee, cible);
+  const titre = titreExtraction(portee, cible);
+  const traites = lignes.filter(function(l) { return l.traite; }).length;
+
+  const m = document.getElementById("modale-extraction");
+  if (m) m.remove();
+
+  if (format === "csv") {
+    const ent = ["Code", "Bloc", "Competence", "Item", "Vu en centre", "Date centre",
+      "Matiere", "Intervenant", "Pratique en entreprise", "Date entreprise", "Atteste par"];
+    const csv = [ent].concat(lignes.map(function(l) {
+      return [l.code, l.bloc, l.competence, l.item, l.centre, l.dateCentre,
+        l.matiere, l.intervenant, l.entreprise, l.dateEntreprise, l.attestePar];
+    })).map(function(r) {
+      return r.map(function(c) { return '"' + String(c || "").replace(/"/g, '""') + '"'; }).join(";");
+    }).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "Suivi_apprentissages_" + cible + "_" + isoDeDate(new Date()) + ".csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    return;
+  }
+
+  // Document imprimable
+  const pct = lignes.length ? Math.round((traites / lignes.length) * 100) : 0;
+  let corps = '<table class="meta"><tbody><tr>' +
+    '<th>Port\u00e9e</th><td>' + escapeHTML(titre) + '</td>' +
+    '<th>Couverture</th><td>' + traites + ' / ' + lignes.length + ' items \u2014 ' + pct + ' %</td>' +
+    '</tr></tbody></table>';
+
+  // Synthèse par bloc
+  const parBloc = {};
+  lignes.forEach(function(l) {
+    if (!parBloc[l.bloc]) parBloc[l.bloc] = { t: 0, c: 0 };
+    parBloc[l.bloc].t++; if (l.traite) parBloc[l.bloc].c++;
+  });
+  corps += '<table><thead><tr><th>Bloc</th><th>Couverts</th><th>Total</th><th>Taux</th></tr></thead><tbody>';
+  Object.keys(parBloc).forEach(function(b) {
+    const x = parBloc[b];
+    corps += '<tr><td>' + escapeHTML(b) + '</td><td>' + x.c + '</td><td>' + x.t + '</td>' +
+      '<td>' + Math.round((x.c / x.t) * 100) + ' %</td></tr>';
+  });
+  corps += '</tbody></table>';
+
+  if (detail) {
+    const avecEnt = portee === "apprenti";
+    corps += '<div class="totaux">D\u00e9tail item par item</div>';
+    corps += '<table><thead><tr><th>Code</th><th>Item</th><th>Centre</th><th>Date</th><th>Intervenant</th>' +
+      (avecEnt ? '<th>Entreprise</th>' : '') + '</tr></thead><tbody>';
+    lignes.forEach(function(l) {
+      const manque = surligner && !l.traite;
+      corps += '<tr' + (manque ? ' style="background:#FDF4EF;"' : '') + '>' +
+        '<td>' + escapeHTML(l.code) + '</td>' +
+        '<td>' + escapeHTML(l.item) + '</td>' +
+        '<td>' + (l.centre === "Oui" ? "\u2713" : "\u2014") + '</td>' +
+        '<td>' + (l.dateCentre ? dateFr(l.dateCentre) : "") + '</td>' +
+        '<td>' + escapeHTML(l.intervenant) + '</td>' +
+        (avecEnt ? '<td>' + (l.entreprise === "Oui" ? "\u2713 " + dateFr(l.dateEntreprise) : "\u2014") + '</td>' : '') +
+        '</tr>';
+    });
+    corps += '</tbody></table>';
+  }
+  corps += blocSignatures(true);
+  telechargerEmargementsPDF("Suivi des apprentissages \u2014 " + titre, "", "", corps,
+    "Suivi_apprentissages_" + cible + ".pdf");
+}
+
+function formationDeClasse_fin() {}
+
+function chargerCouverture() {
+  try { return JSON.parse(localStorage.getItem("mfr_couverture_referentiel") || "[]"); }
+  catch (e) { return []; }
+}
+
+function sauverCouverture(liste) {
+  try { localStorage.setItem("mfr_couverture_referentiel", JSON.stringify(liste)); return true; }
+  catch (e) { alert("M\u00e9moire satur\u00e9e : la couverture n'a pas \u00e9t\u00e9 enregistr\u00e9e."); return false; }
+}
+
+// Bloc déduit de la matière. Les intitulés EP1/EP2/EP3 portent déjà le nom
+// du bloc : la correspondance est donc directe, sans paramétrage.
+function blocDeMatiere(matiere) {
+  const m = (matiere || "").toLowerCase();
+  if (m.indexOf("ep1") === 0 || m.indexOf("recevoir et suivre") >= 0 || m.indexOf("r\u00e9ception") >= 0) return 0;
+  if (m.indexOf("ep2") === 0 || m.indexOf("mettre en valeur") >= 0 || m.indexOf("approvisionn") >= 0) return 1;
+  if (m.indexOf("ep3") === 0 || m.indexOf("conseiller") >= 0 || m.indexOf("vente et relation") >= 0) return 2;
+  if (m.indexOf("pse") >= 0 || m.indexOf("pr\u00e9vention sant\u00e9") >= 0) return 3;
+  return null;
+}
+
+function itemsCouverts(classe) {
+  const vus = {};
+  chargerCouverture().forEach(function(c) {
+    if (classe && c.classe !== classe) return;
+    (c.items || []).forEach(function(code) {
+      if (!vus[code]) vus[code] = c;
+    });
+  });
+  return vus;
+}
+
+function statistiquesCouverture(classe) {
+  const vus = itemsCouverts(classe);
+  let total = 0, couverts = 0;
+  const parBloc = [];
+  REFERENTIEL_COUVERTURE.forEach(function(b) {
+    let t = 0, c = 0;
+    b.competences.forEach(function(comp) {
+      comp.items.forEach(function(it) { t++; if (vus[it.c]) c++; });
+    });
+    parBloc.push({ bloc: b.bloc, total: t, couverts: c });
+    total += t; couverts += c;
+  });
+  return { total: total, couverts: couverts, parBloc: parBloc, vus: vus };
+}
+
+// --- Saisie à la clôture d'une séance ------------------------------------
+let COUVERTURE_EN_COURS = { seanceId: null, items: [] };
+
+function ouvrirSaisieCouverture(seanceId) {
+  const seance = PROFILS_EMARGEMENTS.find(function(s) { return s.id === seanceId; });
+  if (!seance) return;
+  COUVERTURE_EN_COURS = { seanceId: seanceId, items: [] };
+
+  const idxBloc = blocDeMatiere(seance.matiere);
+  const ancien = document.getElementById("modale-couverture");
+  if (ancien) ancien.remove();
+
+  const m = document.createElement("div");
+  m.id = "modale-couverture";
+  m.className = "popup-rgpd-overlay no-print";
+  m.style.display = "flex";
+  m.innerHTML =
+    '<div class="popup-rgpd-modal" style="max-width:44rem;">' +
+      '<div class="popup-rgpd-header"><span class="popup-rgpd-icone">\u{1F4D6}</span>' +
+        '<h2>Ce que cette s\u00e9ance a couvert</h2></div>' +
+      '<div class="popup-rgpd-body">' +
+        '<p class="cov-intro">' + escapeHTML(seance.matiere) + ' \u2014 ' + dateFr(seance.date) +
+          ' \u2014 ' + escapeHTML(libelleClassesSeance(seance)) + '</p>' +
+        '<div class="impr-champ"><label>Bloc du r\u00e9f\u00e9rentiel</label>' +
+          '<select id="cov-bloc" onchange="majCompetencesCouverture()">' +
+          '<option value="">\u2014 Aucun (s\u00e9ance hors r\u00e9f\u00e9rentiel) \u2014</option>' +
+          REFERENTIEL_COUVERTURE.map(function(b, i) {
+            return '<option value="' + i + '"' + (i === idxBloc ? ' selected' : '') + '>' +
+              escapeHTML(b.bloc) + '</option>'; }).join("") +
+          '</select></div>' +
+        '<div class="impr-champ"><label>Comp\u00e9tence travaill\u00e9e</label>' +
+          '<select id="cov-comp" onchange="majItemsCouverture()"></select></div>' +
+        '<div id="cov-items"></div>' +
+        '<div id="cov-panier" class="cov-panier"></div>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="enregistrerCouverture()">\u2713 Enregistrer</button> ' +
+        '<button class="btn-secondaire" onclick="passerCouverture()">Passer</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(m);
+  majCompetencesCouverture();
+}
+
+function majCompetencesCouverture() {
+  const sb = document.getElementById("cov-bloc");
+  const sc = document.getElementById("cov-comp");
+  const zi = document.getElementById("cov-items");
+  if (!sb || !sc) return;
+  if (sb.value === "") {
+    sc.innerHTML = ""; sc.disabled = true;
+    if (zi) zi.innerHTML = '<p class="cov-aide">Aucun item \u00e0 cocher pour une s\u00e9ance hors r\u00e9f\u00e9rentiel.</p>';
+    return;
+  }
+  sc.disabled = false;
+  const b = REFERENTIEL_COUVERTURE[parseInt(sb.value, 10)];
+  sc.innerHTML = '<option value="">\u2014 Choisir une comp\u00e9tence \u2014</option>' +
+    b.competences.map(function(c, i) {
+      return '<option value="' + i + '">' + escapeHTML(c.libelle) +
+        ' (' + c.items.length + ')</option>'; }).join("");
+  if (zi) zi.innerHTML = '<p class="cov-aide">Choisissez la comp\u00e9tence travaill\u00e9e : ses items s\'afficheront ici.</p>';
+}
+
+function majItemsCouverture() {
+  const sb = document.getElementById("cov-bloc");
+  const sc = document.getElementById("cov-comp");
+  const zi = document.getElementById("cov-items");
+  if (!sb || !sc || !zi || sc.value === "") { if (zi) zi.innerHTML = ""; return; }
+  const comp = REFERENTIEL_COUVERTURE[parseInt(sb.value, 10)].competences[parseInt(sc.value, 10)];
+  const seance = PROFILS_EMARGEMENTS.find(function(s) { return s.id === COUVERTURE_EN_COURS.seanceId; });
+  const dejaVus = itemsCouverts(seance ? seance.classe : null);
+
+  let h = '<div class="cov-liste">';
+  comp.items.forEach(function(it) {
+    const coche = COUVERTURE_EN_COURS.items.indexOf(it.c) >= 0;
+    const vu = dejaVus[it.c];
+    h += '<label class="cov-item' + (coche ? ' est-coche' : '') + '">' +
+      '<input type="checkbox" ' + (coche ? 'checked' : '') +
+      ' onchange="basculerItemCouverture(\'' + it.c + '\')"> ' +
+      '<span class="cov-code">' + escapeHTML(it.c) + '</span> ' +
+      escapeHTML(it.l) +
+      (vu ? '<span class="cov-deja">d\u00e9j\u00e0 vu le ' + dateFr(vu.date) + '</span>' : '') +
+      '</label>';
+  });
+  h += '</div>';
+  h += '<p class="cov-aide">Cochez ce qui a r\u00e9ellement \u00e9t\u00e9 trait\u00e9. ' +
+    'Vous pouvez changer de comp\u00e9tence : vos coches sont conserv\u00e9es.</p>';
+  zi.innerHTML = h;
+}
+
+function basculerItemCouverture(code) {
+  const i = COUVERTURE_EN_COURS.items.indexOf(code);
+  if (i >= 0) COUVERTURE_EN_COURS.items.splice(i, 1);
+  else COUVERTURE_EN_COURS.items.push(code);
+  majItemsCouverture();
+  majPanierCouverture();
+}
+
+function majPanierCouverture() {
+  const z = document.getElementById("cov-panier");
+  if (!z) return;
+  const n = COUVERTURE_EN_COURS.items.length;
+  z.innerHTML = n === 0 ? "" :
+    '<strong>' + n + ' item(s) coch\u00e9(s)</strong> : ' +
+    COUVERTURE_EN_COURS.items.join(", ");
+}
+
+function enregistrerCouverture() {
+  const seance = PROFILS_EMARGEMENTS.find(function(s) { return s.id === COUVERTURE_EN_COURS.seanceId; });
+  if (!seance) return;
+  if (COUVERTURE_EN_COURS.items.length === 0) {
+    if (!confirm("Aucun item coch\u00e9.\n\nEnregistrer quand m\u00eame cette s\u00e9ance comme ne couvrant aucun item du r\u00e9f\u00e9rentiel ?")) return;
+  }
+  const liste = chargerCouverture();
+  const u = utilisateurConnecte;
+  classesDeSeance(seance).forEach(function(cl) {
+    liste.push({
+      id: "COV-" + Date.now() + "-" + cl,
+      seanceId: seance.id,
+      classe: cl,
+      matiere: seance.matiere,
+      date: seance.date,
+      items: COUVERTURE_EN_COURS.items.slice(),
+      intervenantId: u ? u.id : "",
+      intervenantNom: u ? (u.nom || u.id) : "",
+      saisiLe: new Date().toISOString()
+    });
+  });
+  if (!sauverCouverture(liste)) return;
+  const m = document.getElementById("modale-couverture");
+  if (m) m.remove();
+  alert("\u2705 " + COUVERTURE_EN_COURS.items.length + " item(s) enregistr\u00e9(s) comme couverts.");
+}
+
+function passerCouverture() {
+  const m = document.getElementById("modale-couverture");
+  if (m) m.remove();
+}
+
+// Tableau de bord : ce qui reste à couvrir, bloc par bloc.
+let COUVERTURE_VUE = "mfr";
+function changerVueCouverture(v) { COUVERTURE_VUE = v; afficherTableauCouverture(); }
+
+// Vue de synthèse : la règle du tableau appliquée aux 98 items.
+function vueSyntheseAudit(classe) {
+  const sy = syntheseCouverture(classe);
+  if (sy.effectif === 0) {
+    return '<div class="vr-info">Aucun apprenti actif dans cette classe.</div>';
+  }
+  const pct = sy.total ? Math.round((sy.acquis / sy.total) * 100) : 0;
+  let h = '<div class="cov-synthese"><div class="cov-pct">' + pct + '\u2009%</div>' +
+    '<div><strong>' + sy.acquis + ' items acquis sur ' + sy.total + '</strong>' +
+    '<div class="cov-reste">' + sy.partiels + ' partiels \u00b7 ' + sy.absents + ' non trait\u00e9s \u2014 ' +
+    'effectif de r\u00e9f\u00e9rence : ' + sy.effectif + ' apprenti(s)</div></div></div>';
+
+  h += '<div class="cov-legende">' +
+    '<span><span class="cov-pastille acquis"></span> acquis \u2014 vu en centre, ou pratiqu\u00e9 par tous</span>' +
+    '<span><span class="cov-pastille partiel"></span> partiel \u2014 pratiqu\u00e9 par une partie seulement</span>' +
+    '<span><span class="cov-pastille absent"></span> non trait\u00e9</span></div>';
+
+  // Seuls les items non acquis sont détaillés : ce sont les seuls à agir.
+  const aTraiter = sy.lignes.filter(function(l) { return l.statut !== "acquis"; });
+  if (aTraiter.length === 0) {
+    h += '<div class="cov-complet" style="font-size:1rem;padding:1rem 0;">\u2713 Tous les items du r\u00e9f\u00e9rentiel sont acquis.</div>';
+    return h;
+  }
+  h += '<h3 class="cov-titre-bloc">Items restant \u00e0 traiter (' + aTraiter.length + ')</h3>';
+  h += '<table class="tableau-simple"><thead><tr><th>Code</th><th>Item</th>' +
+    '<th>Centre</th><th>Entreprise</th><th>\u00c9tat</th></tr></thead><tbody>';
+  aTraiter.forEach(function(l) {
+    h += '<tr><td><span class="cov-code">' + escapeHTML(l.code) + '</span></td>' +
+      '<td>' + escapeHTML(l.item) + '</td>' +
+      '<td>' + (l.centre ? "\u2713" : "\u2014") + '</td>' +
+      '<td>' + l.nbEntreprise + ' / ' + l.effectif + '</td>' +
+      '<td><span class="cov-pastille ' + l.statut + '"></span></td></tr>';
+  });
+  h += '</tbody></table>';
+  return h;
+}
+
+function afficherTableauCouverture() {
+  const zone = document.getElementById("couvertureContenu");
+  if (!zone) return;
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "mfr") {
+    zone.innerHTML = '<div class="msg-vide-bloc"><p>Cette page est r\u00e9serv\u00e9e \u00e0 l\'\u00e9quipe de la MFR.</p></div>';
+    return;
+  }
+  const classes = (typeof classesOuvertes === "function") ? classesOuvertes() : Object.keys(CLASSES);
+  const sel = document.getElementById("cov-classe");
+  const classe = sel ? sel.value : (classes[0] || "");
+
+  const vue = (typeof COUVERTURE_VUE !== "undefined") ? COUVERTURE_VUE : "mfr";
+  let h = '<div class="emarg-onglets">' +
+    '<button class="emarg-onglet' + (vue === "mfr" ? " active" : "") + '" onclick="changerVueCouverture(\'mfr\')">\u{1F3EB} Couverture MFR</button>' +
+    '<button class="emarg-onglet' + (vue === "synthese" ? " active" : "") + '" onclick="changerVueCouverture(\'synthese\')">\u2705 Synth\u00e8se audit</button>' +
+    '</div>';
+  h += '<div class="vr-filtres"><label>Classe <select id="cov-classe" onchange="afficherTableauCouverture()">' +
+    classes.map(function(c) {
+      return '<option value="' + c + '"' + (c === classe ? ' selected' : '') + '>' +
+        escapeHTML(CLASSES[c] || c) + '</option>'; }).join("") +
+    '</select></label>' +
+    '<button class="btn-mini" onclick="imprimerCouverture()">\u{1F5A8}\uFE0F Imprimer / PDF</button>' +
+    '<button class="btn-mini" onclick="exporterCouvertureCSV()">\u{1F4E5} Exporter en CSV</button>' +
+    '<button class="btn-mini" onclick="ouvrirExtractionSuivi()">\u{1F4CA} Extraire le suivi</button>' +
+    '<button class="btn-mini btn-primary" onclick="ouvrirSaisieEntreprise()">\u{1F3E2} Attester une pratique en entreprise</button></div>';
+
+  if (vue === "synthese") { zone.innerHTML = h + vueSyntheseAudit(classe); return; }
+
+  const st = statistiquesCouverture(classe);
+  const pct = st.total ? Math.round((st.couverts / st.total) * 100) : 0;
+  h += '<div class="cov-synthese"><div class="cov-pct">' + pct + '\u2009%</div>' +
+    '<div><strong>' + st.couverts + ' items couverts sur ' + st.total + '</strong>' +
+    '<div class="cov-reste">' + (st.total - st.couverts) + ' restent \u00e0 traiter</div></div></div>';
+
+  st.parBloc.forEach(function(b) {
+    const p = b.total ? Math.round((b.couverts / b.total) * 100) : 0;
+    h += '<div class="cov-bloc-ligne"><div class="cov-bloc-nom">' + escapeHTML(b.bloc) + '</div>' +
+      '<div class="cov-barre"><div class="cov-barre-pleine" style="width:' + p + '%"></div></div>' +
+      '<div class="cov-bloc-chiffre">' + b.couverts + ' / ' + b.total + '</div></div>';
+  });
+
+  // Détail par compétence, avec les items non couverts nommés
+  REFERENTIEL_COUVERTURE.forEach(function(bloc) {
+    h += '<h3 class="cov-titre-bloc">' + escapeHTML(bloc.bloc) + '</h3>';
+    bloc.competences.forEach(function(comp) {
+      const manquants = comp.items.filter(function(it) { return !st.vus[it.c]; });
+      const vus = comp.items.length - manquants.length;
+      h += '<div class="cov-comp">' +
+        '<div class="cov-comp-titre">' + escapeHTML(comp.libelle) +
+        ' <span class="cov-comp-chiffre">' + vus + ' / ' + comp.items.length + '</span></div>';
+      if (manquants.length === 0) {
+        h += '<div class="cov-complet">\u2713 Tous les items sont couverts.</div>';
+      } else {
+        h += '<ul class="cov-manquants">' + manquants.map(function(it) {
+          return '<li><span class="cov-code">' + escapeHTML(it.c) + '</span> ' + escapeHTML(it.l) + '</li>';
+        }).join("") + '</ul>';
+      }
+      h += '</div>';
+    });
+  });
+  zone.innerHTML = h;
+}
+
+function lignesCouverture(classe) {
+  const st = statistiquesCouverture(classe);
+  const lignes = [];
+  REFERENTIEL_COUVERTURE.forEach(function(bloc) {
+    bloc.competences.forEach(function(comp) {
+      comp.items.forEach(function(it) {
+        const c = st.vus[it.c];
+        lignes.push({
+          code: it.c, bloc: bloc.bloc, competence: comp.libelle, item: it.l,
+          date: c ? c.date : "", matiere: c ? c.matiere : "",
+          intervenant: c ? c.intervenantNom : "", couvert: c ? "Oui" : "Non"
+        });
+      });
+    });
+  });
+  return lignes;
+}
+
+function exporterCouvertureCSV() {
+  const sel = document.getElementById("cov-classe");
+  const classe = sel ? sel.value : "";
+  const l = lignesCouverture(classe);
+  const entetes = ["Code", "Bloc", "Competence", "Item", "Couvert", "Date", "Matiere", "Intervenant"];
+  const csv = [entetes].concat(l.map(function(x) {
+    return [x.code, x.bloc, x.competence, x.item, x.couvert, x.date, x.matiere, x.intervenant];
+  })).map(function(r) {
+    return r.map(function(c) { return '"' + String(c || "").replace(/"/g, '""') + '"'; }).join(";");
+  }).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "Couverture_referentiel_" + classe + "_" + isoDeDate(new Date()) + ".csv";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function imprimerCouverture() {
+  const sel = document.getElementById("cov-classe");
+  const classe = sel ? sel.value : "";
+  const st = statistiquesCouverture(classe);
+  const pct = st.total ? Math.round((st.couverts / st.total) * 100) : 0;
+  let corps = '<table class="meta"><tbody><tr>' +
+    '<th>Classe</th><td>' + escapeHTML(CLASSES[classe] || classe) + '</td>' +
+    '<th>Couverture</th><td>' + st.couverts + ' / ' + st.total + ' items \u2014 ' + pct + ' %</td>' +
+    '</tr></tbody></table>';
+  corps += '<table><thead><tr><th>Code</th><th>Comp\u00e9tence</th><th>Item</th>' +
+    '<th>Couvert</th><th>Date</th><th>Intervenant</th></tr></thead><tbody>';
+  lignesCouverture(classe).forEach(function(x) {
+    corps += '<tr><td>' + escapeHTML(x.code) + '</td><td>' + escapeHTML(x.competence) + '</td>' +
+      '<td>' + escapeHTML(x.item) + '</td>' +
+      '<td>' + (x.couvert === "Oui" ? "\u2713" : "\u2014") + '</td>' +
+      '<td>' + escapeHTML(x.date ? dateFr(x.date) : "") + '</td>' +
+      '<td>' + escapeHTML(x.intervenant) + '</td></tr>';
+  });
+  corps += '</tbody></table>';
+  telechargerEmargementsPDF("Couverture du r\u00e9f\u00e9rentiel", "", "", corps,
+    "Couverture_referentiel_" + classe + ".pdf");
+}
+
+function afficherTableauCouverture_fin() {}
+
+
 function sauverEmargements() {
   localStorage.setItem("mfr_emargements", JSON.stringify(PROFILS_EMARGEMENTS));
 }
@@ -43510,6 +44801,11 @@ function cloturerSeance() {
     sauverEmargements();
     seanceActiveId = null;
     alert("✅ Séance clôturée et signée avec succès.");
+    // Couverture du référentiel : demandée juste après la clôture, moment
+    // où le formateur a encore la séance en tête. Il peut passer.
+    if (typeof ouvrirSaisieCouverture === "function") {
+      setTimeout(function() { ouvrirSaisieCouverture(seance.id); }, 300);
+    }
     afficherEmargement();
   };
 
