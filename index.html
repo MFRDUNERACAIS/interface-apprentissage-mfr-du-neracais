@@ -22741,6 +22741,13 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.22 (22/09/2026) — Défaut critique : séance invisible des apprentis.
+//        Les séances vivent dans l'espace équipe ; ouverte par le moniteur,
+//        une séance n'atteignait jamais le téléphone des apprentis, qui ne
+//        pouvaient pas signer. Elle est désormais publiée à l'ouverture et à
+//        la clôture dans une collection lisible de tous, sans donnée
+//        personnelle. L'apprenti la reçoit à l'ouverture de sa page et par
+//        un bouton Actualiser. Alerte au moniteur si la publication échoue.
 //   v5.21 (21/09/2026) — Défaut critique : l'apprenti ne trouvait pas sa fiche.
 //        Les profils vivent dans l'espace équipe, illisible pour les
 //        apprentis, familles et entreprises. Sur leur appareil, aucune fiche :
@@ -23093,7 +23100,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.21";
+const APP_VERSION = "5.22";
 const APP_DATE_BUILD = "17 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -44698,6 +44705,12 @@ function afficherEmargementApprenti(apprentiUsername) {
   // L'apprenti signe lui-même sa présence : la carte de signature précède
   // l'historique, puisque c'est l'action attendue de lui.
   let enTeteSignature = "";
+  // Première visite de la page : on va chercher les séances ouvertes, puis
+  // on réaffiche. Le drapeau évite une boucle d'actualisation.
+  if (u.role === "apprenti" && !window.__seancesChargees) {
+    window.__seancesChargees = true;
+    setTimeout(function() { actualiserSeancesApprenti(); }, 50);
+  }
   if (u.role === "apprenti" && typeof ecranSignatureApprenti === "function") {
     const moiApp = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
       .find(function(a) { return a.username === apprentiUsername; });
@@ -44887,7 +44900,9 @@ function ecranSignatureApprenti(username, classe) {
   const seance = seanceOuvertePour(classe);
   if (!seance) {
     return '<div class="emarg-info">\u{1F4CB} Aucune s\u00e9ance ouverte en ce moment. ' +
-      'Votre formateur ouvrira la s\u00e9ance en d\u00e9but de cours.</div>';
+      'Votre formateur ouvrira la s\u00e9ance en d\u00e9but de cours.' +
+      '<div style="margin-top:0.7rem;"><button class="btn-primary btn-mini" onclick="actualiserSeancesApprenti()">' +
+      '\u21bb Actualiser</button></div></div>';
   }
   const sig = maSignatureSeance(seance, username);
   let h = '<div class="sig-carte' + (sig ? ' sig-faite' : '') + '">';
@@ -44986,6 +45001,76 @@ async function rafraichirSignaturesSeance() {
 
 function seanceOuvertePour_fin() {}
 
+// =================================================================
+// SÉANCES OUVERTES, VISIBLES DES APPRENTIS
+// -----------------------------------------------------------------
+// Les séances vivent dans l'espace équipe, que les apprentis ne lisent pas.
+// Une séance ouverte par le moniteur n'atteignait donc jamais leur
+// téléphone : ils voyaient « aucune séance ouverte » et ne pouvaient pas
+// signer. On publie la séance ouverte dans une collection lisible de tout
+// compte authentifié — sans aucune donnée personnelle : ni liste
+// d'apprentis, ni présences, seulement ce qu'il faut pour signer.
+// =================================================================
+
+async function publierSeance(seance) {
+  try {
+    if (!seance || !initialiserFirebase() || !fbAuth.currentUser) return false;
+    await fbDb.collection("seances").doc(seance.id).set({
+      id: seance.id,
+      classes: classesDeSeance(seance),
+      matiere: seance.matiere || "",
+      date: seance.date || "",
+      horaireDebut: seance.horaireDebut || "",
+      horaireFin: seance.horaireFin || "",
+      formateurNom: seance.formateurNom || "",
+      cloture: !!seance.cloture
+    });
+    return true;
+  } catch (e) { return false; }
+}
+
+// Côté apprenti : séances du jour de sa classe, fusionnées dans la liste
+// locale pour que la carte de signature les trouve.
+async function recevoirSeancesOuvertes(classe) {
+  try {
+    if (!classe || !initialiserFirebase() || !fbAuth.currentUser) return 0;
+    const jour = isoDeDate(new Date());
+    const snap = await fbDb.collection("seances").where("date", "==", jour).get();
+    let n = 0;
+    snap.forEach(function(doc) {
+      const d = doc.data() || {};
+      if (!Array.isArray(d.classes) || d.classes.indexOf(classe) < 0) return;
+      const existante = PROFILS_EMARGEMENTS.find(function(x) { return x.id === d.id; });
+      if (existante) {
+        // On ne touche qu'à l'état de clôture : les signatures locales restent.
+        if (d.cloture && !existante.cloture) { existante.cloture = { distante: true }; n++; }
+        return;
+      }
+      PROFILS_EMARGEMENTS.push({
+        id: d.id, classe: d.classes[0], classes: d.classes,
+        matiere: d.matiere, date: d.date,
+        horaireDebut: d.horaireDebut, horaireFin: d.horaireFin,
+        formateurNom: d.formateurNom,
+        emargements: {}, cloture: d.cloture ? { distante: true } : null
+      });
+      n++;
+    });
+    if (n > 0) sauverEmargements();
+    return n;
+  } catch (e) { return 0; }
+}
+
+async function actualiserSeancesApprenti() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  const moi = PROFILS_APPRENTIS.find(function(a) { return a.username === u.id; });
+  const classe = moi ? moi.classe : (Array.isArray(u.classes) ? u.classes[0] : "");
+  await recevoirSeancesOuvertes(classe);
+  if (typeof afficherEmargement === "function") afficherEmargement();
+}
+
+function publierSeance_fin() {}
+
 function creerSeance() {
   const classe = document.getElementById("seance_classe").value;
   const classesSup = Array.from(document.querySelectorAll('[data-classe-sup]:checked'))
@@ -45020,6 +45105,13 @@ function creerSeance() {
 
   PROFILS_EMARGEMENTS.push(seance);
   sauverEmargements();
+  // Publication immédiate : sans elle, les apprentis ne verraient pas la
+  // séance sur leur téléphone et ne pourraient pas signer.
+  publierSeance(seance).then(function(ok) {
+    if (!ok) alert("\u26A0 La s\u00e9ance est ouverte sur ce poste, mais n'a pas pu \u00eatre publi\u00e9e.\n\n" +
+      "Les apprentis ne la verront pas. V\u00e9rifiez votre connexion et que vous \u00eates bien " +
+      "connect\u00e9\u00b7e avec votre compte Firebase (pas de bandeau rouge en haut de l'\u00e9cran).");
+  });
   seanceActiveId = seance.id;
   fermerModalEmarg();
   afficherSeanceActive();
@@ -45127,6 +45219,7 @@ function cloturerSeance() {
       userAgent: (navigator.userAgent || "").substring(0, 100)
     };
     sauverEmargements();
+    publierSeance(seance);
     seanceActiveId = null;
     alert("✅ Séance clôturée et signée avec succès.");
     // Couverture du référentiel : demandée juste après la clôture, moment
