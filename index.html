@@ -22768,6 +22768,11 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.28 (22/09/2026) — Publication des carnets : 18 jeunes sur 19 étaient
+//       écartés au motif « sans carnet ». Un carnet n'existe en effet dans
+//       le stockage qu'une fois ouvert sur ce poste. Il est désormais créé
+//       vierge à la publication. Le compte rendu distingue en outre « sans
+//       compte Firebase » — rien ne partira — d'un échec technique.
 //   v5.27 (22/09/2026) — RÉGRESSION CORRIGÉE, signalée par la Direction :
 //       « mon mot de passe ne fonctionne plus ». La purge de déconnexion
 //       ajoutée en v5.24 effaçait mfr_profils_salaries et les trois autres
@@ -23195,7 +23200,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.27";
+const APP_VERSION = "5.28";
 const APP_DATE_BUILD = "22 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -37624,9 +37629,18 @@ async function publierCarnetApprenti(usernameApprenti, silencieux) {
   const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : []);
   const a = apprentis.find(function(x) { return x.username === usernameApprenti; });
   if (!a) return { ok: false, motif: "inconnu" };
+  // v5.28 — un carnet n'existe dans le stockage qu'une fois ouvert sur ce
+  // poste. Refuser de publier pour cette raison privait 18 jeunes sur 19 de
+  // leur carnet. On crée donc le carnet vierge : c'est précisément ce que le
+  // jeune doit recevoir pour commencer à le remplir.
   let brut = null;
   try { brut = localStorage.getItem("carnet_" + usernameApprenti); } catch (e) {}
-  if (!brut) return { ok: false, motif: "sans_carnet" };
+  if (!brut) {
+    try {
+      brut = JSON.stringify(chargerCarnet(usernameApprenti));
+      localStorage.setItem("carnet_" + usernameApprenti, brut);
+    } catch (e) { return { ok: false, motif: "carnet_impossible" }; }
+  }
 
   const destinataires = [];
   if (a.uidFirebase) destinataires.push({ uid: a.uidFirebase, role: "apprenti" });
@@ -37667,16 +37681,25 @@ async function publierTousLesCarnets() {
   }
   const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
     .filter(function(a) { return (a.statut || "actif") !== "archive"; });
-  let publies = 0, sans = [];
+  let publies = 0;
+  const sansCompte = [], autres = [];
   for (let i = 0; i < apprentis.length; i++) {
+    const nom = ((apprentis[i].prenom || "") + " " + (apprentis[i].nom || "")).trim();
     const r = await publierCarnetApprenti(apprentis[i].username, true);
     if (r.ok) publies++;
-    else if (r.motif === "sans_compte" || r.motif === "sans_carnet")
-      sans.push((apprentis[i].prenom || "") + " " + (apprentis[i].nom || ""));
+    else if (r.motif === "sans_compte") sansCompte.push(nom);
+    else autres.push(nom + " (" + (r.motif || "erreur") + ")");
   }
-  alert("✅ " + publies + " carnet(s) publié(s) sur " + apprentis.length + "." +
-    (sans.length > 0 ? "\n\n⚠️ Sans compte ou sans carnet : " + sans.join(", ") : "") +
-    "\n\nLes apprentis, familles et maîtres d'apprentissage les recevront à leur prochaine connexion.");
+  let msg = "✅ " + publies + " carnet(s) publié(s) sur " + apprentis.length + ".";
+  if (sansCompte.length > 0) {
+    msg += "\n\n⚠️ AUCUN COMPTE FIREBASE. Ces jeunes ne recevront rien tant que leur "
+      + "compte n'est pas créé (Paramètres → ☁️ Créer les comptes Firebase) :\n"
+      + sansCompte.join(", ");
+  }
+  if (autres.length > 0) msg += "\n\n❌ Échec : " + autres.join(", ");
+  if (publies > 0) msg += "\n\nLes apprentis, familles et maîtres d'apprentissage les "
+    + "recevront à leur prochaine connexion.";
+  alert(msg);
 }
 
 // --- Contributions des familles et des entreprises ------------------------
