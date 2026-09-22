@@ -19857,6 +19857,13 @@
       <div class="tests-grid" id="testsGrid">
         <!-- Généré dynamiquement par JS -->
       </div>
+      <div style="text-align:center;margin:0.8rem 0 1.4rem;">
+        <button class="btn-primary btn-mini" onclick="actualiserMesTests()">↻ Actualiser mes tests</button>
+        <div style="font-size:0.85rem;color:#666;margin-top:0.4rem;">
+          Un test reste verrouillé tant que le moniteur ne l'a pas ouvert.
+          S'il vient de le faire, appuyez sur ce bouton.
+        </div>
+      </div>
 
       <!-- ZONE TEST ACTIF (cachée par défaut) -->
       <div id="testActif" class="test-actif" style="display:none;">
@@ -19931,6 +19938,7 @@
             <option value="pro_aepe">Pro AEPE</option>
           </select>
         </div>
+        <button class="btn-export" id="btnRafraichirTests" onclick="rafraichirResultatsTests()">↻ Récupérer les tests passés</button>
         <button class="btn-export" onclick="exporterResultats()">📊 Exporter en CSV</button>
       </div>
 
@@ -19942,9 +19950,27 @@
       <!-- Pilotage des verrous de tests (MFR uniquement) -->
       <div class="resultats-verrous-panel">
         <h3>🔐 Pilotage de l'accès aux tests</h3>
-        <p class="verrous-intro">Sélectionnez un·e apprenti·e et ouvrez les tests qu'il/elle doit passer. L'apprenti·e verra alors le bouton « Commencer le test » apparaître. Tant qu'un test n'est pas ouvert, il reste verrouillé côté apprenti·e.</p>
+        <p class="verrous-intro">Ouvrir un test le rend visible sur le téléphone de l'apprenti·e. Tant qu'il n'est pas ouvert, il reste verrouillé. <strong>L'ouverture est transmise immédiatement</strong> — l'apprenti·e appuie ensuite sur « Actualiser mes tests », ou se reconnecte.</p>
+
+        <div class="verrous-controls" style="border:2px solid #2d6a4f;border-radius:8px;padding:0.9rem;margin-bottom:1rem;background:#f4fbf7;">
+          <div style="font-weight:700;color:#2d6a4f;margin-bottom:0.5rem;">⚡ Ouvrir pour une classe entière</div>
+          <label for="verrousSelectClasse"><strong>Classe :</strong></label>
+          <select id="verrousSelectClasse">
+            <option value="">— Sélectionner —</option>
+          </select>
+          <label for="verrousSelectTest" style="margin-left:0.6rem;"><strong>Test :</strong></label>
+          <select id="verrousSelectTest">
+            <option value="">— Sélectionner —</option>
+          </select>
+          <div style="margin-top:0.7rem;">
+            <button class="carnet-pilotage-btn btn-ouvrir" onclick="verrouClasseAction('en_cours')">🔓 Ouvrir à toute la classe</button>
+            <button class="carnet-pilotage-btn btn-cloturer" onclick="verrouClasseAction('cloturee')">✓ Clôturer pour toute la classe</button>
+          </div>
+          <div id="verrouClasseCompteRendu" style="margin-top:0.6rem;font-size:0.9rem;"></div>
+        </div>
+
         <div class="verrous-controls">
-          <label for="verrousSelectApprenti"><strong>Apprenti·e :</strong></label>
+          <label for="verrousSelectApprenti"><strong>Cas par cas — apprenti·e :</strong></label>
           <select id="verrousSelectApprenti" onchange="afficherPilotageTestsApprenti(this.value)">
             <option value="">— Sélectionner —</option>
           </select>
@@ -22223,6 +22249,7 @@
           <button class="btn-secondary" onclick="lancerEnvoiFirestore()">⬆️ Envoyer les données vers la base partagée</button>
           <button class="btn-secondary" onclick="lancerReceptionFirestore()">⬇️ Récupérer les données partagées</button>
           <button class="btn-secondary" onclick="ramasserDepots()">📥 Ramasser les réclamations et signalements</button>
+          <button class="btn-secondary" onclick="publierTousLesCarnets()">📔 Publier les carnets de liaison</button>
           <button class="btn-secondary" onclick="reparerCompteFirebase()">🔧 Réparer un compte Firebase</button>
           <button class="btn-secondary" onclick="ouvrirImport('salarie')">📥 Importer depuis CSV</button>
           <button class="btn-secondary" onclick="exporterProfils('salarie')">📊 Exporter CSV</button>
@@ -22741,6 +22768,74 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.27 (22/09/2026) — RÉGRESSION CORRIGÉE, signalée par la Direction :
+//       « mon mot de passe ne fonctionne plus ». La purge de déconnexion
+//       ajoutée en v5.24 effaçait mfr_profils_salaries et les trois autres
+//       fichiers de profils — qui portent l'empreinte du mot de passe
+//       personnel de chaque compte. Quiconque avait personnalisé son mot de
+//       passe AVANT la v5.20 (donc avant sa propagation vers Firebase) se
+//       retrouvait enfermé dehors après une simple déconnexion. Ces quatre
+//       clés sont désormais épargnées par la purge.
+//   v5.26 (22/09/2026) — Vérification chirurgicale dans un vrai moteur DOM :
+//       les 48 pages ouvertes et 452 fonctions appelées pour chacun des
+//       quatre rôles, puis cinq parcours utilisateurs complets, formulaires
+//       remplis. Aucune page en erreur, aucun bouton mort, aucune fonction
+//       pointant vers un élément inexistant. Deux durcissements :
+//       1. recevoirMaFiche() REMPLACE désormais les listes de profils d'un
+//          compte non-MFR au lieu de les compléter : aucune donnée d'un
+//          tiers restée dans un navigateur ne peut y survivre.
+//       2. copierFicheAcces() ne suppose plus que navigator.clipboard
+//          existe : sur un téléphone ancien, le bouton ne faisait rien.
+//   v5.25 (22/09/2026) — Le carnet de liaison circule dans les deux sens.
+//       Jusqu'ici le carnet était remplacé EN BLOC à chaque échange : la
+//       dernière version reçue effaçait tout le reste. L'ouverture d'une
+//       période et la réponse du moniteur à l'appréciation hebdomadaire ne
+//       quittaient pas son poste, et disparaissaient au ramassage suivant.
+//       Les commentaires et signatures des familles et des entreprises ne
+//       quittaient jamais leur appareil non plus.
+//
+//       Règle arrêtée par la Direction le 22/09/2026 : le PROPRIÉTAIRE d'un
+//       champ fait toujours foi, un autre rôle ne peut que remplir un vide.
+//       Mise en oeuvre par fusionnerCarnet(base, recu, roleEmetteur), qui
+//       parcourt la structure champ par champ. Le carnet voyage dans
+//       fiches/<uid>, collection déjà autorisée : aucune règle nouvelle.
+//       Corrige aussi : le carnet d'un apprenti majeur ayant refusé l'accès
+//       n'est plus publié vers sa famille.
+//   v5.24 (22/09/2026) — Audit complet du code. Correctifs :
+//       1. BLOQUANT : afficherEmargementApprenti() utilisait une variable u
+//          inexistante et s'interrompait sur une ReferenceError. L'apprenti
+//          ne pouvait pas signer sa présence. Défaut introduit en v5.22.
+//       2. CRITIQUE : recopierClesPersonnelles() recopiait chez le salarié
+//          toute clé trouvée dans le document personnel d'un compte, sur
+//          liste noire de sept noms. Un apprenti pouvait vider ou falsifier
+//          les fichiers de la MFR sur le poste de chaque salarié. Liste
+//          blanche nominative désormais.
+//       3. CRITIQUE : perso/<uid> était écrit sans merge. Se connecter
+//          depuis un second appareil effaçait réclamations, signalements et
+//          résultats de tests déjà déposés.
+//       4. CRITIQUE : la session Firebase du précédent utilisateur restait
+//          ouverte après déconnexion, et le stockage n'était pas purgé.
+//          firebaseNousReconnait() vérifie désormais l'adresse technique.
+//       5. Contrôles de rôle ajoutés : navigation vers les pages réservées,
+//          page Profils, page Résultats, réinitialisation de mot de passe,
+//          désactivation de compte, suppression de visite et de bulletin,
+//          changement de statut d'un signalement ou d'une réclamation,
+//          effacement du journal, clôture définitive d'un carnet.
+//       6. Dépôts et coches du travail à faire : contrôle d'appartenance à
+//          la réception.
+//   v5.23 (22/09/2026) — Défaut critique : tests de positionnement.
+//       1. Le verrou « test ouvert » était écrit dans le localStorage de la
+//          machine du moniteur et n'était déclaré dans AUCUNE liste de
+//          synchronisation : l'apprenti voyait toujours « en attente
+//          d'ouverture ». Il transite désormais par fiches/<uid>, en écriture
+//          fusionnée (merge) pour ne pas être effacé par la publication des
+//          fiches. Aucune règle Firestore nouvelle.
+//       2. Symétriquement, les résultats étaient écrits dans
+//          mfr_resultats_tests, clé de l'espace ÉQUIPE qu'un apprenti n'a pas
+//          le droit d'écrire : ils ne quittaient jamais son téléphone. Ils
+//          passent par perso/<uid>, agrégés par agregerResultatsTests().
+//       3. Ouverture possible pour une classe entière (54 apprentis × 4
+//          modules faisaient plus de 200 clics un par un).
 //   v5.22 (22/09/2026) — Défaut critique : séance invisible des apprentis.
 //        Les séances vivent dans l'espace équipe ; ouverte par le moniteur,
 //        une séance n'atteignait jamais le téléphone des apprentis, qui ne
@@ -23100,8 +23195,8 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.22";
-const APP_DATE_BUILD = "17 septembre 2026";
+const APP_VERSION = "5.27";
+const APP_DATE_BUILD = "22 septembre 2026";
 
 // Injection année dynamique dans le footer
 document.addEventListener("DOMContentLoaded", function() {
@@ -24864,12 +24959,30 @@ async function envoyerMesDonneesPersonnelles(silencieux) {
     } catch (e) {}
   }
 
+  // Commentaires et signatures portés au carnet par une famille ou une
+  // entreprise : ils vivent sous la clé de l'apprenti, donc hors de leurs
+  // clés personnelles. Sans ce paquet, ils ne remontaient jamais. (v5.25)
+  if (u.role === "parent" || u.role === "maitre") {
+    try {
+      const contrib = mesContributionsCarnets(u);
+      if (Object.keys(contrib).length > 0) {
+        paquet.contributionsCarnets = JSON.stringify(contrib); envoyees++;
+      }
+    } catch (e) {}
+  }
+
   if (u.role === "apprenti") {
     const sig = mesSignaturesVR(u.id);
     if (Object.keys(sig).length > 0) { paquet.signaturesVR = JSON.stringify(sig); envoyees++; }
     try {
       const sigS = mesSignaturesSeances(u.id);
       if (Object.keys(sigS).length > 0) { paquet.signaturesSeances = JSON.stringify(sigS); envoyees++; }
+    } catch (e) {}
+    // Résultats des tests de positionnement de ce seul apprenti.
+    try {
+      const miens = (typeof RESULTATS_LOCAUX !== "undefined" ? RESULTATS_LOCAUX : [])
+        .filter(function(r) { return r && r.username === u.id; });
+      if (miens.length > 0) { paquet.resultatsTests = JSON.stringify(miens); envoyees++; }
     } catch (e) {}
     // Coches du travail à faire, propres à cet apprenti.
     try {
@@ -24883,7 +24996,11 @@ async function envoyerMesDonneesPersonnelles(silencieux) {
   }
 
   try {
-    await fbDb.collection("perso").doc(fbAuth.currentUser.uid).set(paquet);
+    // merge : un envoi depuis un second appareil ne doit pas effacer ce que
+    // le premier y a déposé. Sans cela, une apprentie qui signait son repas
+    // depuis son téléphone effaçait la réclamation déposée la veille depuis
+    // un ordinateur, sans que rien ne le signale. (v5.24)
+    await fbDb.collection("perso").doc(fbAuth.currentUser.uid).set(paquet, { merge: true });
     return { envoyees: envoyees };
   } catch (e) {
     if (!silencieux && window.console) console.warn("perso", e);
@@ -24899,7 +25016,7 @@ async function recevoirMesDonneesPersonnelles() {
     const d = doc.data() || {};
     let recues = 0;
     Object.keys(d).forEach(function(cle) {
-      if (["identifiant", "role", "modifieLe", "signaturesVR", "signaturesSeances", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
+      if (["identifiant", "role", "modifieLe", "signaturesVR", "signaturesSeances", "tachesFaites", "depots", "resultatsTests", "contributionsCarnets"].indexOf(cle) >= 0) return;
       if (typeof d[cle] !== "string") return;
       try { JSON.parse(d[cle]); } catch (e) { return; }
       localStorage.setItem(cle, d[cle]);
@@ -24956,6 +25073,9 @@ async function agregerSignaturesVR(classe) {
       });
       // Les coches du travail à faire remontent par le même chemin.
       if (typeof d.tachesFaites === "string") {
+        fusionnerTachesFaites(d.tachesFaites, a.username);
+      }
+      if (false) {
         try {
           const mien = JSON.parse(d.tachesFaites);
           const faites = chargerTachesFaites();
@@ -25325,6 +25445,21 @@ const CLES_DEPOTS = ["mfr_reclamations", "mfr_signalements", "mfr_demandes_rdv",
                      "mfr_eval_reponses", "mfr_messages_entreprise",
                      "mfr_couverture_entreprise", "mfr_profils_attestations"];
 
+// Un élément appartient-il à ce compte ? Le même prédicat sert à l'envoi
+// (n'exporter que les siens) et à la réception côté MFR (n'accepter que les
+// siens) : sans ce second usage, un compte pouvait déposer un signalement
+// ou une attestation RGPD au nom de quelqu'un d'autre. (v5.24)
+function estAuteurDuDepot(x, username) {
+  if (!x || !username) return false;
+  // Les messages entreprise identifient leur auteur par « destinataire »,
+  // qui désigne en réalité le compte maître d'apprentissage de la conversation.
+  return x.auteurId === username || x.demandeurId === username
+    || x.apprentiUsername === username
+    || x.saisiPar === username
+    || x.utilisateurId === username
+    || (x.expediteur === "entreprise" && x.destinataire === username);
+}
+
 // Extrait les éléments dont l'utilisateur est l'auteur.
 function mesDepots(username) {
   const out = {};
@@ -25332,16 +25467,7 @@ function mesDepots(username) {
     let liste = [];
     try { liste = JSON.parse(localStorage.getItem(cle) || "[]"); } catch (e) { return; }
     if (!Array.isArray(liste)) return;
-    const miens = liste.filter(function(x) {
-      if (!x) return false;
-      // Les messages entreprise identifient leur auteur par « destinataire »,
-      // qui désigne en réalité le compte maître d'apprentissage de la conversation.
-      return x.auteurId === username || x.demandeurId === username
-        || x.apprentiUsername === username
-        || x.saisiPar === username
-        || x.utilisateurId === username
-        || (x.expediteur === "entreprise" && x.destinataire === username);
-    });
+    const miens = liste.filter(function(x) { return estAuteurDuDepot(x, username); });
     if (miens.length > 0) out[cle] = miens;
   });
   return out;
@@ -25350,8 +25476,8 @@ function mesDepots(username) {
 // Fusionne des dépôts reçus dans les listes locales, sans doublon.
 // L'identifiant de chaque élément fait foi : un dépôt déjà connu n'est
 // jamais dupliqué, et un dépôt déjà traité par l'équipe n'est pas écrasé.
-function fusionnerDepots(recus) {
-  let ajoutes = 0;
+function fusionnerDepots(recus, auteurAttendu) {
+  let ajoutes = 0, refuses = 0;
   Object.keys(recus || {}).forEach(function(cle) {
     if (CLES_DEPOTS.indexOf(cle) < 0) return;
     let liste = [];
@@ -25361,6 +25487,12 @@ function fusionnerDepots(recus) {
     (recus[cle] || []).forEach(function(item) {
       if (!item || !item.id) return;
       if (connus.indexOf(item.id) >= 0) return;
+      // v5.24 : un compte ne dépose que ce dont il est l'auteur.
+      if (auteurAttendu && !estAuteurDuDepot(item, auteurAttendu)) {
+        refuses++;
+        if (window.console) console.warn("Dépôt refusé (auteur incohérent)", cle, item.id);
+        return;
+      }
       liste.push(item);
       ajoutes++;
     });
@@ -25375,14 +25507,63 @@ function fusionnerDepots(recus) {
 // carnet de liaison, réponses aux enquêtes, évaluations déjà faites.
 // Sans cela, le suivi des carnets et les résultats d'enquête restaient vides
 // côté MFR : ces clés n'existent que sur l'appareil de leur propriétaire.
-function recopierClesPersonnelles(d) {
+// v5.24 — défaut critique corrigé. Cette fonction recopiait dans le
+// stockage du salarié TOUTE clé trouvée dans le document personnel d'un
+// compte, en n'en excluant que sept. Un apprenti pouvait donc, en déposant
+// les clés de son choix dans son propre document — ce que les règles
+// Firestore l'autorisent à faire — remplacer ou vider les fichiers de la
+// MFR sur le poste de chaque salarié, à sa connexion suivante, sans aucun
+// message. Le tri se fait désormais sur une liste blanche nominative.
+function recopierClesPersonnelles(d, identifiantAttendu, roleEmetteur) {
+  const src = d || {};
+  const id = identifiantAttendu || src.identifiant;
+  if (!id) return 0;
+  const role = roleEmetteur || src.role || "apprenti";
   let n = 0;
-  Object.keys(d || {}).forEach(function(cle) {
-    if (["identifiant", "role", "modifieLe", "signaturesVR", "signaturesSeances", "tachesFaites", "depots"].indexOf(cle) >= 0) return;
-    if (typeof d[cle] !== "string") return;
-    try { JSON.parse(d[cle]); } catch (e) { return; }
-    try { localStorage.setItem(cle, d[cle]); n++; } catch (e) {}
+  clesPersonnelles(id).forEach(function(cle) {
+    if (typeof src[cle] !== "string") return;
+    let valeur;
+    try { valeur = JSON.parse(src[cle]); } catch (e) { return; }
+    // Le carnet ne se remplace pas : il se fusionne. Sans cela, la version
+    // de l'apprenti effaçait chez le moniteur les périodes qu'il venait
+    // d'ouvrir et les réponses qu'il venait d'écrire. (v5.25)
+    if (cle.indexOf("carnet_") === 0) {
+      if (fusionnerCarnetLocal(cle.substring(7), valeur, role)) n++;
+      return;
+    }
+    try { localStorage.setItem(cle, src[cle]); n++; } catch (e) {}
   });
+
+  // Contributions d'une famille ou d'une entreprise au carnet d'un jeune.
+  if (typeof src.contributionsCarnets === "string") {
+    try {
+      const contrib = JSON.parse(src.contributionsCarnets);
+      Object.keys(contrib).forEach(function(qui) {
+        try {
+          if (fusionnerCarnetLocal(qui, JSON.parse(contrib[qui]), role)) n++;
+        } catch (e) {}
+      });
+    } catch (e) {}
+  }
+  return n;
+}
+
+// Coches du travail à faire : les clés valent "<identifiant>|<tâche>".
+// Sans ce contrôle de préfixe, un compte pouvait cocher le travail d'un
+// camarade. (v5.24)
+function fusionnerTachesFaites(brut, identifiantAttendu) {
+  if (typeof brut !== "string" || !identifiantAttendu) return 0;
+  let mien;
+  try { mien = JSON.parse(brut); } catch (e) { return 0; }
+  if (!mien || typeof mien !== "object") return 0;
+  const prefixe = identifiantAttendu + "|";
+  const tout = chargerTachesFaites();
+  let n = 0;
+  Object.keys(mien).forEach(function(c) {
+    if (c.indexOf(prefixe) !== 0) return;
+    tout[c] = mien[c]; n++;
+  });
+  if (n > 0) sauverTachesFaites(tout);
   return n;
 }
 
@@ -25400,16 +25581,10 @@ async function ramasserDepotsSilencieux() {
         const doc = await fbDb.collection("perso").doc(comptes[i].uidFirebase).get();
         if (!doc.exists) continue;
         const d = doc.data() || {};
-        ajoutes += recopierClesPersonnelles(d);
-        if (typeof d.tachesFaites === "string") {
-          try {
-            const mien = JSON.parse(d.tachesFaites);
-            const tout = chargerTachesFaites();
-            Object.keys(mien).forEach(function(c2) { tout[c2] = mien[c2]; });
-            sauverTachesFaites(tout);
-          } catch (e) {}
-        }
-        if (typeof d.depots === "string") ajoutes += fusionnerDepots(JSON.parse(d.depots));
+        const quiAttendu = comptes[i].username;
+        ajoutes += recopierClesPersonnelles(d, quiAttendu, comptes[i].role || d.role);
+        fusionnerTachesFaites(d.tachesFaites, quiAttendu);
+        if (typeof d.depots === "string") ajoutes += fusionnerDepots(JSON.parse(d.depots), quiAttendu);
       } catch (e) {}
     }
     return ajoutes;
@@ -25436,16 +25611,10 @@ async function ramasserDepots() {
       if (!doc.exists) continue;
       lus++;
       const d = doc.data() || {};
-      ajoutes += recopierClesPersonnelles(d);
-      if (typeof d.tachesFaites === "string") {
-        try {
-          const mien = JSON.parse(d.tachesFaites);
-          const tout = chargerTachesFaites();
-          Object.keys(mien).forEach(function(c2) { tout[c2] = mien[c2]; });
-          sauverTachesFaites(tout);
-        } catch (e) {}
-      }
-      if (typeof d.depots === "string") ajoutes += fusionnerDepots(JSON.parse(d.depots));
+      const quiAttendu = comptes[i].username;
+      ajoutes += recopierClesPersonnelles(d, quiAttendu, comptes[i].role || d.role);
+      fusionnerTachesFaites(d.tachesFaites, quiAttendu);
+      if (typeof d.depots === "string") ajoutes += fusionnerDepots(JSON.parse(d.depots), quiAttendu);
     } catch (e) { /* document inaccessible : on passe */ }
   }
   alert("\u2705 " + lus + " dossier(s) consult\u00e9(s), " + ajoutes + " \u00e9l\u00e9ment(s) r\u00e9cup\u00e9r\u00e9(s)." +
@@ -25829,6 +25998,54 @@ async function login() {
   }
 }
 
+// -----------------------------------------------------------------
+// CONTRÔLE D'ACCÈS COMMUN (v5.24)
+// -----------------------------------------------------------------
+// Jusqu'ici, plusieurs écrans et plusieurs actions sensibles ne
+// vérifiaient rien : le seul obstacle était le masquage du bouton, que
+// la console du navigateur contourne en une ligne.
+// v5.27 — RÉGRESSION CORRIGÉE. La purge de déconnexion introduite en v5.24
+// effaçait aussi les fiches de profil, où vit l'empreinte du mot de passe
+// personnel de chacun. Un utilisateur dont le mot de passe personnel
+// n'était pas encore connu de Firebase se retrouvait enfermé dehors : ni
+// son mot de passe personnel, ni son code d'origine ne fonctionnaient.
+// Ces quatre clés portent de quoi s'authentifier hors ligne : elles ne
+// doivent JAMAIS être effacées par une déconnexion.
+const CLES_AUTHENTIFICATION = ["mfr_profils_apprentis", "mfr_profils_familles",
+                               "mfr_profils_lieux", "mfr_profils_salaries"];
+
+function estEquipeMFR() {
+  return !!(utilisateurConnecte && utilisateurConnecte.role === "mfr");
+}
+
+function estAdminMFR() {
+  if (!estEquipeMFR()) return false;
+  if (typeof peutGererSalaries === "function") {
+    try { return !!peutGererSalaries(); } catch (e) {}
+  }
+  return true;
+}
+
+function refusAcces(message) {
+  alert("⛔ " + (message || "Cette fonction est réservée à l'équipe de la MFR."));
+}
+
+// Pages dont l'accès est réservé. Une page absente de cette table reste
+// ouverte : le filtrage des données s'y fait à l'intérieur, rôle par rôle.
+const PAGES_RESERVEES = {
+  "profils": "admin", "firebase-admin": "admin", "parametrage-annee": "admin",
+  "qualiopi-v10": "admin", "cockpit": "admin", "rapports": "admin",
+  "resultats": "mfr", "couverture": "mfr", "suivi-carnets": "mfr",
+  "ruptures": "mfr", "alertes": "mfr"
+};
+
+function pageAutorisee(nomPage) {
+  const niveau = PAGES_RESERVEES[nomPage];
+  if (!niveau) return true;
+  if (niveau === "admin") return estAdminMFR();
+  return estEquipeMFR();
+}
+
 function logout() {
   // Sécurité : ne jamais déclencher logout implicitement (bug historique)
   // On vérifie que l'appel vient bien d'un contexte utilisateur (clic bouton Déconnexion)
@@ -25837,6 +26054,35 @@ function logout() {
     console.warn("Tentative de logout non déclenchée par un clic utilisateur — ignorée");
     return;
   }
+  // v5.24 — sur un poste partagé, la session Firebase du précédent
+  // utilisateur restait ouverte et ses données restaient dans le
+  // navigateur : le suivant héritait de l'un et de l'autre.
+  // On ne purge QUE ce qui est récupérable : les espaces équipe et partagé,
+  // qui se retrouvent dans Firestore, et les clés personnelles du compte qui
+  // s'en va, qui se retrouvent dans son document perso. Et seulement si la
+  // session était bien synchronisée : en mode local, ce stockage est la
+  // seule copie qui existe, l'effacer serait une perte sèche.
+  // Les carnets et la page Acteurs ne sont volontairement PAS purgés tant
+  // que leur synchronisation n'est pas complète (v5.25).
+  try {
+    if (typeof firebaseNousReconnait === "function" && firebaseNousReconnait()) {
+      const aPurger = toutesClesSynchronisees().concat(
+        utilisateurConnecte ? clesPersonnelles(utilisateurConnecte.id) : [])
+        .filter(function(cle) { return CLES_AUTHENTIFICATION.indexOf(cle) < 0; });
+      aPurger.forEach(function(cle) {
+        try { localStorage.removeItem(cle); } catch (e) {}
+      });
+    } else if (utilisateurConnecte && utilisateurConnecte.role === "mfr") {
+      alert("⚠️ Cette session n'était pas synchronisée.\n\n" +
+        "Les données restent sur cet appareil : ne vous déconnectez pas d'un " +
+        "poste partagé sans avoir envoyé vos données.");
+    }
+  } catch (e) {}
+  // La fermeture de la session Firebase vient APRÈS la purge, qui a besoin
+  // de savoir si la session était synchronisée.
+  try {
+    if (fbAuth && fbAuth.currentUser) fbAuth.signOut();
+  } catch (e) {}
   utilisateurConnecte = null;
   document.getElementById("username").value = "";
   document.getElementById("password").value = "";
@@ -25850,6 +26096,11 @@ function logout() {
 // NAVIGATION ENTRE PAGES (Planning / Contacts)
 // =================================================================
 function changerPage(nomPage) {
+  // v5.24 — le masquage d'un onglet n'est pas un contrôle d'accès.
+  if (typeof pageAutorisee === "function" && !pageAutorisee(nomPage)) {
+    if (utilisateurConnecte) refusAcces("Cette page est réservée à l'équipe de la MFR.");
+    nomPage = "accueil";
+  }
   document.querySelectorAll(".tab").forEach(t => {
     t.classList.toggle("active", t.dataset.page === nomPage);
   });
@@ -27831,6 +28082,7 @@ async function uploadBulletin() {
 }
 
 function supprimerBulletin(id) {
+  if (!estEquipeMFR()) { refusAcces(); return; }
   const bulletins = chargerBulletinsScolaires();
   const bull = bulletins.find(function(b) { return b.id === id; });
   if (!bull) return;
@@ -31776,6 +32028,110 @@ function sauverVerrousTests(apprentiId, verrous) {
 }
 
 // -----------------------------------------------------------------
+// TRANSMISSION DES VERROUS (v5.23)
+// -----------------------------------------------------------------
+// Un verrou écrit en localStorage ne vaut que pour la machine qui l'a
+// écrit. Il transite désormais par fiches/<uid> — collection déjà
+// autorisée en lecture pour son titulaire et en écriture pour l'équipe,
+// donc aucune règle Firestore nouvelle.
+// -----------------------------------------------------------------
+function uidDeApprenti(username) {
+  const a = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .find(function(x) { return x.username === username; });
+  return a && a.uidFirebase ? a.uidFirebase : null;
+}
+
+async function publierVerrousApprenti(username) {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { ok: false, motif: "hors_ligne" };
+  const uid = uidDeApprenti(username);
+  if (!uid) return { ok: false, motif: "sans_compte" };
+  try {
+    await fbDb.collection("fiches").doc(uid).set({
+      verrousTests: JSON.stringify(chargerVerrousTests(username)),
+      verrousModifieLe: new Date().toISOString()
+    }, { merge: true });
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, motif: (e && e.code) || "erreur" };
+  }
+}
+
+// Ouverture ou clôture d'un test pour toute une classe.
+async function verrouClasseAction(nouveauStatut) {
+  const selC = document.getElementById("verrousSelectClasse");
+  const selT = document.getElementById("verrousSelectTest");
+  const cr = document.getElementById("verrouClasseCompteRendu");
+  if (!selC || !selT) return;
+  const classe = selC.value, testId = selT.value;
+  if (!classe || !testId) { alert("Choisissez d'abord une classe ET un test."); return; }
+  const test = (TESTS_DEFINITIONS || {})[testId];
+  const libelle = test ? test.titre : testId;
+  const verbe = (nouveauStatut === "cloturee") ? "Clôturer" : "Ouvrir";
+
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return a.classe === classe && (a.statut || "actif") !== "archive"; });
+  if (apprentis.length === 0) { alert("Aucun apprenti actif dans cette classe."); return; }
+  if (!confirm(verbe + " « " + libelle + " » pour " + apprentis.length +
+      " apprenti(s) de " + formaterNomClasse(classe) + " ?")) return;
+
+  if (cr) cr.innerHTML = "⏳ Transmission en cours…";
+  let transmis = 0, sansCompte = [], echecs = [];
+  for (let i = 0; i < apprentis.length; i++) {
+    const a = apprentis[i];
+    const v = chargerVerrousTests(a.username);
+    v[testId] = nouveauStatut;
+    sauverVerrousTests(a.username, v);
+    const r = await publierVerrousApprenti(a.username);
+    if (r.ok) transmis++;
+    else if (r.motif === "sans_compte") sansCompte.push(a.prenom + " " + a.nom);
+    else echecs.push(a.prenom + " " + a.nom);
+  }
+
+  let html = "<strong>✅ " + transmis + " apprenti(s) sur " + apprentis.length +
+    " ont reçu l'information.</strong>";
+  if (sansCompte.length > 0) {
+    html += "<br><span style='color:#b45309;'>⚠️ Sans compte Firebase (n'ont rien reçu) : " +
+      escapeHtml(sansCompte.join(", ")) + "</span>";
+  }
+  if (echecs.length > 0) {
+    html += "<br><span style='color:#b91c1c;'>❌ Échec de transmission : " +
+      escapeHtml(echecs.join(", ")) + "</span>";
+  }
+  html += "<br><span style='font-size:0.85rem;color:#555;'>Demandez-leur d'appuyer sur " +
+    "« Actualiser mes tests », ou de se reconnecter.</span>";
+  if (cr) cr.innerHTML = html;
+
+  const selA = document.getElementById("verrousSelectApprenti");
+  if (selA && selA.value) afficherPilotageTestsApprenti(selA.value);
+}
+
+// Côté apprenti : relire ses verrous sans se reconnecter.
+async function actualiserMesTests() {
+  const u = utilisateurConnecte;
+  if (!u || u.role !== "apprenti") return;
+  if (!initialiserFirebase() || !fbAuth || !fbAuth.currentUser) {
+    alert("⚠️ Vous n'êtes pas connecté au serveur. Déconnectez-vous et reconnectez-vous.");
+    return;
+  }
+  try {
+    const doc = await fbDb.collection("fiches").doc(fbAuth.currentUser.uid).get();
+    const brut = doc.exists ? (doc.data() || {}) : {};
+    if (typeof brut.verrousTests === "string") {
+      JSON.parse(brut.verrousTests);
+      localStorage.setItem("tests_verrous_" + u.id, brut.verrousTests);
+    }
+    initPageTests();
+    const v = chargerVerrousTests(u.id);
+    const ouverts = Object.keys(v).filter(function(k) { return v[k] === "en_cours"; }).length;
+    alert(ouverts > 0
+      ? "✅ " + ouverts + " test(s) ouvert(s) pour vous. Ils apparaissent ci-dessous."
+      : "ℹ️ Aucun test n'est ouvert pour l'instant. Prévenez votre moniteur.");
+  } catch (e) {
+    alert("⚠️ Impossible de relire vos tests pour le moment. Réessayez dans un instant.");
+  }
+}
+
+// -----------------------------------------------------------------
 // LANCEMENT D'UN TEST
 // -----------------------------------------------------------------
 function lancerTest(testId) {
@@ -31968,6 +32324,16 @@ function enregistrerResultat(resultat) {
   RESULTATS_LOCAUX.push(resultat);
   localStorage.setItem("mfr_resultats_tests", JSON.stringify(RESULTATS_LOCAUX));
 
+  // mfr_resultats_tests appartient à l'espace équipe, qu'un apprenti n'a
+  // pas le droit d'écrire : son score repartait dans le vide. Il transite
+  // désormais par son document personnel, que l'équipe agrège. (v5.23)
+  try {
+    if (utilisateurConnecte && utilisateurConnecte.role === "apprenti" &&
+        typeof envoyerMesDonneesPersonnelles === "function") {
+      envoyerMesDonneesPersonnelles(true);
+    }
+  } catch (e) {}
+
   // 2. Envoyer à Google Sheets si l'API est configurée
   if (apiEstConfiguree()) {
     appelerApi("enregistrer_resultat", { resultat: resultat }).then(rep => {
@@ -32026,6 +32392,11 @@ function retourListeTests() {
 // PAGE RÉSULTATS (MFR)
 // -----------------------------------------------------------------
 function initPageResultats() {
+  if (!estEquipeMFR()) {
+    const z = document.getElementById("page-resultats");
+    if (z) z.innerHTML = "<div class='msg-vide-bloc'><p>⛔ Cette page est réservée à l'équipe de la MFR. Vos propres résultats se trouvent dans l'onglet Tests de positionnement.</p></div>";
+    return;
+  }
   filtrerResultats();
   initPilotageVerrous();
 }
@@ -32046,6 +32417,28 @@ function initPilotageVerrous() {
   }
   select.innerHTML = '<option value="">— Sélectionner —</option>' +
     options.map(o => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.label)}</option>`).join('');
+
+  // Ouverture par classe entière (v5.23) : les deux listes du bloc rapide.
+  const selC = document.getElementById("verrousSelectClasse");
+  if (selC) {
+    const classes = Object.keys(CLASSES || {});
+    selC.innerHTML = '<option value="">— Sélectionner —</option>' +
+      classes.map(function(c) {
+        const n = apprentis.filter(function(a) {
+          return a.classe === c && (a.statut || "actif") !== "archive";
+        }).length;
+        return '<option value="' + escapeHtml(c) + '">' + escapeHtml(CLASSES[c]) +
+          ' (' + n + ')</option>';
+      }).join('');
+  }
+  const selT = document.getElementById("verrousSelectTest");
+  if (selT) {
+    const tests = Object.values(TESTS_DEFINITIONS || {});
+    selT.innerHTML = '<option value="">— Sélectionner —</option>' +
+      tests.map(function(t) {
+        return '<option value="' + escapeHtml(t.id) + '">' + escapeHtml(t.titre) + '</option>';
+      }).join('');
+  }
 }
 
 function afficherPilotageTestsApprenti(apprentiId) {
@@ -32103,14 +32496,24 @@ function changerStatutTest(apprentiId, testId, nouveauStatut) {
   const verrous = chargerVerrousTests(apprentiId);
   verrous[testId] = nouveauStatut;
   sauverVerrousTests(apprentiId, verrous);
-
-  // Préparer notification e-mail (mode local : crochet pour bascule serveur)
-  if (nouveauStatut === "en_cours") {
-    afficherToast(`Test ouvert pour ${apprentiId}. Une notification a été préparée (envoi à l'activation du backend).`);
-  }
-
-  // Rafraîchir l'affichage
   afficherPilotageTestsApprenti(apprentiId);
+
+  // Le verrou doit atteindre le téléphone de l'apprenti, sinon le test
+  // reste fermé chez lui quoi qu'affiche cet écran.
+  publierVerrousApprenti(apprentiId).then(function(r) {
+    if (r.ok) {
+      afficherToast(nouveauStatut === "en_cours"
+        ? "✅ Test ouvert et transmis à " + apprentiId + "."
+        : "✅ Modification transmise à " + apprentiId + ".");
+    } else if (r.motif === "sans_compte") {
+      alert("⚠️ " + apprentiId + " n'a pas de compte Firebase rattaché.\n\n" +
+        "Le test est ouvert sur CET ordinateur seulement : l'apprenti·e ne le verra pas.\n" +
+        "Créez son compte depuis Paramètres → Comptes, puis rouvrez le test.");
+    } else {
+      alert("⚠️ Le test n'a PAS pu être transmis à " + apprentiId + " (" + r.motif + ").\n\n" +
+        "Vérifiez votre connexion, puis recommencez.");
+    }
+  });
 }
 
 // =================================================================
@@ -32935,6 +33338,11 @@ function nomOPCO(code) {
 // INITIALISATION DE LA PAGE PROFILS
 // -----------------------------------------------------------------
 function initPageProfils() {
+  if (!estAdminMFR()) {
+    const z = document.getElementById("page-profils");
+    if (z) z.innerHTML = "<div class='msg-vide-bloc'><p>⛔ Cette page est réservée à la Direction et au Secrétariat.</p></div>";
+    return;
+  }
   majCompteursProfils();
   afficherTableauApprentis();
   afficherTableauLieux();
@@ -33929,6 +34337,7 @@ function modifierFamille(id) {
 // ACTIONS COMMUNES (désactivation, réinitialisation mot de passe)
 // =================================================================
 function toggleStatutProfil(type, id) {
+  if (!estAdminMFR()) { refusAcces("Seules la Direction et le Secrétariat peuvent effectuer cette opération."); return; }
   let collection;
   if (type === "apprenti") collection = PROFILS_APPRENTIS;
   else if (type === "lieu") collection = PROFILS_LIEUX;
@@ -33954,6 +34363,7 @@ function toggleStatutProfil(type, id) {
 }
 
 function reinitMotDePasse(type, id) {
+  if (!estAdminMFR()) { refusAcces("Seules la Direction et le Secrétariat peuvent effectuer cette opération."); return; }
   let collection;
   if (type === "apprenti") collection = PROFILS_APPRENTIS;
   else if (type === "lieu") collection = PROFILS_LIEUX;
@@ -34061,7 +34471,15 @@ function imprimerFicheAcces() {
 
 function copierFicheAcces(username, password, url) {
   const texte = `MFR du Néracais — Vos identifiants\n\nIdentifiant : ${username}\nMot de passe : ${password}\nAdresse : ${url}\n\nEn cas de perte, contactez le secrétariat (05 53 65 56 06).`;
-  navigator.clipboard.writeText(texte).then(() => {
+  // v5.26 — navigator.clipboard n'existe pas sur tous les téléphones ni
+  // hors connexion sécurisée : l'accès direct levait une erreur avant
+  // même d'atteindre le .catch, et le bouton ne faisait rien.
+  const presse = (typeof navigator !== "undefined" && navigator.clipboard) ? navigator.clipboard : null;
+  if (!presse || typeof presse.writeText !== "function") {
+    prompt("Copiez manuellement les identifiants ci-dessous :", texte);
+    return;
+  }
+  presse.writeText(texte).then(() => {
     alert("Identifiants copiés dans le presse-papier. Vous pouvez les coller dans un mail, un SMS ou un document.");
   }).catch(() => {
     prompt("Copiez manuellement les identifiants ci-dessous :", texte);
@@ -34604,6 +35022,7 @@ function diagnostiquerAccesSalarie(id) {
 
 // Réinitialisation mot de passe salarié
 function reinitMotDePasseSalarie(id) {
+  if (!estAdminMFR()) { refusAcces("Seules la Direction et le Secrétariat peuvent effectuer cette opération."); return; }
   const salarie = PROFILS_SALARIES.find(s => s.id === id);
   if (!salarie) return;
   const nomAffiche = (salarie.prenom || "") + " " + (salarie.nom || "");
@@ -35112,6 +35531,7 @@ function exporterJournal() {
 }
 
 function effacerJournal() {
+  if (!estAdminMFR()) { refusAcces("Seules la Direction et le Secrétariat peuvent effectuer cette opération."); return; }
   if (!confirm("Voulez-vous vraiment supprimer toutes les entrées de plus d'un an du journal des connexions ?")) return;
   const limite = Date.now() - 365 * 24 * 60 * 60 * 1000;
   const avant = JOURNAL_CONNEXIONS.length;
@@ -37003,6 +37423,278 @@ function determinerApprentiId() {
   return null;
 }
 
+
+// =================================================================
+// FUSION DU CARNET DE LIAISON (v5.25)
+// -----------------------------------------------------------------
+// Le carnet est le seul document que quatre rôles écrivent ensemble.
+// Jusqu'ici il était remplacé en bloc à chaque échange : la dernière
+// version reçue effaçait tout le reste, et le travail du moniteur
+// disparaissait au ramassage suivant, sans aucun message.
+//
+// Règle arrêtée par la Direction le 22/09/2026 :
+//   • le PROPRIÉTAIRE d'un champ fait toujours foi ;
+//   • un autre rôle ne peut que remplir un champ VIDE, jamais écraser.
+//
+// La MFR conserve donc sa souplesse — un moniteur saisit l'appréciation
+// d'un maître reçue par téléphone — sans pouvoir détruire ce que le
+// maître a écrit lui-même depuis son entreprise.
+// =================================================================
+
+// Un champ est vide s'il porte la valeur par défaut de sa case.
+function champCarnetVide(v) {
+  return v === undefined || v === null || v === "" || v === 0 || v === false;
+}
+
+// Le coeur de la règle, en quatre lignes.
+function prendreChamp(valeurLocale, valeurRecue, proprietaire, roleEmetteur) {
+  if (champCarnetVide(valeurRecue)) return valeurLocale;
+  if (roleEmetteur === proprietaire) return valeurRecue;   // le propriétaire fait foi
+  if (champCarnetVide(valeurLocale)) return valeurRecue;   // personne n'avait rien : on complète
+  return valeurLocale;                                     // sinon on ne touche à rien
+}
+
+// Propriétaire des 19 champs d'identité, relevé sur les attributs
+// data-roles du formulaire : le rôle non-MFR quand il existe.
+const PROPRIETAIRE_IDENTITE = {
+  apprenti_mail: "apprenti", apprenti_tel: "apprenti",
+  famille_mail: "parent", famille_nom: "parent", famille_prenom: "parent",
+  famille_qualite: "parent", famille_tel: "parent",
+  entreprise_adresse: "maitre", entreprise_mail: "maitre", entreprise_nom: "maitre",
+  entreprise_tel: "maitre", ma_fonction: "maitre", ma_mail: "maitre",
+  ma_nom: "maitre", ma_tel: "maitre"
+};
+
+function proprietaireIdentite(cle) {
+  return PROPRIETAIRE_IDENTITE[cle] || "mfr";
+}
+
+// Fusionne un carnet reçu dans le carnet local, sans jamais rien perdre.
+// base        : le carnet tel qu'il est sur CET appareil
+// recu        : le carnet tel qu'il arrive
+// roleEmetteur: le rôle du compte qui l'a envoyé ("mfr", "apprenti", "parent", "maitre")
+function fusionnerCarnet(base, recu, roleEmetteur) {
+  if (!recu) return base;
+  if (!base) { try { return JSON.parse(JSON.stringify(recu)); } catch (e) { return recu; } }
+  const R = roleEmetteur;
+  const P = function(loc, rec, prop) { return prendreChamp(loc, rec, prop, R); };
+
+  // --- Identité ---------------------------------------------------------
+  base.donnees = base.donnees || {};
+  const dr = recu.donnees || {};
+  Object.keys(dr).forEach(function(cle) {
+    base.donnees[cle] = P(base.donnees[cle], dr[cle], proprietaireIdentite(cle));
+  });
+
+  // --- Sessions MFR -----------------------------------------------------
+  const sr = Array.isArray(recu.sessions) ? recu.sessions : [];
+  base.sessions = Array.isArray(base.sessions) ? base.sessions : [];
+  sr.forEach(function(sRecue, i) {
+    if (!sRecue) return;
+    if (!base.sessions[i]) { base.sessions[i] = sRecue; return; }
+    const sb = base.sessions[i];
+    ["dateDebut", "dateFin", "themeSession"].forEach(function(c) {
+      sb[c] = P(sb[c], sRecue[c], "mfr");
+    });
+    // Appréciation hebdomadaire : le jeune écrit, le moniteur répond.
+    sb.observationJeune = P(sb.observationJeune, sRecue.observationJeune, "apprenti");
+    sb.observationJeuneLe = P(sb.observationJeuneLe, sRecue.observationJeuneLe, "apprenti");
+    sb.observationMoniteur = P(sb.observationMoniteur, sRecue.observationMoniteur, "mfr");
+    sb.observationMoniteurLe = P(sb.observationMoniteurLe, sRecue.observationMoniteurLe, "mfr");
+    sb.observationMoniteurPar = P(sb.observationMoniteurPar, sRecue.observationMoniteurPar, "mfr");
+    // Tableaux pédagogiques : propriété MFR, pris en bloc s'ils portent
+    // quelque chose et que l'émetteur est la MFR.
+    ["activites", "visites", "activitesAlternance"].forEach(function(c) {
+      if (R !== "mfr") return;
+      const t = sRecue[c];
+      if (Array.isArray(t) && t.some(function(x) {
+        return x && Object.keys(x).some(function(k) { return !champCarnetVide(x[k]); });
+      })) sb[c] = t;
+    });
+  });
+
+  // --- Périodes en entreprise -------------------------------------------
+  const pr = Array.isArray(recu.periodesEntreprise) ? recu.periodesEntreprise : [];
+  base.periodesEntreprise = Array.isArray(base.periodesEntreprise) ? base.periodesEntreprise : [];
+  pr.forEach(function(pRecue, i) {
+    if (!pRecue) return;
+    if (!base.periodesEntreprise[i]) { base.periodesEntreprise[i] = pRecue; return; }
+    const pb = base.periodesEntreprise[i];
+
+    // Pilotage de la période : la MFR seule.
+    ["dateOuverture", "dateCloture", "dateDebut", "dateFin"].forEach(function(c) {
+      pb[c] = P(pb[c], pRecue[c], "mfr");
+    });
+    // Le statut est un cas à part : "a_venir" est sa valeur par défaut, donc
+    // un statut reçu ne doit jamais faire reculer une période déjà ouverte.
+    if (R === "mfr" && pRecue.statut && pRecue.statut !== pb.statut) {
+      const rang = { a_venir: 0, en_cours: 1, cloturee: 2 };
+      const avantR = rang[pb.statut] === undefined ? 0 : rang[pb.statut];
+      const apresR = rang[pRecue.statut] === undefined ? 0 : rang[pRecue.statut];
+      // La MFR fait foi, y compris pour rouvrir une période clôturée.
+      if (apresR !== avantR) pb.statut = pRecue.statut;
+    }
+
+    // Saisie de l'apprenti.
+    pb.planEtude = P(pb.planEtude, pRecue.planEtude, "apprenti");
+    pb.compteRendu = P(pb.compteRendu, pRecue.compteRendu, "apprenti");
+
+    // Savoir-être : une colonne par rôle.
+    if (Array.isArray(pRecue.savoirEtre) && Array.isArray(pb.savoirEtre)) {
+      pRecue.savoirEtre.forEach(function(cel, j) {
+        if (!cel || !pb.savoirEtre[j]) return;
+        pb.savoirEtre[j].apprenti = P(pb.savoirEtre[j].apprenti, cel.apprenti, "apprenti");
+        pb.savoirEtre[j].ma = P(pb.savoirEtre[j].ma, cel.ma, "maitre");
+      });
+    }
+    // Expression orale et écrite : deux colonnes, deux propriétaires.
+    ["expressionOrale", "expressionEcrite"].forEach(function(bloc) {
+      const tr = pRecue[bloc], tb = pb[bloc];
+      if (!Array.isArray(tr) || !Array.isArray(tb)) return;
+      tr.forEach(function(ligne, j) {
+        if (!Array.isArray(ligne) || !Array.isArray(tb[j])) return;
+        ligne.forEach(function(cel, k) {
+          if (!cel || !tb[j][k]) return;
+          tb[j][k].apprenti = P(tb[j][k].apprenti, cel.apprenti, "apprenti");
+          tb[j][k].ma = P(tb[j][k].ma, cel.ma, "maitre");
+        });
+      });
+    });
+
+    // Appréciations et signatures : chacune à son auteur.
+    pb.appreciationMa = P(pb.appreciationMa, pRecue.appreciationMa, "maitre");
+    pb.rdvMa = P(pb.rdvMa, pRecue.rdvMa, "maitre");
+    pb.signatureMa = P(pb.signatureMa, pRecue.signatureMa, "maitre");
+    pb.dateSignatureMa = P(pb.dateSignatureMa, pRecue.dateSignatureMa, "maitre");
+    pb.appreciationFamille = P(pb.appreciationFamille, pRecue.appreciationFamille, "parent");
+    pb.rdvFamille = P(pb.rdvFamille, pRecue.rdvFamille, "parent");
+    pb.signatureFamille = P(pb.signatureFamille, pRecue.signatureFamille, "parent");
+    pb.dateSignatureFamille = P(pb.dateSignatureFamille, pRecue.dateSignatureFamille, "parent");
+  });
+
+  // --- Registre des absences : la MFR le tient ---------------------------
+  if (R === "mfr" && Array.isArray(recu.absences) && recu.absences.length > 0) {
+    base.absences = recu.absences;
+  }
+
+  // --- Clôture finale : chacun signe la sienne ---------------------------
+  base.clotureFinale = base.clotureFinale || {};
+  const cr = recu.clotureFinale || {};
+  [["apprenti", "apprenti"], ["famille", "parent"], ["maitre", "maitre"], ["mfr", "mfr"]]
+    .forEach(function(paire) {
+      const cle = paire[0], prop = paire[1];
+      const bloc = cr[cle];
+      if (!bloc) return;
+      base.clotureFinale[cle] = base.clotureFinale[cle] || { signature: "", date: "" };
+      base.clotureFinale[cle].signature = P(base.clotureFinale[cle].signature, bloc.signature, prop);
+      base.clotureFinale[cle].date = P(base.clotureFinale[cle].date, bloc.date, prop);
+    });
+  base.clotureFinale.carnetCloture = P(base.clotureFinale.carnetCloture, cr.carnetCloture, "mfr");
+  base.clotureFinale.dateClotureCarnet = P(base.clotureFinale.dateClotureCarnet, cr.dateClotureCarnet, "mfr");
+  // La MFR seule peut rouvrir un carnet clôturé : une valeur "false" reçue
+  // d'elle est une réouverture, pas un champ vide.
+  if (R === "mfr" && cr.carnetCloture === false && base.clotureFinale.carnetCloture === true) {
+    base.clotureFinale.carnetCloture = false;
+    base.clotureFinale.dateClotureCarnet = "";
+  }
+
+  return base;
+}
+
+// Fusionne un carnet reçu dans le stockage local, sous sa propre clé.
+function fusionnerCarnetLocal(usernameApprenti, carnetRecu, roleEmetteur) {
+  if (!usernameApprenti || !carnetRecu) return false;
+  const cle = "carnet_" + usernameApprenti;
+  let local = null;
+  try { local = JSON.parse(localStorage.getItem(cle) || "null"); } catch (e) { local = null; }
+  const fusionne = fusionnerCarnet(local, carnetRecu, roleEmetteur);
+  try { localStorage.setItem(cle, JSON.stringify(fusionne)); } catch (e) { return false; }
+  // Si le carnet affiché à l'écran est celui-là, on le recharge.
+  if (typeof carnetApprentiId !== "undefined" && carnetApprentiId === usernameApprenti) {
+    try { carnetEnCours = fusionne; } catch (e) {}
+  }
+  return true;
+}
+
+// --- Publication du carnet par la MFR ------------------------------------
+// Le carnet voyage dans fiches/<uid>, collection déjà autorisée en lecture
+// pour son titulaire et en écriture pour l'équipe : aucune règle nouvelle.
+async function publierCarnetApprenti(usernameApprenti, silencieux) {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { ok: false, motif: "hors_ligne" };
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : []);
+  const a = apprentis.find(function(x) { return x.username === usernameApprenti; });
+  if (!a) return { ok: false, motif: "inconnu" };
+  let brut = null;
+  try { brut = localStorage.getItem("carnet_" + usernameApprenti); } catch (e) {}
+  if (!brut) return { ok: false, motif: "sans_carnet" };
+
+  const destinataires = [];
+  if (a.uidFirebase) destinataires.push({ uid: a.uidFirebase, role: "apprenti" });
+  // Les familles rattachées, sauf celles à qui un majeur a retiré l'accès.
+  if (typeof familleAccedeAuDossier !== "function" || familleAccedeAuDossier(a)) {
+    const ids = (typeof famillesIdsDeApprenti === "function") ? famillesIdsDeApprenti(a)
+      : (Array.isArray(a.famillesIds) ? a.famillesIds : (a.familleId ? [a.familleId] : []));
+    (typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : []).forEach(function(f) {
+      if (f.uidFirebase && ids.indexOf(f.id) >= 0) destinataires.push({ uid: f.uidFirebase, role: "parent" });
+    });
+  }
+  const l = (typeof PROFILS_LIEUX !== "undefined" ? PROFILS_LIEUX : [])
+    .find(function(x) { return x.id === a.lieuId; });
+  if (l && l.uidFirebase) destinataires.push({ uid: l.uidFirebase, role: "maitre" });
+
+  if (destinataires.length === 0) return { ok: false, motif: "sans_compte" };
+
+  let ecrits = 0, echecs = 0;
+  for (let i = 0; i < destinataires.length; i++) {
+    try {
+      const champ = {};
+      champ["carnet_" + usernameApprenti] = brut;
+      await fbDb.collection("fiches").doc(destinataires[i].uid).set({
+        carnets: champ, carnetsModifieLe: new Date().toISOString()
+      }, { merge: true });
+      ecrits++;
+    } catch (e) { echecs++; }
+  }
+  if (!silencieux && echecs > 0 && window.console) console.warn("publierCarnetApprenti", echecs);
+  return { ok: ecrits > 0, ecrits: ecrits, echecs: echecs };
+}
+
+// Publication de tous les carnets d'un coup, depuis la page Synchronisation.
+async function publierTousLesCarnets() {
+  if (!estEquipeMFR()) { refusAcces(); return; }
+  if (!initialiserFirebase() || !fbAuth.currentUser) {
+    alert("Connectez-vous au serveur avant de publier les carnets."); return;
+  }
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) { return (a.statut || "actif") !== "archive"; });
+  let publies = 0, sans = [];
+  for (let i = 0; i < apprentis.length; i++) {
+    const r = await publierCarnetApprenti(apprentis[i].username, true);
+    if (r.ok) publies++;
+    else if (r.motif === "sans_compte" || r.motif === "sans_carnet")
+      sans.push((apprentis[i].prenom || "") + " " + (apprentis[i].nom || ""));
+  }
+  alert("✅ " + publies + " carnet(s) publié(s) sur " + apprentis.length + "." +
+    (sans.length > 0 ? "\n\n⚠️ Sans compte ou sans carnet : " + sans.join(", ") : "") +
+    "\n\nLes apprentis, familles et maîtres d'apprentissage les recevront à leur prochaine connexion.");
+}
+
+// --- Contributions des familles et des entreprises ------------------------
+// Elles écrivent dans le carnet de l'apprenti, c'est-à-dire sous une clé qui
+// ne leur appartient pas : sans ce chemin, leurs commentaires et leurs
+// signatures ne quittaient jamais leur appareil.
+function mesContributionsCarnets(u) {
+  const out = {};
+  if (!u || (u.role !== "parent" && u.role !== "maitre")) return out;
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : []);
+  apprentis.forEach(function(a) {
+    let brut = null;
+    try { brut = localStorage.getItem("carnet_" + a.username); } catch (e) {}
+    if (brut) out[a.username] = brut;
+  });
+  return out;
+}
+
 function chargerCarnet(apprentiId) {
   const cle = "carnet_" + apprentiId;
   const stockage = localStorage.getItem(cle);
@@ -37917,6 +38609,15 @@ function changerStatutPeriode(numero, nouveauStatut, evt) {
 
   periode.statut = nouveauStatut;
   sauverCarnet();
+  // Le verrou doit atteindre le téléphone du jeune, sinon la période reste
+  // fermée chez lui quoi qu'affiche cet écran. (v5.25)
+  if (typeof publierCarnetApprenti === "function") {
+    publierCarnetApprenti(carnetApprentiId).then(function(r) {
+      if (r.ok) afficherToast("✅ Période " + numero + " transmise (" + r.ecrits + " destinataire(s)).");
+      else if (r.motif === "sans_compte") alert("⚠️ Aucun compte rattaché : la modification reste sur cet ordinateur.");
+      else if (r.motif === "hors_ligne") alert("⚠️ Hors ligne : la modification n'a pas été transmise. Recommencez une fois connectée.");
+    });
+  }
 
   // Reconstruire l'affichage des périodes
   construirePeriodesEntreprise();
@@ -42977,9 +43678,11 @@ async function publierFichesIndividuelles() {
 
   async function ecrire(uid, contenu) {
     try {
+      // merge : la publication des fiches ne doit pas effacer le champ
+      // verrousTests, écrit séparément par le pilotage des tests.
       await fbDb.collection("fiches").doc(uid).set({
         contenu: JSON.stringify(contenu), modifieLe: new Date().toISOString()
-      });
+      }, { merge: true });
       publiees++;
     } catch (e) { echecs++; }
   }
@@ -43014,16 +43717,48 @@ async function recevoirMaFiche() {
     if (!u || u.role === "mfr") return false;
     const doc = await fbDb.collection("fiches").doc(fbAuth.currentUser.uid).get();
     if (!doc.exists) return false;
-    const d = JSON.parse((doc.data() || {}).contenu || "{}");
+    const brut = doc.data() || {};
+    // Verrous des tests de positionnement, posés par le moniteur depuis
+    // sa machine : sans cette ligne ils n'atteignaient jamais l'apprenti.
+    if (typeof brut.verrousTests === "string" && u.role === "apprenti") {
+      try {
+        JSON.parse(brut.verrousTests);
+        localStorage.setItem("tests_verrous_" + u.id, brut.verrousTests);
+      } catch (e) {}
+    }
+    // Carnets publiés par la MFR : fusionnés champ par champ, jamais
+    // substitués — ce que l'utilisateur vient d'écrire ici fait foi. (v5.25)
+    if (brut.carnets && typeof brut.carnets === "object") {
+      Object.keys(brut.carnets).forEach(function(cle) {
+        if (cle.indexOf("carnet_") !== 0) return;
+        const qui = cle.substring(7);
+        try {
+          const recu = JSON.parse(brut.carnets[cle]);
+          fusionnerCarnetLocal(qui, recu, "mfr");
+        } catch (e) {}
+      });
+    }
+    const d = JSON.parse(brut.contenu || "{}");
     const fusionner = function(liste, fiche, cle) {
       if (!fiche) return;
       const i = liste.findIndex(function(x) { return x[cle] === fiche[cle]; });
       if (i >= 0) liste[i] = Object.assign({}, liste[i], fiche);
       else liste.push(fiche);
     };
-    (d.apprentis || []).forEach(function(a) { fusionner(PROFILS_APPRENTIS, a, "username"); });
-    if (d.role === "parent") fusionner(PROFILS_FAMILLES, d.moi, "username");
-    if (d.role === "maitre") fusionner(PROFILS_LIEUX, d.moi, "username");
+    // v5.26 — un compte non-MFR ne conserve QUE ce que la MFR lui a
+    // envoyé : sa fiche et les jeunes qui le concernent. Sans ce
+    // remplacement, une donnée d'un tiers restée dans le navigateur —
+    // poste partagé, ancienne version — pouvait y survivre.
+    if (Array.isArray(d.apprentis) && d.apprentis.length > 0) {
+      PROFILS_APPRENTIS.length = 0;
+      d.apprentis.forEach(function(a) { PROFILS_APPRENTIS.push(a); });
+    } else {
+      (d.apprentis || []).forEach(function(a) { fusionner(PROFILS_APPRENTIS, a, "username"); });
+    }
+    if (d.role === "parent" && d.moi) { PROFILS_FAMILLES.length = 0; PROFILS_FAMILLES.push(d.moi); }
+    else if (d.role === "parent") fusionner(PROFILS_FAMILLES, d.moi, "username");
+    if (d.role === "maitre" && d.moi) { PROFILS_LIEUX.length = 0; PROFILS_LIEUX.push(d.moi); }
+    else if (d.role === "maitre") fusionner(PROFILS_LIEUX, d.moi, "username");
     try {
       localStorage.setItem("mfr_profils_apprentis", JSON.stringify(PROFILS_APPRENTIS));
       localStorage.setItem("mfr_profils_familles", JSON.stringify(PROFILS_FAMILLES));
@@ -43526,8 +44261,22 @@ function afficherSuiviSansContrat() {
 // Savoir par quel chemin la connexion est passée ne dit donc rien de
 // l'état réel : seul compte le fait que Firebase nous reconnaisse au
 // moment d'écrire, puisque c'est ce que vérifient les règles de sécurité.
+// v5.24 — sur un poste partagé, la session Firebase du précédent
+// utilisateur pouvait rester ouverte : l'application écrivait alors les
+// données du nouvel arrivant dans le dossier de l'ancien. On vérifie
+// désormais que la session Firebase est bien celle du compte connecté.
 function firebaseNousReconnait() {
-  try { return !!(fbAuth && fbAuth.currentUser); } catch (e) { return false; }
+  if (!fbAuth || !fbAuth.currentUser) return false;
+  const u = utilisateurConnecte;
+  if (!u) return false;
+  try {
+    if (typeof adresseTechnique === "function") {
+      const attendue = String(adresseTechnique(u.id) || "").toLowerCase();
+      const reelle = String(fbAuth.currentUser.email || "").toLowerCase();
+      if (attendue && reelle && attendue !== reelle) return false;
+    }
+  } catch (e) {}
+  return true;
 }
 
 // L'indicateur de mode annonçait un « mode test local » et un branchement
@@ -44683,6 +45432,11 @@ function afficherEmargement() {
 
 // Consultation des émargements d'un apprenti spécifique (vue apprenti/famille/maître)
 function afficherEmargementApprenti(apprentiUsername) {
+  // v5.24 — défaut bloquant : cette fonction utilisait une variable u qui
+  // n'existait pas. Elle s'interrompait sur une ReferenceError avant
+  // d'afficher quoi que ce soit, et l'apprenti ne pouvait pas signer.
+  const u = utilisateurConnecte;
+  if (!u) return;
   // Récupérer le conteneur "onglet historique" et l'utiliser
   const ongletHisto = document.getElementById("emarg-onglet-historique");
   const ongletActif = document.getElementById("emarg-onglet-active");
@@ -44987,6 +45741,61 @@ async function agregerSignaturesSeances(classe) {
   }
   if (appliquees > 0) sauverEmargements();
   return { lus: lus, appliquees: appliquees };
+}
+
+// --- Résultats des tests de positionnement (v5.23) ----------------------
+// Chaque apprenti écrit ses scores dans son document perso/<uid> ; l'équipe
+// les rassemble ici dans l'agrégat mfr_resultats_tests.
+async function agregerResultatsTests(classe) {
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { lus: 0, ajoutes: 0 };
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+    .filter(function(a) {
+      return (!classe || a.classe === classe) && (a.statut || "actif") !== "archive" && a.uidFirebase;
+    });
+  let lus = 0, ajoutes = 0;
+  const cle = function(r) {
+    return [r.username, r.testId, r.date || r.horodatage || ""].join("|");
+  };
+  const connus = {};
+  RESULTATS_LOCAUX.forEach(function(r) { connus[cle(r)] = true; });
+
+  for (let i = 0; i < apprentis.length; i++) {
+    const a = apprentis[i];
+    try {
+      const doc = await fbDb.collection("perso").doc(a.uidFirebase).get();
+      if (!doc.exists) continue;
+      lus++;
+      const d = doc.data() || {};
+      if (typeof d.resultatsTests !== "string") continue;
+      const liste = JSON.parse(d.resultatsTests);
+      if (!Array.isArray(liste)) continue;
+      liste.forEach(function(r) {
+        // Un apprenti ne remonte que ses propres résultats : on le vérifie.
+        if (!r || r.username !== a.username) return;
+        if (connus[cle(r)]) return;
+        connus[cle(r)] = true;
+        RESULTATS_LOCAUX.push(r);
+        ajoutes++;
+      });
+    } catch (e) { /* dossier inaccessible */ }
+  }
+  if (ajoutes > 0) {
+    localStorage.setItem("mfr_resultats_tests", JSON.stringify(RESULTATS_LOCAUX));
+  }
+  return { lus: lus, ajoutes: ajoutes };
+}
+
+async function rafraichirResultatsTests() {
+  const btn = document.getElementById("btnRafraichirTests");
+  if (btn) { btn.disabled = true; btn.textContent = "⏳ Lecture en cours…"; }
+  const r = await agregerResultatsTests(null);
+  if (btn) { btn.disabled = false; btn.textContent = "↻ Récupérer les tests passés"; }
+  alert("✅ " + r.lus + " dossier(s) consulté(s), " + r.ajoutes +
+    " résultat(s) récupéré(s)." +
+    (r.ajoutes === 0
+      ? "\n\nAucun nouveau résultat. Un test passé hors connexion ne remonte qu’à la reconnexion de l’apprenti·e."
+      : ""));
+  if (typeof initPageResultats === "function") initPageResultats();
 }
 
 async function rafraichirSignaturesSeance() {
@@ -45977,6 +46786,9 @@ function repondreAppreciationSuivante(liste, i) {
       sess.observationMoniteurPar = utilisateurConnecte ? utilisateurConnecte.id : "";
       try { localStorage.setItem("carnet_" + item.username, JSON.stringify(c)); }
       catch (e) { alert("M\u00e9moire satur\u00e9e."); return; }
+      // Sans cette publication, la réponse ne quittait pas le poste du
+      // moniteur — et disparaissait au ramassage suivant. (v5.25)
+      if (typeof publierCarnetApprenti === "function") publierCarnetApprenti(item.username, true);
       repondreAppreciationSuivante(liste, i + 1);
     },
     onPasser: function() { repondreAppreciationSuivante(liste, i + 1); }
@@ -47166,6 +47978,10 @@ function deverrouillerClotureFinale(qui) {
 }
 
 function cloturerCarnetDefinitivement() {
+  if (typeof peutGererClotureCarnet === "function" && !peutGererClotureCarnet()) {
+    refusAcces("Seul le référent de la classe peut clôturer définitivement un carnet.");
+    return;
+  }
   if (!confirm("CLÔTURER DÉFINITIVEMENT le carnet ?\n\nLe carnet deviendra entièrement consultable mais ne pourra plus être modifié (sauf déverrouillage par la MFR).\n\nCette action archive le carnet pour l'année.")) return;
   carnetEnCours.clotureFinale.carnetCloture = true;
   carnetEnCours.clotureFinale.dateClotureCarnet = new Date().toISOString();
@@ -47175,6 +47991,10 @@ function cloturerCarnetDefinitivement() {
 }
 
 function rouvrirCarnetDefinitivement() {
+  if (typeof peutGererClotureCarnet === "function" && !peutGererClotureCarnet()) {
+    refusAcces("Seul le référent de la classe peut rouvrir un carnet clôturé.");
+    return;
+  }
   if (!confirm("Rouvrir le carnet clôturé ?\n\nLe carnet redevient modifiable.")) return;
   carnetEnCours.clotureFinale.carnetCloture = false;
   carnetEnCours.clotureFinale.dateClotureCarnet = "";
@@ -51365,6 +52185,7 @@ function ajouterActionSignalement(idSig) {
 }
 
 function changerStatutSignalement(idSig, nouveauStatut) {
+  if (!estEquipeMFR()) { refusAcces(); return; }
   const sigs = chargerSignalements();
   const s = sigs.find(x => x.id === idSig);
   if (!s) return;
@@ -53731,6 +54552,7 @@ function ajouterActionReclam(idRec) {
 }
 
 function changerStatutReclam(idRec, nouveauStatut) {
+  if (!estEquipeMFR()) { refusAcces(); return; }
   const recs = chargerReclamations();
   const r = recs.find(x => x.id === idRec);
   if (!r) return;
@@ -54796,6 +55618,7 @@ function enregistrerVisite(idEdit) {
 }
 
 function supprimerVisite(id) {
+  if (!estEquipeMFR()) { refusAcces(); return; }
   if (!confirm("Supprimer définitivement cette fiche de visite ?")) return;
   const visites = chargerVisites().filter(v => v.id !== id);
   sauverVisites(visites);
