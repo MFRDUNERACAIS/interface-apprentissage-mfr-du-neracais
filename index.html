@@ -22775,6 +22775,14 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.31 (23/09/2026) — RÉGRESSION CORRIGÉE, signalée par la Direction :
+//       « aucune synchronisation — vous travaillez en local » sur le
+//       téléphone d'un apprenti. Le contrôle d'identité ajouté en v5.24
+//       coupait toute synchronisation dès que l'adresse technique attendue
+//       différait de celle du compte Firebase, sans rien expliquer. Il
+//       avertit désormais — en nommant les deux adresses dans la console et
+//       dans le diagnostic — au lieu de bloquer. Le garde-fou contre le
+//       poste partagé reste la fermeture de session à la déconnexion.
 //   v5.30 (23/09/2026) — « La séance n'a pas pu être publiée » : le message
 //       ne disait pas pourquoi et laissait la Direction chercher entre deux
 //       causes sans rapport. publierSeance() distingue désormais le refus
@@ -23222,7 +23230,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.30";
+const APP_VERSION = "5.31";
 const APP_DATE_BUILD = "22 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24041,6 +24049,15 @@ async function testerConnexionFirebase() {
     authentifie = !!(fbAuth && fbAuth.currentUser);
     if (authentifie) {
       lignes.push("\u2705 Authentifi\u00e9\u00b7e aupr\u00e8s de Firebase : " + fbAuth.currentUser.email);
+      // v5.31 : on nomme l'écart plutôt que de couper la synchronisation.
+      try {
+        firebaseNousReconnait();
+        if (ECART_IDENTITE_FIREBASE) {
+          lignes.push("\u26a0\ufe0f L'adresse du compte Firebase ne correspond pas à l'identifiant saisi.");
+          lignes.push("   " + ECART_IDENTITE_FIREBASE);
+          lignes.push("   La synchronisation fonctionne quand même, mais signalez-le.");
+        }
+      } catch (e) {}
     } else {
       lignes.push("\u2139 Non authentifi\u00e9\u00b7e aupr\u00e8s de Firebase.");
       lignes.push("   Vous \u00eates connect\u00e9\u00b7e avec un compte int\u00e9gr\u00e9 au fichier.");
@@ -24964,6 +24981,21 @@ function mesSignaturesVR(username) {
 
 async function envoyerMesDonneesPersonnelles(silencieux) {
   if (!initialiserFirebase() || !fbAuth.currentUser) return { envoyees: 0 };
+  // v5.31 — le contrôle d'identité ne coupe plus la réception, mais il
+  // interdit toujours l'ÉCRITURE : c'est ici, et ici seulement, que les
+  // données d'un utilisateur pouvaient atterrir dans le dossier d'un autre
+  // resté connecté sur un poste partagé.
+  try {
+    firebaseNousReconnait();
+    if (ECART_IDENTITE_FIREBASE) {
+      if (!silencieux) {
+        alert("⚠️ Vos données n'ont pas été envoyées.\n\n" +
+          "La session Firebase de ce navigateur appartient à un autre compte.\n" +
+          "Déconnectez-vous complètement, puis reconnectez-vous.");
+      }
+      return { envoyees: 0, erreur: "ecart_identite" };
+    }
+  } catch (e) {}
   const u = utilisateurConnecte;
   if (!u) return { envoyees: 0 };
 
@@ -44310,7 +44342,19 @@ function afficherSuiviSansContrat() {
 // utilisateur pouvait rester ouverte : l'application écrivait alors les
 // données du nouvel arrivant dans le dossier de l'ancien. On vérifie
 // désormais que la session Firebase est bien celle du compte connecté.
+// v5.31 — CORRECTION D'UNE RÉGRESSION DE LA v5.24.
+// Le contrôle d'identité ajouté hier coupait la synchronisation dès que
+// l'adresse technique attendue différait de celle du compte Firebase,
+// quelle qu'en soit la raison, et sans rien expliquer. Un apprenti se
+// retrouvait en « mode local » sur son propre téléphone.
+// Le contrôle AVERTIT désormais au lieu de bloquer : une divergence est
+// signalée, nommément, mais n'empêche plus de recevoir ses données.
+// Le vrai garde-fou contre le poste partagé reste la fermeture de session
+// à la déconnexion, qui elle ne peut rien casser.
+let ECART_IDENTITE_FIREBASE = "";
+
 function firebaseNousReconnait() {
+  ECART_IDENTITE_FIREBASE = "";
   if (!fbAuth || !fbAuth.currentUser) return false;
   const u = utilisateurConnecte;
   if (!u) return false;
@@ -44318,7 +44362,10 @@ function firebaseNousReconnait() {
     if (typeof adresseTechnique === "function") {
       const attendue = String(adresseTechnique(u.id) || "").toLowerCase();
       const reelle = String(fbAuth.currentUser.email || "").toLowerCase();
-      if (attendue && reelle && attendue !== reelle) return false;
+      if (attendue && reelle && attendue !== reelle) {
+        ECART_IDENTITE_FIREBASE = "attendue : " + attendue + "  —  réelle : " + reelle;
+        if (window.console) console.warn("Écart d'identité Firebase — " + ECART_IDENTITE_FIREBASE);
+      }
     }
   } catch (e) {}
   return true;
