@@ -22013,9 +22013,16 @@
 
       <!-- ONGLET SÉANCE EN COURS -->
       <div id="emarg-onglet-active" class="emarg-onglet active">
+        <!-- v5.29 — Cette barre reste visible en permanence. Auparavant le
+             bouton d'ouverture vivait dans le bloc « aucune séance », masqué
+             dès qu'une séance était ouverte : une séance oubliée d'un jour
+             précédent empêchait d'en ouvrir une nouvelle, sans rien expliquer. -->
+        <div class="emarg-barre-actions" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
+          <button class="btn-primary" onclick="ouvrirFormulaireSeance()">+ Ouvrir une nouvelle séance</button>
+          <button class="btn-mini" onclick="rafraichirSignaturesSeance()">↻ Récupérer les signatures</button>
+        </div>
         <div id="emarg-aucune-seance" class="emarg-aucune-seance">
           <p>Aucune séance ouverte pour le moment.</p>
-          <button class="btn-primary" onclick="ouvrirFormulaireSeance()">+ Ouvrir une nouvelle séance</button>
         </div>
         <div id="emarg-seance-active" class="emarg-seance-active" style="display:none;">
           <!-- Généré dynamiquement -->
@@ -22768,6 +22775,14 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.29 (23/09/2026) — Signalé par la Direction : « je ne trouve pas le
+//       bouton ». Le bouton « + Ouvrir une nouvelle séance » vivait dans le
+//       bloc « Aucune séance ouverte », donc masqué dès qu'une séance
+//       existait. Une séance oubliée d'un jour précédent rendait impossible
+//       l'ouverture d'une nouvelle, sans le moindre message. Le bouton est
+//       désormais dans une barre permanente, avec « Récupérer les
+//       signatures » — qui n'était accessible que depuis l'Historique,
+//       alors qu'on en a besoin pendant la séance.
 //   v5.28 (22/09/2026) — Publication des carnets : 18 jeunes sur 19 étaient
 //       écartés au motif « sans carnet ». Un carnet n'existe en effet dans
 //       le stockage qu'une fois ouvert sur ce poste. Il est désormais créé
@@ -23200,7 +23215,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.28";
+const APP_VERSION = "5.29";
 const APP_DATE_BUILD = "22 septembre 2026";
 
 // Injection année dynamique dans le footer
