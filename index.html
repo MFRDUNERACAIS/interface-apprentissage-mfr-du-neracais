@@ -22790,6 +22790,24 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.35 (23/09/2026) — « RETRAITER TOUS LES PROFILS » CASSAIT DES COMPTES
+//       QUI MARCHAIENT. Question de la Direction, à qui je venais de
+//       conseiller cette opération : « ça va faire sauter les mots de passe
+//       de tout le monde, non ? » — elle avait raison, et la lecture de la
+//       boucle l'a confirmé.
+//       Pour qui avait personnalisé son mot de passe, le code n'était plus
+//       lisible. L'application en inventait un, l'écrivait dans la fiche et
+//       EFFAÇAIT l'empreinte — puis seulement s'adressait à Firebase, qui
+//       refusait, détenant toujours l'ancien. La personne se retrouvait
+//       enfermée en mode local par l'opération même censée la dépanner, et le
+//       dégât était fait avant toute consultation du serveur.
+//       Trois corrections :
+//       1. Rien n'est écrit en local avant l'accord du serveur.
+//       2. Un code que NOUS venons d'inventer n'est jamais présenté à un
+//          compte existant : la personne est laissée strictement intacte.
+//       3. Le bilan la nomme, dit que rien n'a été touché et qu'elle continue
+//          de se connecter — et les deux messages de confirmation, qui
+//          annonçaient l'inverse, disent désormais la vérité.
 //   v5.34 (23/09/2026) — « 🔑 MDP » NE PRÉVENAIT PAS FIREBASE.
 //       Signalé par la Direction en pleine tentative de dépannage : deux mots
 //       de passe différents affichés pour la même personne. Le bouton de
@@ -23358,7 +23376,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.34";
+const APP_VERSION = "5.35";
 const APP_DATE_BUILD = "23 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24525,7 +24543,7 @@ async function reparerCompteFirebase(identifiantParDefaut) {
 // d'utilisateur : l'écriture de la fiche de B partait parfois avec le jeton
 // de A encore en mémoire, et la règle refusait — à juste titre.
 // Une instance dédiée supprime la course au lieu de la contourner.
-async function traiterUnCompteFirebase(item, code) {
+async function traiterUnCompteFirebase(item, code, codeInvente) {
   const nomApp = "cre-" + Date.now() + "-" + Math.random().toString(36).substring(2, 8);
   let app = null;
   try {
@@ -24540,6 +24558,15 @@ async function traiterUnCompteFirebase(item, code) {
       utilisateur = cred.user;
     } catch (e) {
       if (e && e.code === "auth/email-already-in-use") {
+        // v5.35 — un code que NOUS venons d'inventer n'a aucune chance d'être
+        // celui que Firebase détient. Tenter la connexion avec lui ne peut
+        // qu'échouer, après que la fiche locale a déjà été écrasée. On
+        // s'arrête ici, avant tout dégât.
+        if (codeInvente) {
+          const err = new Error("compte existant, code inconnu");
+          err.code = "mfr/compte-existant-code-inconnu";
+          throw err;
+        }
         const cred2 = await auth.signInWithEmailAndPassword(adresse, code);
         utilisateur = cred2.user;
         repris = true;
@@ -24595,8 +24622,11 @@ async function creerComptesFirebase() {
     if (e.sansIdentifiant.length > 0) d += "  \u2022 " + e.sansIdentifiant.length + " sans identifiant\n";
     if (e.sansCode.length > 0) d += "  \u2022 " + e.sansCode.length + " sans code d'acc\u00e8s\n";
     if (e.archives.length > 0) d += "  \u2022 " + e.archives.length + " archiv\u00e9(s)\n";
-    d += "\nRetraiter TOUS les profils d\u00e9j\u00e0 rattach\u00e9s ?\n";
-    d += "Les comptes intacts seront simplement repris, sans dommage.";
+    d += "\nRetraiter TOUS les profils d\u00e9j\u00e0 rattach\u00e9s ?\n\n";
+    d += "\u2022 Les comptes dont le code figure encore dans la fiche seront simplement repris.\n";
+    d += "\u2022 Les personnes ayant personnalis\u00e9 leur mot de passe seront LAISS\u00c9ES INTACTES : \n";
+    d += "  leur compte continue de fonctionner, rien ne sera modifi\u00e9 pour elles.\n";
+    d += "\u2022 Aucun mot de passe existant ne sera cass\u00e9 par cette op\u00e9ration.";
     if (!confirm(d)) return;
     aCreer = profilsACreer(true);
     if (aCreer.length === 0) { alert("Aucun profil exploitable."); return; }
@@ -24606,14 +24636,16 @@ async function creerComptesFirebase() {
   let msg = "Traiter " + aCreer.length + " compte(s) Firebase ?\n\n";
   msg += "Chaque personne conservera son identifiant et son code d'acc\u00e8s.\n";
   if (avecHash.length > 0) {
-    msg += "\n\u26A0 " + avecHash.length + " personne(s) ont personnalis\u00e9 leur mot de passe. " +
-      "Celui-ci n'est pas relisible : un NOUVEAU code leur sera attribu\u00e9.\n";
+    msg += "\n\u2139 " + avecHash.length + " personne(s) ont personnalis\u00e9 leur mot de passe. " +
+      "Celui-ci n'est pas relisible : si leur compte existe d\u00e9j\u00e0, elles seront laiss\u00e9es " +
+      "intactes et continueront de se connecter normalement. Un nouveau code n'est attribu\u00e9 " +
+      "qu'\u00e0 celles dont le compte reste \u00e0 cr\u00e9er.\n";
   }
   msg += "\nComptez environ " + Math.ceil(aCreer.length * 1.5 / 60) + " minute(s). Ne fermez pas la page.";
   if (!confirm(msg)) return;
 
   let crees = 0, reprises = 0, parDirection = 0;
-  const echecs = [], nouveauxCodes = [];
+  const echecs = [], nouveauxCodes = [], intacts = [];
 
   for (let i = 0; i < aCreer.length; i++) {
     const item = aCreer[i];
@@ -24630,24 +24662,35 @@ async function creerComptesFirebase() {
     }
     item.identifiant = idPropre;
 
+    // v5.35 — ORDRE INVERSÉ, POUR NE PLUS CASSER CE QUI MARCHE.
+    // Le code n'était plus lisible pour qui avait personnalisé son mot de
+    // passe : l'application en inventait un, l'écrivait dans la fiche et
+    // effaçait l'empreinte AVANT de s'adresser à Firebase — lequel refusait,
+    // puisqu'il détenait toujours l'ancien. La personne se retrouvait avec un
+    // code que la base ignorait : enfermée en mode local, par l'opération même
+    // censée la dépanner. On n'écrit désormais en local qu'après accord du
+    // serveur.
     let code = item.profil.password;
-    if (!code) {
-      code = genererMotDePasse();
-      item.profil.password = code;
-      delete item.profil.passwordHash;
-      nouveauxCodes.push(idPropre + " : " + code);
-      sauvegarderProfils();
-    }
+    const codeInvente = !code;
+    if (codeInvente) code = genererMotDePasse();
 
     try {
-      const r = await traiterUnCompteFirebase(item, code);
+      const r = await traiterUnCompteFirebase(item, code, codeInvente);
+      if (codeInvente) {
+        item.profil.password = code;
+        delete item.profil.passwordHash;
+        delete item.profil.dateChangementMdp;
+        nouveauxCodes.push(idPropre + " : " + code);
+      }
       item.profil.uidFirebase = r.uid;
       crees++;
       if (r.repris) reprises++;
       if (r.parDirection) parDirection++;
     } catch (e) {
       const c = (e && e.code) ? e.code : "";
-      if (c === "auth/wrong-password" || c === "auth/invalid-credential") {
+      if (c === "mfr/compte-existant-code-inconnu") {
+        intacts.push(idPropre);
+      } else if (c === "auth/wrong-password" || c === "auth/invalid-credential") {
         echecs.push(idPropre + " \u2014 compte Firebase existant avec un autre code : supprimez-le dans la console, puis relancez");
       } else if (c === "auth/weak-password") {
         echecs.push(idPropre + " \u2014 code trop court (6 caract\u00e8res minimum)");
@@ -24673,6 +24716,15 @@ async function creerComptesFirebase() {
   if (nouveauxCodes.length > 0) {
     bilan += "\n\n\u26A0 NOUVEAUX CODES \u00c0 COMMUNIQUER \u2014 notez-les maintenant :\n   " +
       nouveauxCodes.join("\n   ");
+  }
+  if (intacts.length > 0) {
+    bilan += "\n\n\u270B LAISS\u00c9(E)S INTACT(E)S (" + intacts.length + ") \u2014 mot de passe personnalis\u00e9 :\n   " +
+      intacts.join("\n   ") +
+      "\n\nCes personnes ont choisi leur propre mot de passe, que l'application ne peut pas relire. " +
+      "Leur compte Firebase existe et fonctionne : RIEN n'a \u00e9t\u00e9 touch\u00e9, et elles continuent " +
+      "de se connecter normalement.\n" +
+      "N'intervenez que si l'une d'elles signale un probl\u00e8me \u2014 alors seulement, supprimez son " +
+      "compte dans la console Firebase puis relancez cette op\u00e9ration pour elle.";
   }
   if (echecs.length > 0) {
     bilan += "\n\n\u26D4 \u00c9CHECS (" + echecs.length + ") :\n   " + echecs.slice(0, 12).join("\n   ");
