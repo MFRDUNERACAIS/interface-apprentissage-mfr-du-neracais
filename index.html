@@ -16559,6 +16559,18 @@
     <!-- SIDEBAR DE NAVIGATION -->
     <nav class="sidebar no-print" id="sidebarNav" aria-label="Navigation principale">
 
+      <!-- v5.34 — la Gestion des profils remonte en tête de menu, à la
+           demande de la Direction : c'est le point d'entrée quotidien pour
+           créer un compte, réinitialiser un accès ou éditer un courrier
+           d'identifiants. Le groupe entier se masque pour qui n'y a pas droit,
+           sans quoi un titre « Administration » vide s'afficherait en haut. -->
+      <div class="sidebar-groupe sidebar-groupe-admin" id="groupe-administration" style="display:none;">
+        <div class="sidebar-groupe-titre">Administration</div>
+        <button class="tab tab-admin" data-page="profils" onclick="changerPage('profils')" style="display:none;">
+          <span class="tab-icon">👥</span><span class="tab-label">Gestion des profils</span>
+        </button>
+      </div>
+
       <div class="sidebar-groupe">
         <div class="sidebar-groupe-titre">Mon espace</div>
         <button class="tab active" data-page="accueil" onclick="changerPage('accueil')">
@@ -16716,12 +16728,6 @@
         </button>
       </div>
 
-      <div class="sidebar-groupe sidebar-groupe-admin">
-        <div class="sidebar-groupe-titre">Administration</div>
-        <button class="tab tab-admin" data-page="profils" onclick="changerPage('profils')" style="display:none;">
-          <span class="tab-icon">👥</span><span class="tab-label">Gestion des profils</span>
-        </button>
-      </div>
 
     </nav>
 
@@ -22784,6 +22790,23 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.34 (23/09/2026) — « 🔑 MDP » NE PRÉVENAIT PAS FIREBASE.
+//       Signalé par la Direction en pleine tentative de dépannage : deux mots
+//       de passe différents affichés pour la même personne. Le bouton de
+//       réinitialisation tirait un nouveau code, l'écrivait dans la fiche
+//       locale et l'affichait — sans jamais en informer Firebase, qui
+//       continuait d'exiger l'ancien. La personne recevait donc un code que
+//       la base refusait : connexion en mode local, rien de partagé, et
+//       chaque nouveau clic aggravait l'écart.
+//       C'est la même faute que le piège corrigé en v5.32, mais du côté de la
+//       MFR. Elle explique l'enfermement d'un apprenti, et probablement le
+//       verrouillage de la Direction elle-même le 22 septembre.
+//       Firebase est désormais modifié D'ABORD ; la fiche locale n'est mise à
+//       jour que si le serveur a accepté. Sinon rien ne bouge et le motif est
+//       donné, avec l'adresse technique exacte à supprimer dans la console.
+//       Un mot de passe déjà personnalisé n'est pas relisible : aucune
+//       authentification n'est alors possible pour le changer, et on le dit
+//       au lieu de créer une divergence silencieuse.
 //   v5.33 (23/09/2026) — L'ANNÉE SCOLAIRE NE SE METTAIT JAMAIS À JOUR.
 //       ANNEE_SCOLAIRE_COURANTE était calculée au tout premier lancement,
 //       figée dans le stockage, puis relue telle quelle pour toujours. Aucun
@@ -23335,7 +23358,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.33";
+const APP_VERSION = "5.34";
 const APP_DATE_BUILD = "23 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -27486,9 +27509,14 @@ function initInterface() {
   });
   // L'onglet Gestion des profils est limité à la directrice et au secrétariat
   const usernamesAdmin = ["pascale.dauge", "secretariat", "test.admin"];
+  const estAdmin = (u.role === "mfr" && usernamesAdmin.includes(u.id));
   document.querySelectorAll(".tab-admin").forEach(t => {
-    t.style.display = (u.role === "mfr" && usernamesAdmin.includes(u.id)) ? "flex" : "none";
+    t.style.display = estAdmin ? "flex" : "none";
   });
+  // v5.34 — le groupe qui coiffe ces onglets suit le même sort : en tête de
+  // menu, un titre de section sans contenu se remarque.
+  const groupeAdmin = document.getElementById("groupe-administration");
+  if (groupeAdmin) groupeAdmin.style.display = estAdmin ? "block" : "none";
 
   // === Cockpit Direction : uniquement pour la directrice ===
   const tabCockpit = document.getElementById("tab-cockpit");
@@ -34955,7 +34983,24 @@ function toggleStatutProfil(type, id) {
   if (type === "famille") afficherTableauFamilles();
 }
 
-function reinitMotDePasse(type, id) {
+// =================================================================
+// v5.34 — LA RÉINITIALISATION NE PRÉVENAIT PAS FIREBASE
+// -----------------------------------------------------------------
+// « 🔑 MDP » tirait un nouveau code, l'écrivait dans la fiche locale et
+// l'affichait à la Direction — sans jamais en informer Firebase, qui
+// continuait d'exiger l'ancien. La personne recevait donc un code que la
+// base refusait : elle se connectait en mode local, sans rien partager,
+// et chaque nouveau clic sur « 🔑 MDP » aggravait l'écart.
+// C'est la même faute que le piège corrigé en v5.32, mais du côté de la
+// MFR : on écrivait en local ce que le serveur ignorait.
+// Désormais Firebase est modifié D'ABORD. La fiche locale n'est mise à
+// jour que si le serveur a accepté ; sinon rien ne bouge et le motif est
+// donné. Un mot de passe personnalisé n'est pas relisible : il n'existe
+// alors aucun moyen de s'authentifier pour le changer, et la seule voie
+// est la suppression du compte dans la console. On le dit, au lieu de
+// créer une divergence silencieuse.
+// =================================================================
+async function reinitMotDePasse(type, id) {
   if (!estAdminMFR()) { refusAcces("Seules la Direction et le Secrétariat peuvent effectuer cette opération."); return; }
   let collection;
   if (type === "apprenti") collection = PROFILS_APPRENTIS;
@@ -34969,12 +35014,76 @@ function reinitMotDePasse(type, id) {
   const nomAffiche = profil.nom ? `${profil.prenom || ''} ${profil.nom}`.trim() : profil.entreprise;
   if (!confirm(`Réinitialiser le mot de passe de "${nomAffiche}" ?\n\nL'ancien mot de passe ne fonctionnera plus. Vous obtiendrez une nouvelle fiche d'accès à transmettre.`)) return;
 
-  profil.password = genererMotDePasse();
+  const nouveau = genererMotDePasse();
+  const identifiant = normaliserIdentifiantConnexion(profil.username || profil.identifiant || "");
+  const r = await propagerNouveauMotDePasse(identifiant, profil, nouveau, nomAffiche);
+  if (!r.ok) { alert(r.message); return; }
+
+  profil.password = nouveau;
   delete profil.passwordHash;   // le mot de passe personnel est annulé
   delete profil.dateChangementMdp;
   profil.dateReinitMdp = new Date().toISOString();
   sauvegarderProfils();
   afficherFicheAcces(type, profil, true);
+}
+
+// Change le mot de passe DANS FIREBASE, en s'authentifiant avec l'ancien.
+// Renvoie { ok, message }. N'écrit rien en local : c'est à l'appelant de le
+// faire, et seulement en cas de succès.
+async function propagerNouveauMotDePasse(identifiant, profil, nouveau, nomAffiche) {
+  if (!identifiant) {
+    return { ok: false, message: "⛔ Ce profil n'a pas d'identifiant de connexion.\n\n" +
+      "Renseignez-le dans la fiche avant de réinitialiser le mot de passe." };
+  }
+  if (!profil.uidFirebase) {
+    // Aucun compte Firebase : la réinitialisation ne concerne que le poste,
+    // et c'est sans danger — il n'y a pas de serveur à contredire.
+    return { ok: true, message: "", horsFirebase: true };
+  }
+  if (!profil.password) {
+    return { ok: false, message: "⛔ " + nomAffiche + " a personnalisé son mot de passe.\n\n" +
+      "Celui-ci n'est pas relisible : l'application ne peut pas s'authentifier à sa place " +
+      "pour le changer, et un nouveau code ne vaudrait que sur ce poste.\n\n" +
+      "Remède : console Firebase > Authentication > Utilisateurs > supprimez\n" +
+      identifiant + DOMAINE_TECHNIQUE + "\npuis relancez ☁️ Créer les comptes Firebase " +
+      "en acceptant de retraiter les profils déjà rattachés.\n\nRien n'a été changé." };
+  }
+  if (!initialiserFirebase()) {
+    return { ok: false, message: "⛔ Firebase n'est pas joignable.\n\n" +
+      "Un mot de passe changé maintenant ne vaudrait que sur ce poste, et " + nomAffiche +
+      " ne pourrait plus se connecter ailleurs.\n\nRien n'a été changé : réessayez une fois " +
+      "la connexion rétablie." };
+  }
+  const auth2 = instanceCreation();
+  if (!auth2) {
+    return { ok: false, message: "⛔ Impossible de préparer la connexion au serveur.\n\nRien n'a été changé." };
+  }
+  try {
+    const cred = await auth2.signInWithEmailAndPassword(identifiant + DOMAINE_TECHNIQUE, profil.password);
+    await cred.user.updatePassword(nouveau);
+    try { await auth2.signOut(); } catch (e) {}
+    return { ok: true, message: "" };
+  } catch (e) {
+    try { await auth2.signOut(); } catch (e2) {}
+    const c = (e && e.code) ? e.code : "";
+    if (c === "auth/invalid-credential" || c === "auth/wrong-password" || c === "auth/user-not-found") {
+      return { ok: false, message: "⛔ Firebase n'accepte pas le code actuellement inscrit dans la fiche de " +
+        nomAffiche + ".\n\nLes deux ont déjà divergé — c'est précisément ce que cette correction " +
+        "empêche désormais.\n\nRemède : console Firebase > Authentication > Utilisateurs > supprimez\n" +
+        identifiant + DOMAINE_TECHNIQUE + "\npuis relancez ☁️ Créer les comptes Firebase " +
+        "en acceptant de retraiter les profils déjà rattachés.\n\nRien n'a été changé." };
+    }
+    if (c === "auth/too-many-requests") {
+      return { ok: false, message: "⛔ Firebase a bloqué ce compte après plusieurs tentatives.\n\n" +
+        "Patientez quelques minutes, puis recommencez. Rien n'a été changé." };
+    }
+    if (c === "auth/weak-password") {
+      return { ok: false, message: "⛔ Le serveur juge ce mot de passe trop faible.\n\nRecommencez : " +
+        "un nouveau code sera tiré. Rien n'a été changé." };
+    }
+    return { ok: false, message: "⛔ Le serveur a refusé le changement (" + (c || "erreur") + ").\n\n" +
+      "Rien n'a été changé sur ce poste." };
+  }
 }
 
 // =================================================================
@@ -35614,13 +35723,20 @@ function diagnostiquerAccesSalarie(id) {
 }
 
 // Réinitialisation mot de passe salarié
-function reinitMotDePasseSalarie(id) {
+// v5.34 — même correction que pour reinitMotDePasse : Firebase d'abord.
+// Un salarié enfermé dehors, c'est la Direction elle-même qui ne peut plus
+// travailler — c'est arrivé le 22 septembre.
+async function reinitMotDePasseSalarie(id) {
   if (!estAdminMFR()) { refusAcces("Seules la Direction et le Secrétariat peuvent effectuer cette opération."); return; }
   const salarie = PROFILS_SALARIES.find(s => s.id === id);
   if (!salarie) return;
   const nomAffiche = (salarie.prenom || "") + " " + (salarie.nom || "");
   if (!confirm("Réinitialiser le mot de passe de " + nomAffiche.trim() + " ?\n\nUn nouveau mot de passe sera généré et un courrier vous sera proposé à l'impression.")) return;
-  salarie.password = genererMotDePasse();
+  const nouveauMdp = genererMotDePasse();
+  const identifiantSal = normaliserIdentifiantConnexion(salarie.username || salarie.identifiant || "");
+  const rs = await propagerNouveauMotDePasse(identifiantSal, salarie, nouveauMdp, nomAffiche.trim());
+  if (!rs.ok) { alert(rs.message); return; }
+  salarie.password = nouveauMdp;
   delete salarie.passwordHash;   // le mot de passe personnel est annulé
   delete salarie.dateChangementMdp;
   if (!salarie.username && salarie.identifiant) salarie.username = salarie.identifiant;
