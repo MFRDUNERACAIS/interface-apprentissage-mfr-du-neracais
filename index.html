@@ -19528,6 +19528,11 @@
 
     <!-- PAGE CARNET DE LIAISON -->
     <div id="page-carnet" class="page">
+      <!-- v5.32 — témoin de remontée du carnet vers l'apprenti et sa famille.
+           Rendu visible uniquement quand une publication est en attente ou
+           qu'elle a échoué : le silence ne doit plus valoir confirmation. -->
+      <div id="temoin-publication-carnet" class="no-print"
+           style="display:none;margin:0 0 0.75rem;padding:0.55rem 0.8rem;border-radius:6px;font-size:0.92rem;"></div>
       <div class="page-actions no-print">
         <button class="btn-imprimer" onclick="imprimerPageActive()">
           🖨️ Imprimer le carnet
@@ -21498,6 +21503,10 @@
         </p>
       </div>
 
+      <!-- v5.33 — Bandeau de bascule d'année, visible seulement quand l'année
+           enregistrée ne correspond plus au calendrier. -->
+      <div id="bandeau-bascule-annee" class="no-print" style="display:none;"></div>
+
       <!-- Barre de sélection -->
       <div class="param-toolbar">
         <div class="param-selecteur">
@@ -22775,6 +22784,102 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.33 (23/09/2026) — L'ANNÉE SCOLAIRE NE SE METTAIT JAMAIS À JOUR.
+//       ANNEE_SCOLAIRE_COURANTE était calculée au tout premier lancement,
+//       figée dans le stockage, puis relue telle quelle pour toujours. Aucun
+//       écran ne permettait de la changer : le sélecteur de la page de
+//       paramétrage choisit l'année que l'on ÉDITE, pas l'année courante.
+//       L'application est donc restée sur son année d'origine et a continué
+//       d'y classer bulletins, plannings et indicateurs — une promotion en
+//       cours enregistrée sous l'année précédente, et un classement erroné
+//       le jour de l'audit.
+//       La bascule ne peut pas être automatique : changer d'année à
+//       l'improviste au milieu d'une session d'examen surprendrait toute
+//       l'équipe. Le décalage est donc signalé une fois par session à la
+//       Direction, expliqué sur la page de paramétrage, et déclenché par
+//       elle. Aucune donnée n'est déplacée : ce qui a été enregistré sous
+//       l'année précédente y reste et reste consultable.
+//   v5.32 (23/09/2026) — DROITS DES PERSONNES ET LOYAUTÉ.
+//       1. LE REFUS D'UN MAJEUR NE SORTAIT PAS DE SON TÉLÉPHONE. La
+//          décision d'un apprenti majeur de retirer à ses responsables
+//          l'accès à son dossier s'écrivait dans son profil — lequel vit
+//          dans l'espace ÉQUIPE, où il n'écrit pas. La MFR n'a jamais
+//          appris un seul refus et n'a donc jamais cessé de publier : le
+//          droit d'opposition était offert, puis ignoré. Il remonte
+//          désormais par le document personnel, et l'apprenti est prévenu
+//          si la transmission a échoué.
+//       2. CESSER DE PUBLIER N'EFFACE RIEN. Ce qui avait déjà été transmis
+//          restait dans la fiche de la famille et dans son navigateur. Un
+//          ordre de retrait est écrit et exécuté à leur prochaine
+//          connexion, avant toute réception, sur le carnet ET la page
+//          Acteurs.
+//       3. CONFIRMATIONS PRÉMATURÉES. « Votre présence est signée », « Votre
+//          réclamation a bien été enregistrée » suivie d'un numéro de
+//          référence, « Message envoyé » : quatre écrans affirmaient la
+//          transmission sans attendre le serveur. Une réclamation perdue
+//          ainsi est un manquement au processus qualité. La confirmation
+//          attend désormais la réponse, et dit la vérité dans les deux cas.
+//       4. PIÈCES JOINTES SANS GARDE-FOU. Bulletins et documents
+//          institutionnels partaient en base64 bruts, alors qu'un document
+//          Firestore plafonne à 1 Mo : une photo de bulletin prise au
+//          téléphone suffisait à faire échouer toute la synchronisation de
+//          l'espace équipe, sans dire laquelle retirer. Les images sont
+//          recompressées par paliers ; ce qui ne peut pas l'être est refusé
+//          en étant nommé.
+//       5. ANONYMAT ANNONCÉ À TORT. Deux textes d'enquête promettaient
+//          l'anonymat à des réponses enregistrées sous l'identifiant de
+//          leur auteur. Recueillir un avis sur cette promesse, c'est le
+//          recueillir par surprise. Les textes disent désormais ce qui est.
+//   v5.32 (23/09/2026) — LES QUATRE FLUX QUI NE PARTAIENT NULLE PART.
+//       Inventaire complet des clés de stockage, confrontées aux listes de
+//       synchronisation et de sauvegarde. Quatre trous, tous de la même
+//       nature : une donnée écrite par quelqu'un qui n'avait pas le droit
+//       de l'écrire là où elle était rangée.
+//       1. mfr_eval_campagnes vivait dans l'espace ÉQUIPE, que les apprentis
+//          ne peuvent pas lire : aucune campagne d'évaluation d'un
+//          enseignement n'a jamais atteint un seul jeune. Elle passe dans
+//          l'espace PARTAGE. Les réponses, nominatives, restent protégées.
+//       2. mfr_livret_evaluations et mfr_livret_preuves sont dans l'espace
+//          ÉQUIPE, mais c'est le maître d'apprentissage qui les remplit —
+//          et il n'y écrit pas. Ses évaluations restaient sur son appareil :
+//          le livret de compétences ne pouvait rien prouver à l'audit.
+//       3. mfr_absences : une absence déclarée par une famille n'entrait
+//          jamais dans le registre de la MFR. La notification partait, la
+//          trace écrite non.
+//       4. acteurs_<id> ne transitait nulle part et ne figurait dans AUCUNE
+//          sauvegarde : le contact d'urgence d'un jeune n'existait que sur
+//          l'appareil qui l'avait saisi.
+//       Un seul mécanisme pour 2, 3 et 4 : ces contributions empruntent le
+//       document personnel de leur auteur, que la MFR ramasse, avec fusion
+//       par identifiant — jamais par remplacement de liste. La page Acteurs
+//       voyage avec le carnet vers l'apprenti, sa famille et son entreprise.
+//       Trois familles de clés entrent enfin dans la sauvegarde JSON.
+//   v5.32 (23/09/2026) — LA REMONTÉE DU CARNET NE DÉPEND PLUS D'UN CLIC.
+//       Un banc a montré qu'une ouverture de période ou une appréciation
+//       écrite par un moniteur restait sur sa machine jusqu'à ce que
+//       quelqu'un pense à cliquer sur « publier les carnets ». Le dépôt de
+//       l'apprenti, lui, remontait déjà tout seul : c'est cette asymétrie
+//       qui privait les jeunes du travail de l'équipe, sans que rien ne le
+//       signale. Toute écriture de l'équipe programme désormais la remontée
+//       quatre secondes plus tard, une seule fois quel que soit le nombre
+//       de saisies, et un témoin affiche l'attente ou l'échec — jamais le
+//       silence, qui passait pour une confirmation.
+//   v5.32 (23/09/2026) — LE PIÈGE DU MOT DE PASSE HORS LIGNE.
+//       Un apprenti resté durablement en « mode local » malgré la v5.31 a
+//       conduit à l'examen du changement de mot de passe. La mise à jour
+//       n'atteignait Firebase que si la session y était authentifiée ;
+//       sinon l'empreinte locale était écrite quand même. L'appareil
+//       acceptait alors le nouveau mot de passe, Firebase exigeait
+//       toujours l'ancien : le compte ne pouvait plus JAMAIS s'authentifier
+//       et le piège se refermait seul, sans rien expliquer.
+//       Trois corrections :
+//       1. Le changement est REFUSÉ hors connexion à la base, avec le motif.
+//       2. La fenêtre obligatoire de première connexion est remplacée, dans
+//          ce cas, par une explication refermable : refuser ne doit enfermer
+//          personne derrière une fenêtre sans bouton de sortie.
+//       3. realignerEmpreinteLocale() répare les appareils déjà piégés :
+//          dès que Firebase accepte un code, l'empreinte locale s'aligne
+//          sur lui. Un seul passage avec le code d'origine suffit.
 //   v5.31 (23/09/2026) — RÉGRESSION CORRIGÉE, signalée par la Direction :
 //       « aucune synchronisation — vous travaillez en local » sur le
 //       téléphone d'un apprenti. Le contrôle d'identité ajouté en v5.24
@@ -23958,6 +24063,47 @@ async function motDePasseCorrespond(profil, identifiant, code) {
 }
 
 // Recherche asynchrone d'un profil par identifiant puis vérification du code.
+// v5.32 — Aligne l'empreinte locale sur le code que Firebase vient
+// d'accepter. Firebase est la référence partagée : quand les deux
+// divergent, c'est l'appareil qui a tort. Sans ce réalignement, un
+// appareil ayant changé son mot de passe hors ligne retomberait en
+// « mode local » à chaque connexion suivante, indéfiniment.
+// Ne modifie rien si les deux concordent déjà.
+async function realignerEmpreinteLocale(identifiant, code) {
+  if (!identifiant || !code || typeof hacherMotDePasse !== "function") return false;
+  const cible = normaliserIdentifiantConnexion(identifiant);
+  const cles = ["mfr_profils_apprentis", "mfr_profils_familles",
+                "mfr_profils_lieux", "mfr_profils_salaries"];
+  let empreinte = null;
+  for (let i = 0; i < cles.length; i++) {
+    let liste;
+    try { liste = JSON.parse(localStorage.getItem(cles[i]) || "[]"); } catch (e) { continue; }
+    if (!Array.isArray(liste)) continue;
+    let modifie = false;
+    for (let j = 0; j < liste.length; j++) {
+      const p = liste[j];
+      if (!p) continue;
+      if (normaliserIdentifiantConnexion(p.username || p.identifiant || "") !== cible) continue;
+      if (p.passwordHash) {
+        if (empreinte === null) empreinte = await hacherMotDePasse(cible, code);
+        if (!empreinte || p.passwordHash === empreinte) continue;
+        p.passwordHash = empreinte;
+        delete p.password;
+        p.dateRealignementMdp = new Date().toISOString();
+        modifie = true;
+      } else if (p.password && p.password !== code) {
+        p.password = code;
+        modifie = true;
+      }
+    }
+    if (modifie) {
+      try { localStorage.setItem(cles[i], JSON.stringify(liste)); } catch (e) {}
+      return true;
+    }
+  }
+  return false;
+}
+
 async function trouverProfilConnexion(liste, id, code, champId) {
   for (let i = 0; i < liste.length; i++) {
     const p = liste[i];
@@ -24544,13 +24690,21 @@ const CLES_SYNC_EQUIPE = [
   "mfr_emarg_vie_residentielle", "mfr_visites_entreprise", "mfr_messages_entreprise",
   "mfr_demandes_rdv", "mfr_reclamations", "mfr_signalements",
   "mfr_ruptures", "mfr_qualiopi_v10", "mfr_actions_amelioration",
-  "mfr_risques_qualite", "mfr_eval_campagnes", "mfr_eval_reponses",
+  "mfr_risques_qualite", "mfr_eval_reponses",
   "mfr_eval_reunions", "mfr_enquetes_campagnes", "mfr_cperf_membres",
   "mfr_cperf_seances", "mfr_journal_connexions"
 ];
 
 // Lues par tout compte authentifié, écrites par l'équipe seule.
+// v5.32 — "mfr_eval_campagnes" quitte l'espace ÉQUIPE pour celui-ci. Une
+// campagne d'évaluation d'un enseignement est faite POUR être ouverte aux
+// apprentis : tant qu'elle restait dans l'espace équipe, ils ne pouvaient
+// pas la lire, et aucune campagne n'a jamais atteint un seul jeune. La
+// campagne ne porte que la matière, le formateur, la classe, les dates et
+// les questions ; les réponses, nominatives, restent dans "mfr_eval_reponses",
+// que l'espace équipe protège.
 const CLES_SYNC_PARTAGE = [
+  "mfr_eval_campagnes",
   "mfr_plans_etude",
   "mfr_plannings_hebdo", "mfr_annees_scolaires", "mfr_annee_scolaire_courante",
   "mfr_profils_documents", "mfr_docs_rgpd_institutionnels", "mfr_eval_matieres",
@@ -24871,10 +25025,34 @@ function enregistrerConsentementFamille(valeur) {
   if (sauvegarderProfils() === false) return;
   const p = document.getElementById("popup-consentement-famille");
   if (p) p.remove();
-  alert(valeur === "accorde"
-    ? "\u2705 Vos responsables l\u00e9gaux gardent acc\u00e8s \u00e0 votre dossier.\n\nVous pouvez revenir sur ce choix quand vous voulez."
-    : "\u2705 Vos responsables l\u00e9gaux n'ont plus acc\u00e8s \u00e0 votre dossier.\n\nLa MFR, elle, conserve l'acc\u00e8s : c'est n\u00e9cessaire \u00e0 votre suivi.\n\nVous pouvez revenir sur ce choix quand vous voulez.");
-  if (typeof afficherAccueil === "function") afficherAccueil();
+
+  // v5.32 \u2014 la d\u00e9cision doit atteindre la MFR, et l'apprenti doit savoir si
+  // c'est fait. Annoncer \u00ab vos responsables n'ont plus acc\u00e8s \u00bb alors que
+  // rien n'est parti serait une promesse que l'application ne tient pas.
+  const suite = function(transmis) {
+    if (valeur === "accorde") {
+      alert("\u2705 Vos responsables l\u00e9gaux gardent acc\u00e8s \u00e0 votre dossier.\n\n" +
+        "Vous pouvez revenir sur ce choix quand vous voulez.");
+    } else if (transmis) {
+      alert("\u2705 C'est enregistr\u00e9 et transmis \u00e0 la MFR.\n\n" +
+        "Vos responsables l\u00e9gaux n'ont plus acc\u00e8s \u00e0 votre dossier, et ce qui leur avait " +
+        "d\u00e9j\u00e0 \u00e9t\u00e9 transmis sera effac\u00e9 de leur appareil \u00e0 leur prochaine connexion.\n\n" +
+        "La MFR, elle, conserve l'acc\u00e8s : c'est n\u00e9cessaire \u00e0 votre suivi.\n\n" +
+        "Vous pouvez revenir sur ce choix quand vous voulez.");
+    } else {
+      alert("\u26a0\ufe0f Votre choix est enregistr\u00e9 sur cet appareil, mais il n'a PAS pu \u00eatre " +
+        "transmis \u00e0 la MFR.\n\nTant qu'il ne l'est pas, vos responsables l\u00e9gaux conservent " +
+        "l'acc\u00e8s \u00e0 votre dossier.\n\nReconnectez-vous d\u00e8s que possible, ou signalez-le au " +
+        "secr\u00e9tariat : votre demande sera prise en compte.");
+    }
+    if (typeof afficherAccueil === "function") afficherAccueil();
+  };
+
+  if (typeof envoyerMesDonneesPersonnelles === "function") {
+    Promise.resolve(envoyerMesDonneesPersonnelles(true))
+      .then(function(r) { suite(!!(r && r.envoyees > 0 && !r.erreur)); })
+      .catch(function() { suite(false); });
+  } else suite(false);
 }
 
 // Permet à l'apprenti de revenir sur son choix à tout moment.
@@ -25030,6 +25208,40 @@ async function envoyerMesDonneesPersonnelles(silencieux) {
     } catch (e) {}
   }
 
+  // v5.32 — LE REFUS D'UN MAJEUR DOIT SORTIR DE SON TÉLÉPHONE.
+  // La décision d'un apprenti majeur de retirer à ses responsables l'accès
+  // à son dossier était enregistrée dans son profil, sur son seul appareil.
+  // Or ce profil vit dans l'espace ÉQUIPE, où il n'écrit pas : la MFR n'a
+  // jamais appris un seul refus, et n'a donc jamais cessé de publier. Le
+  // droit d'opposition était offert puis ignoré.
+  if (u.role === "apprenti") {
+    try {
+      const moi = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+        .find(function(x) { return x.username === u.id; });
+      if (moi && moi.consentementFamille) {
+        paquet.consentementFamille = JSON.stringify(moi.consentementFamille); envoyees++;
+      }
+    } catch (e) {}
+  }
+
+  // v5.32 — entourage et contact d'urgence saisis hors de la MFR, et
+  // registres de l'équipe alimentés par un non-salarié : évaluations du
+  // maître d'apprentissage, absences déclarées par une famille.
+  if (u.role !== "mfr") {
+    try {
+      const act = mesContributionsActeurs(u);
+      if (Object.keys(act).length > 0) {
+        paquet.contributionsActeurs = JSON.stringify(act); envoyees++;
+      }
+    } catch (e) {}
+    try {
+      const reg = mesContributionsRegistres(u);
+      if (Object.keys(reg).length > 0) {
+        paquet.contributionsRegistres = JSON.stringify(reg); envoyees++;
+      }
+    } catch (e) {}
+  }
+
   if (u.role === "apprenti") {
     const sig = mesSignaturesVR(u.id);
     if (Object.keys(sig).length > 0) { paquet.signaturesVR = JSON.stringify(sig); envoyees++; }
@@ -25067,6 +25279,36 @@ async function envoyerMesDonneesPersonnelles(silencieux) {
   }
 }
 
+// =================================================================
+// v5.32 — NE JAMAIS ANNONCER « C'EST TRANSMIS » AVANT QUE CE LE SOIT
+// -----------------------------------------------------------------
+// Plusieurs écrans affichaient leur confirmation — « Votre présence est
+// signée », « Votre réclamation a bien été enregistrée », un numéro de
+// référence — sans attendre la réponse du serveur. Un dépôt refusé, une
+// connexion coupée, et l'utilisateur repartait convaincu que la MFR avait
+// reçu sa demande. Une réclamation perdue dans ces conditions est un
+// manquement au processus qualité, pas seulement une gêne.
+// La confirmation attend désormais le serveur, et dit ce qui s'est passé.
+// =================================================================
+async function remonterEtConfirmer() {
+  if (typeof envoyerMesDonneesPersonnelles !== "function") return false;
+  try {
+    const r = await envoyerMesDonneesPersonnelles(true);
+    return !!(r && r.envoyees > 0 && !r.erreur);
+  } catch (e) { return false; }
+}
+
+// Bloc d'avertissement inséré dans un écran de confirmation lorsque la
+// remontée a échoué. Volontairement sobre : il informe, il n'affole pas.
+function blocNonTransmis(quoi) {
+  return '<div style="margin-top:1rem;padding:0.7rem 0.9rem;border-radius:6px;' +
+    'background:#F6E4DA;color:#7A3E1D;text-align:left;font-size:0.92rem;">' +
+    '\u26A0\uFE0F <strong>Pas encore transmis \u00e0 la MFR.</strong> ' +
+    quoi + ' est conserv\u00e9\u00b7e sur cet appareil. La transmission se fera ' +
+    'automatiquement \u00e0 votre prochaine connexion. Si le message persiste, ' +
+    'signalez-le au secr\u00e9tariat.</div>';
+}
+
 async function recevoirMesDonneesPersonnelles() {
   if (!initialiserFirebase() || !fbAuth.currentUser) return { recues: 0 };
   try {
@@ -25075,7 +25317,7 @@ async function recevoirMesDonneesPersonnelles() {
     const d = doc.data() || {};
     let recues = 0;
     Object.keys(d).forEach(function(cle) {
-      if (["identifiant", "role", "modifieLe", "signaturesVR", "signaturesSeances", "tachesFaites", "depots", "resultatsTests", "contributionsCarnets"].indexOf(cle) >= 0) return;
+      if (["identifiant", "role", "modifieLe", "signaturesVR", "signaturesSeances", "tachesFaites", "depots", "resultatsTests", "contributionsCarnets", "contributionsActeurs", "contributionsRegistres", "consentementFamille"].indexOf(cle) >= 0) return;
       if (typeof d[cle] !== "string") return;
       try { JSON.parse(d[cle]); } catch (e) { return; }
       localStorage.setItem(cle, d[cle]);
@@ -25604,7 +25846,196 @@ function recopierClesPersonnelles(d, identifiantAttendu, roleEmetteur) {
       });
     } catch (e) {}
   }
+
+  // v5.32 — page Acteurs : le contact d'urgence et l'entourage du jeune,
+  // saisis par une famille ou une entreprise.
+  if (typeof src.contributionsActeurs === "string") {
+    try {
+      const contrib = JSON.parse(src.contributionsActeurs);
+      Object.keys(contrib).forEach(function(qui) {
+        try {
+          if (fusionnerActeursLocal(qui, JSON.parse(contrib[qui]))) n++;
+        } catch (e) {}
+      });
+    } catch (e) {}
+  }
+
+  // v5.32 — registres de l'équipe alimentés par des non-salariés.
+  if (typeof src.contributionsRegistres === "string") {
+    try { n += fusionnerContributionsRegistres(JSON.parse(src.contributionsRegistres)); }
+    catch (e) {}
+  }
+
+  // v5.32 — décision d'un apprenti majeur sur l'accès de ses responsables.
+  // Elle ne vaut que pour lui-même : un compte ne peut pas décider pour un
+  // autre. Un refus déclenche l'effacement chez les familles concernées.
+  if (typeof src.consentementFamille === "string" && role === "apprenti") {
+    try {
+      const c = JSON.parse(src.consentementFamille);
+      const a = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : [])
+        .find(function(x) { return x.username === id; });
+      if (a && c && c.valeur) {
+        const avant = a.consentementFamille ? a.consentementFamille.valeur : "";
+        a.consentementFamille = c;
+        if (typeof sauvegarderProfils === "function") sauvegarderProfils();
+        n++;
+        if (c.valeur === "refuse" && avant !== "refuse") {
+          try { retirerAccesFamilles(a); } catch (e) {}
+        }
+      }
+    } catch (e) {}
+  }
   return n;
+}
+
+// =================================================================
+// v5.32 — EFFACER, ET PAS SEULEMENT CESSER DE PUBLIER
+// -----------------------------------------------------------------
+// Cesser de publier ne fait pas disparaître ce qui a déjà été publié.
+// Le carnet et la page Acteurs d'un apprenti majeur ayant retiré l'accès
+// à ses responsables restaient dans leur document de fiche et dans le
+// navigateur de leur téléphone, consultables indéfiniment. Le droit
+// d'opposition ne se satisfait pas d'un arrêt pour l'avenir : ce qui a
+// été transmis doit être repris.
+// On écrit donc un ordre de retrait, que l'appareil de la famille exécute
+// à sa prochaine connexion, et on vide les champs côté serveur.
+// =================================================================
+async function retirerAccesFamilles(apprenti) {
+  if (!apprenti || !apprenti.username) return { retires: 0, echecs: 0 };
+  if (!initialiserFirebase() || !fbAuth.currentUser) return { retires: 0, echecs: 0, motif: "hors_ligne" };
+  const ids = (typeof famillesIdsDeApprenti === "function") ? famillesIdsDeApprenti(apprenti)
+    : (Array.isArray(apprenti.famillesIds) ? apprenti.famillesIds : (apprenti.familleId ? [apprenti.familleId] : []));
+  const familles = (typeof PROFILS_FAMILLES !== "undefined" ? PROFILS_FAMILLES : [])
+    .filter(function(f) { return f.uidFirebase && ids.indexOf(f.id) >= 0; });
+  const quand = new Date().toISOString();
+  const cleCarnet = "carnet_" + apprenti.username;
+  const cleActeurs = "acteurs_" + apprenti.username;
+  let retires = 0, echecs = 0;
+  for (let i = 0; i < familles.length; i++) {
+    try {
+      const vidC = {}; vidC[cleCarnet] = "";
+      const vidA = {}; vidA[cleActeurs] = "";
+      const retraits = {}; retraits[cleCarnet] = quand; retraits[cleActeurs] = quand;
+      await fbDb.collection("fiches").doc(familles[i].uidFirebase).set({
+        carnets: vidC, acteurs: vidA, retraits: retraits, retraitsLe: quand
+      }, { merge: true });
+      retires++;
+    } catch (e) { echecs++; }
+  }
+  return { retires: retires, echecs: echecs };
+}
+
+// =================================================================
+// v5.32 — CE QUE LES NON-SALARIÉS ÉCRIVENT DANS LES REGISTRES DE LA MFR
+// -----------------------------------------------------------------
+// Le livret de compétences et le registre des absences vivent dans
+// l'espace ÉQUIPE, où seuls les salariés peuvent écrire. Un maître
+// d'apprentissage qui évalue une compétence, une famille qui déclare
+// une absence, écrivaient donc dans le vide : la saisie restait sur leur
+// appareil et la MFR ne l'a jamais reçue. Faute d'évaluations
+// d'entreprise, le livret de compétences ne pouvait rien prouver le jour
+// de l'audit.
+// Ces contributions empruntent désormais le chemin déjà éprouvé des
+// réclamations : le document personnel de leur auteur, que la MFR ramasse.
+// La fusion se fait par identifiant, jamais par remplacement de liste :
+// deux maîtres qui évaluent le même jour ne s'effacent pas l'un l'autre.
+// =================================================================
+const REGISTRES_PARTAGEABLES = ["mfr_livret_evaluations", "mfr_livret_preuves", "mfr_absences"];
+
+// Une absence ne porte pas d'identifiant : on la reconnaît à ce qui la
+// caractérise. Deux déclarations identiques sont la même déclaration.
+function signatureAbsence(a) {
+  if (!a) return "";
+  return [a.timestamp || "", a.emetteurId || a.emetteur || "", a.type || "",
+          a.dateDebut || "", a.dateFin || ""].join("|");
+}
+
+function mesContributionsRegistres(u) {
+  const out = {};
+  if (!u || u.role === "mfr") return out;
+  REGISTRES_PARTAGEABLES.forEach(function(cle) {
+    let liste = [];
+    try { liste = JSON.parse(localStorage.getItem(cle) || "[]"); } catch (e) { return; }
+    if (!Array.isArray(liste)) return;
+    const miennes = liste.filter(function(x) {
+      if (!x) return false;
+      if (cle === "mfr_absences") return x.emetteurId === u.id || (!x.emetteurId && x.emetteur === u.nom);
+      return x.cree_par === u.id;
+    });
+    if (miennes.length > 0) out[cle] = miennes;
+  });
+  return out;
+}
+
+function fusionnerContributionsRegistres(recu) {
+  if (!recu || typeof recu !== "object") return 0;
+  let n = 0;
+  REGISTRES_PARTAGEABLES.forEach(function(cle) {
+    const entrantes = recu[cle];
+    if (!Array.isArray(entrantes) || entrantes.length === 0) return;
+    let locales = [];
+    try { locales = JSON.parse(localStorage.getItem(cle) || "[]"); } catch (e) { locales = []; }
+    if (!Array.isArray(locales)) locales = [];
+    const connues = {};
+    locales.forEach(function(x, i) {
+      const k = (cle === "mfr_absences") ? signatureAbsence(x) : (x && x.id);
+      if (k) connues[k] = i;
+    });
+    let modifie = false;
+    entrantes.forEach(function(x) {
+      if (!x) return;
+      const k = (cle === "mfr_absences") ? signatureAbsence(x) : x.id;
+      if (!k) return;
+      if (connues[k] === undefined) { locales.push(x); connues[k] = locales.length - 1; modifie = true; n++; }
+      else { locales[connues[k]] = x; modifie = true; }
+    });
+    if (modifie) { try { localStorage.setItem(cle, JSON.stringify(locales)); } catch (e) {} }
+  });
+  return n;
+}
+
+// =================================================================
+// v5.32 — PAGE ACTEURS : FUSION, SANS ÉCRASEMENT
+// -----------------------------------------------------------------
+// La page Acteurs porte l'entourage du jeune et son contact d'urgence.
+// Elle ne transitait nulle part et ne figurait dans aucune sauvegarde :
+// le numéro à appeler en cas d'accident n'existait que sur l'appareil qui
+// l'avait saisi, et disparaissait avec lui.
+// Règle de fusion : on complète ce qui est vide, on n'écrase jamais ce qui
+// est rempli — la règle arbitrée par la Direction pour le carnet.
+// =================================================================
+function fusionnerActeursLocal(apprentiId, recu) {
+  if (!apprentiId || !recu || typeof recu !== "object") return false;
+  const cle = "acteurs_" + apprentiId;
+  let local = {};
+  try { local = JSON.parse(localStorage.getItem(cle) || "{}") || {}; } catch (e) { local = {}; }
+  const vide = function(v) { return v === undefined || v === null || v === ""; };
+  let modifie = false;
+  Object.keys(recu).forEach(function(champ) {
+    if (vide(recu[champ])) return;
+    if (!vide(local[champ])) return;
+    local[champ] = recu[champ];
+    modifie = true;
+  });
+  if (!modifie) return false;
+  try { localStorage.setItem(cle, JSON.stringify(local)); } catch (e) { return false; }
+  if (typeof acteursApprentiCourant !== "undefined" && acteursApprentiCourant === apprentiId
+      && typeof chargerDonneesActeurs === "function") {
+    try { chargerDonneesActeurs(apprentiId); } catch (e) {}
+  }
+  return true;
+}
+
+function mesContributionsActeurs(u) {
+  const out = {};
+  if (!u || u.role === "mfr") return out;
+  const apprentis = (typeof PROFILS_APPRENTIS !== "undefined" ? PROFILS_APPRENTIS : []);
+  apprentis.forEach(function(a) {
+    let brut = null;
+    try { brut = localStorage.getItem("acteurs_" + a.username); } catch (e) {}
+    if (brut && brut !== "{}") out[a.username] = brut;
+  });
+  return out;
 }
 
 // Coches du travail à faire : les clés valent "<identifiant>|<tâche>".
@@ -25697,6 +26128,57 @@ function doitPersonnaliserMotDePasse(profil) {
   return !profil.passwordHash;
 }
 
+// v5.32 — LE PIÈGE DU MOT DE PASSE CHANGÉ HORS LIGNE.
+// -----------------------------------------------------------------
+// Le changement de mot de passe n'atteignait Firebase que si la session
+// y était authentifiée. Dans le cas contraire, l'empreinte locale était
+// écrite quand même : l'appareil acceptait désormais le nouveau mot de
+// passe, Firebase continuait d'exiger l'ancien. Le compte ne pouvait
+// plus JAMAIS s'authentifier, et le jeune restait enfermé en « mode
+// local » sans que rien ne l'explique — le piège se refermait tout seul.
+//
+// Vrai seulement si Firebase est configuré ET la session authentifiée.
+// Si Firebase n'est pas configuré du tout — déploiement purement local —
+// aucune divergence n'est possible : on ne bloque rien.
+function sessionSynchroniseeFirebase() {
+  let configure = false;
+  try { configure = (typeof initialiserFirebase === "function") && !!initialiserFirebase(); }
+  catch (e) { configure = false; }
+  if (!configure) return true;
+  try { return (typeof firebaseNousReconnait === "function") && !!firebaseNousReconnait(); }
+  catch (e) { return false; }
+}
+
+// Le refus ne doit enfermer personne : la fenêtre de première connexion
+// n'a pas de bouton « Annuler ». On la remplace donc par une explication
+// refermable, et l'accès à l'application reste ouvert.
+function afficherPopupMdpImpossible() {
+  const existant = document.getElementById("popup-mdp");
+  if (existant) existant.remove();
+  const overlay = document.createElement("div");
+  overlay.id = "popup-mdp";
+  overlay.className = "popup-rgpd-overlay no-print";
+  overlay.style.display = "flex";
+  overlay.innerHTML =
+    '<div class="popup-rgpd-modal">' +
+      '<div class="popup-rgpd-header">' +
+        '<span class="popup-rgpd-icone">\u{1F511}</span>' +
+        '<h2>Mot de passe à personnaliser plus tard</h2>' +
+      '</div>' +
+      '<div class="popup-rgpd-body">' +
+        '<p>Votre appareil n\'est pas relié à la base partagée en ce moment. ' +
+        'Un mot de passe choisi maintenant ne vaudrait que sur cet appareil, et votre ' +
+        'compte ne s\'ouvrirait plus ailleurs.</p>' +
+        '<p>Continuez avec le code que la MFR vous a remis. La personnalisation vous sera ' +
+        'proposée dès que la connexion sera rétablie.</p>' +
+      '</div>' +
+      '<div class="popup-rgpd-actions-liens" style="padding:0 1.5rem 1.2rem;">' +
+        '<button class="btn-primary popup-rgpd-btn-principal" onclick="fermerPopupMotDePasse()">J\'ai compris</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(overlay);
+}
+
 // Affiche la fenêtre de personnalisation si nécessaire. Retourne true si
 // elle est affichée : les autres fenêtres bloquantes attendent leur tour.
 function majPopupMotDePasse() {
@@ -25704,6 +26186,7 @@ function majPopupMotDePasse() {
   if (!u) return false;
   const profil = (typeof trouverProfilConnecte === "function") ? trouverProfilConnecte(u) : null;
   if (!doitPersonnaliserMotDePasse(profil)) return false;
+  if (!sessionSynchroniseeFirebase()) { afficherPopupMdpImpossible(); return true; }
   afficherPopupMotDePasse(false);
   return true;
 }
@@ -25822,6 +26305,15 @@ async function validerNouveauMotDePasse(volontaire) {
   const profil = trouverProfilConnecte(u);
   if (!profil) { afficherErreur("Votre profil est introuvable. Signalez-le au secr\u00e9tariat."); return; }
 
+  // v5.32 — seconde ligne de défense : ne jamais écrire en local une
+  // empreinte que Firebase ignore. Voir sessionSynchroniseeFirebase().
+  if (!sessionSynchroniseeFirebase()) {
+    afficherErreur("Votre session n'est pas reliée à la base partagée. Un nouveau mot de passe " +
+      "ne vaudrait que sur cet appareil, et votre compte ne s'ouvrirait plus ailleurs. " +
+      "Rien n'a été changé : reconnectez-vous avec le code remis par la MFR, puis recommencez.");
+    return;
+  }
+
   const identifiant = profil.username || profil.identifiant || u.id;
   const empreinte = await hacherMotDePasse(identifiant, nouveau);
   if (!empreinte) {
@@ -25924,7 +26416,15 @@ async function login() {
   let raisonFirebase = "";
   if (typeof connexionFirebase === "function") {
     const tentative = await connexionFirebase(id, code);
-    if (tentative.user) user = tentative.user;
+    if (tentative.user) {
+      user = tentative.user;
+      // v5.32 — RÉPARATION DES APPAREILS DÉJÀ PIÉGÉS.
+      // Un appareil ayant changé son mot de passe hors ligne conserve une
+      // empreinte que Firebase ignore. Firebase vient d'accepter ce code :
+      // il fait donc foi, et l'empreinte locale s'aligne sur lui. Sans cela,
+      // l'appareil retomberait en « mode local » à la connexion suivante.
+      try { await realignerEmpreinteLocale(id, code); } catch (e) {}
+    }
     else raisonFirebase = tentative.raison || "";
   }
 
@@ -26921,6 +27421,28 @@ document.addEventListener("DOMContentLoaded", () => {
 // INTERFACE
 // =================================================================
 function initInterface() {
+  // v5.33 — une bascule d'année oubliée ne se voit nulle part au quotidien :
+  // l'application continue simplement de classer au mauvais endroit. On le
+  // signale une fois par session à la Direction, sans bloquer son travail.
+  try {
+    if (typeof estAdminMFR === "function" && estAdminMFR()
+        && typeof anneeScolaireEnRetard === "function") {
+      const attendue = anneeScolaireEnRetard();
+      if (attendue && !sessionStorage.getItem("mfr_alerte_annee_vue")) {
+        sessionStorage.setItem("mfr_alerte_annee_vue", "1");
+        setTimeout(function () {
+          alert("⚠️ Année scolaire à mettre à jour\n\n" +
+            "L'application classe encore sous " + ANNEE_SCOLAIRE_COURANTE +
+            ", alors que l'année en cours est " + attendue + ".\n\n" +
+            "Les bulletins, plannings et indicateurs enregistrés depuis la rentrée portent donc " +
+            "la mauvaise année scolaire.\n\n" +
+            "Pour corriger : Paramétrage des années scolaires → bouton « Passer à " + attendue + " ».\n\n" +
+            "Aucune donnée n'est déplacée par cette opération.");
+        }, 1200);
+      }
+    }
+  } catch (e) {}
+
   const u = utilisateurConnecte;
   const roleLabels = {
     "mfr": "Équipe MFR",
@@ -28110,8 +28632,14 @@ async function uploadBulletin() {
     if (!confirm("Un bulletin " + periode + " existe déjà pour " + apprenti.prenom + " " + apprenti.nom + ".\n\nVoulez-vous le remplacer ?")) return;
   }
 
-  const reader = new FileReader();
-  reader.onload = function(e) {
+  // v5.32 — compression et garde-fou de taille avant tout enregistrement.
+  preparerFichierPourStockage(file).then(function(preparation) {
+    if (!preparation.ok) {
+      alert(messageFichierRefuse(preparation, file.name));
+      const champ = document.getElementById("bull-file-input");
+      if (champ) champ.value = "";
+      return;
+    }
     let bulletins = chargerBulletinsScolaires();
     if (doublon) bulletins = bulletins.filter(function(b) { return b.id !== doublon.id; });
     const nouveauBulletin = {
@@ -28122,8 +28650,10 @@ async function uploadBulletin() {
       nomFichier: file.name,
       dateDepot: new Date().toISOString(),
       deposePar: utilisateurConnecte ? utilisateurConnecte.id : "",
-      taille: file.size,
-      donneesBase64: e.target.result
+      taille: preparation.taille,
+      tailleOrigine: file.size,
+      compresse: preparation.compresse,
+      donneesBase64: preparation.donnees
     };
     bulletins.push(nouveauBulletin);
     sauvegarderBulletinsScolaires(bulletins);
@@ -28134,10 +28664,14 @@ async function uploadBulletin() {
     document.getElementById("bull-file-input").value = "";
 
     afficherBulletinsScolaires();
-    alert("✅ Bulletin " + periode + " déposé pour " + apprenti.prenom + " " + apprenti.nom + ".");
-  };
-  reader.onerror = function() { alert("Erreur lors de la lecture du fichier."); };
-  reader.readAsDataURL(file);
+    const allege = preparation.compresse && preparation.original > preparation.taille
+      ? "\n\nImage allégée : " + Math.round(preparation.original / 1024) + " Ko \u2192 "
+        + Math.round(preparation.taille / 1024) + " Ko."
+      : "";
+    alert("✅ Bulletin " + periode + " déposé pour " + apprenti.prenom + " " + apprenti.nom + "." + allege);
+  }).catch(function() {
+    alert("Erreur lors de la lecture du fichier.");
+  });
 }
 
 function supprimerBulletin(id) {
@@ -35696,7 +36230,14 @@ const PREFIXES_DONNEES = [
   "carnet_",             // carnets de liaison, un par apprenti
   "enquetes_modeles",    // questionnaires de satisfaction
   "enquetes_reponses_",  // réponses aux enquêtes, une clé par apprenti
-  "notifs_enquetes_"     // files de notification d'enquête
+  "notifs_enquetes_",    // files de notification d'enquête
+  // v5.32 — trois familles de clés échappaient à la sauvegarde. La plus
+  // grave : "acteurs_", qui porte l'entourage du jeune et son contact
+  // d'urgence. Une sauvegarde qui ne contient pas le numéro à appeler en
+  // cas d'accident n'est pas une sauvegarde.
+  "acteurs_",            // entourage et contact d'urgence, un par apprenti
+  "tests_verrous_",      // ouverture des tests de positionnement
+  "notifs_en_attente_"   // notifications non encore remises
 ];
 
 function listerClesMFR() {
@@ -37343,8 +37884,19 @@ function formatDateLongue(dateIso) {
 
 function enregistrerAbsenceLocale(absence) {
   let absences = JSON.parse(localStorage.getItem("mfr_absences") || "[]");
+  // v5.32 — on marque l'auteur par son identifiant, et non par son seul nom :
+  // c'est ce qui permet de retrouver ses déclarations pour les faire remonter
+  // à la MFR, et ce qui distingue deux homonymes.
+  try {
+    const uAbs = utilisateurConnecte;
+    if (uAbs && !absence.emetteurId) absence.emetteurId = uAbs.id;
+  } catch (e) {}
   absences.push(absence);
   localStorage.setItem("mfr_absences", JSON.stringify(absences));
+  // v5.32 — une absence déclarée par une famille ou un apprenti n'atteignait
+  // pas le registre de la MFR : elle remonte désormais par le document
+  // personnel de son auteur.
+  try { if (typeof estEquipeMFR === "function" && !estEquipeMFR()) planifierDepotPersonnel(); } catch (e) {}
 
   // === Liaison Carnet : si l'utilisateur est apprenti ou famille, ajouter dans son carnet ===
   // Note : on identifie l'apprenti·e concerné·e selon le rôle de l'émetteur
@@ -37712,14 +38264,25 @@ async function publierCarnetApprenti(usernameApprenti, silencieux) {
 
   if (destinataires.length === 0) return { ok: false, motif: "sans_compte" };
 
+  // v5.32 — l'entourage et le contact d'urgence voyagent avec le carnet :
+  // ils concernent les mêmes personnes et doivent atteindre les mêmes
+  // destinataires. Un numéro à appeler en cas d'accident qui n'existe que
+  // sur le poste du secrétariat ne protège personne.
+  let brutActeurs = null;
+  try { brutActeurs = localStorage.getItem("acteurs_" + usernameApprenti); } catch (e) {}
+
   let ecrits = 0, echecs = 0;
   for (let i = 0; i < destinataires.length; i++) {
     try {
       const champ = {};
       champ["carnet_" + usernameApprenti] = brut;
-      await fbDb.collection("fiches").doc(destinataires[i].uid).set({
-        carnets: champ, carnetsModifieLe: new Date().toISOString()
-      }, { merge: true });
+      const paquetFiche = { carnets: champ, carnetsModifieLe: new Date().toISOString() };
+      if (brutActeurs && brutActeurs !== "{}") {
+        const champA = {};
+        champA["acteurs_" + usernameApprenti] = brutActeurs;
+        paquetFiche.acteurs = champA;
+      }
+      await fbDb.collection("fiches").doc(destinataires[i].uid).set(paquetFiche, { merge: true });
       ecrits++;
     } catch (e) { echecs++; }
   }
@@ -37887,6 +38450,111 @@ function creerPeriodesEntrepriseVides() {
 function sauverCarnet() {
   if (!carnetEnCours || !carnetApprentiId) return;
   localStorage.setItem("carnet_" + carnetApprentiId, JSON.stringify(carnetEnCours));
+  // v5.32 — voir planifierPublicationCarnet() : ce que l'équipe écrit dans
+  // le carnet d'un jeune doit lui parvenir sans dépendre d'un clic.
+  try { planifierPublicationCarnet(carnetApprentiId); } catch (e) {}
+}
+
+// =================================================================
+// v5.32 — LA REMONTÉE DU CARNET NE DÉPEND PLUS D'UN CLIC
+// -----------------------------------------------------------------
+// Une ouverture de période ou une appréciation écrite par un moniteur
+// restait sur sa machine jusqu'à ce que quelqu'un pense à cliquer sur
+// « publier les carnets ». L'apprenti et sa famille ne voyaient rien,
+// et rien ne le signalait : le silence passait pour une confirmation.
+// Le dépôt de l'apprenti, lui, remontait déjà automatiquement — c'est
+// cette asymétrie que l'on corrige.
+//
+// Toute écriture de l'équipe programme la remontée quelques secondes
+// plus tard, une seule fois quel que soit le nombre de saisies : le
+// moniteur qui corrige trois champs de suite ne provoque qu'un envoi.
+// =================================================================
+const MINUTEURS_PUBLICATION_CARNET = {};
+const ETAT_PUBLICATION_CARNET = {};
+const DELAI_PUBLICATION_CARNET = 4000;
+
+// Dépôt personnel regroupé, pour les comptes qui ne sont pas de l'équipe :
+// famille, entreprise, apprenti. Une saisie au clavier ne doit pas
+// déclencher un envoi par caractère.
+let MINUTEUR_DEPOT_PERSONNEL = null;
+function planifierDepotPersonnel() {
+  if (typeof envoyerMesDonneesPersonnelles !== "function") return;
+  if (typeof sessionSynchroniseeFirebase === "function" && !sessionSynchroniseeFirebase()) return;
+  if (MINUTEUR_DEPOT_PERSONNEL) clearTimeout(MINUTEUR_DEPOT_PERSONNEL);
+  MINUTEUR_DEPOT_PERSONNEL = setTimeout(function () {
+    MINUTEUR_DEPOT_PERSONNEL = null;
+    try { envoyerMesDonneesPersonnelles(true); } catch (e) {}
+  }, DELAI_PUBLICATION_CARNET);
+}
+
+function planifierPublicationCarnet(usernameApprenti) {
+  if (!usernameApprenti) return;
+  // Deux chemins selon qui écrit. L'équipe publie vers le jeune et sa
+  // famille par les fiches ; une famille ou une entreprise dépose dans son
+  // propre document, que la MFR ramasse. Sans ce second chemin, la saisie
+  // d'un maître d'apprentissage restait chez lui.
+  const equipe = (typeof estEquipeMFR === "function") && estEquipeMFR();
+  if (!equipe) { planifierDepotPersonnel(); return; }
+  if (typeof publierCarnetApprenti !== "function") return;
+  if (typeof sessionSynchroniseeFirebase === "function" && !sessionSynchroniseeFirebase()) {
+    ETAT_PUBLICATION_CARNET[usernameApprenti] = { etat: "hors_ligne" };
+    majTemoinPublicationCarnet();
+    return;
+  }
+  if (MINUTEURS_PUBLICATION_CARNET[usernameApprenti]) {
+    clearTimeout(MINUTEURS_PUBLICATION_CARNET[usernameApprenti]);
+  }
+  ETAT_PUBLICATION_CARNET[usernameApprenti] = { etat: "en_attente" };
+  majTemoinPublicationCarnet();
+  MINUTEURS_PUBLICATION_CARNET[usernameApprenti] = setTimeout(function () {
+    delete MINUTEURS_PUBLICATION_CARNET[usernameApprenti];
+    Promise.resolve(publierCarnetApprenti(usernameApprenti, true)).then(function (r) {
+      ETAT_PUBLICATION_CARNET[usernameApprenti] = (r && r.ok)
+        ? { etat: "publie", quand: new Date().toISOString(), ecrits: r.ecrits || 0 }
+        : { etat: "echec", motif: (r && r.motif) || "inconnu" };
+      majTemoinPublicationCarnet();
+    }).catch(function () {
+      ETAT_PUBLICATION_CARNET[usernameApprenti] = { etat: "echec", motif: "exception" };
+      majTemoinPublicationCarnet();
+    });
+  }, DELAI_PUBLICATION_CARNET);
+}
+
+// Le témoin ne s'affiche que lorsqu'il a quelque chose à dire. Une
+// publication réussie s'efface au bout de quelques secondes : l'équipe n'a
+// pas à être félicitée du fonctionnement normal, seulement avertie de
+// l'anomalie.
+function majTemoinPublicationCarnet() {
+  const el = (typeof document !== "undefined") ? document.getElementById("temoin-publication-carnet") : null;
+  if (!el) return;
+  const id = (typeof carnetApprentiId !== "undefined") ? carnetApprentiId : "";
+  const e = id ? ETAT_PUBLICATION_CARNET[id] : null;
+  if (!e) { el.style.display = "none"; return; }
+  if (e.etat === "en_attente") {
+    el.style.display = "block";
+    el.style.background = "#FBF3E0"; el.style.color = "#6B5320";
+    el.innerHTML = "⏳ Modification enregistrée — remontée vers l'apprenti·e et sa famille en cours…";
+  } else if (e.etat === "publie") {
+    el.style.display = "block";
+    el.style.background = "#E8F0E2"; el.style.color = "#33511F";
+    el.innerHTML = "✅ Carnet transmis à l'apprenti·e" + (e.ecrits > 1 ? " et à " + (e.ecrits - 1) + " autre(s) destinataire(s)" : "") + ".";
+    setTimeout(function () {
+      if (ETAT_PUBLICATION_CARNET[id] && ETAT_PUBLICATION_CARNET[id].etat === "publie") {
+        delete ETAT_PUBLICATION_CARNET[id];
+        majTemoinPublicationCarnet();
+      }
+    }, 6000);
+  } else if (e.etat === "hors_ligne") {
+    el.style.display = "block";
+    el.style.background = "#F6E4DA"; el.style.color = "#7A3E1D";
+    el.innerHTML = "⚠️ Enregistré sur ce poste uniquement : sans connexion à la base partagée, " +
+      "l'apprenti·e ne verra pas cette modification. Reconnectez-vous, puis rouvrez ce carnet.";
+  } else {
+    el.style.display = "block";
+    el.style.background = "#F6E4DA"; el.style.color = "#7A3E1D";
+    el.innerHTML = "⚠️ La transmission du carnet a échoué (" + (e.motif || "motif inconnu") + "). " +
+      "Votre saisie est conservée sur ce poste. Utilisez « Publier les carnets » depuis la page Synchronisation.";
+  }
 }
 
 /**
@@ -40409,6 +41077,105 @@ function basculerSectionAlertes(id) {
 // -----------------------------------------------------------------
 // TROMBINOSCOPE DE L'ÉQUIPE
 // -----------------------------------------------------------------
+
+// =================================================================
+// v5.32 — LES PIÈCES JOINTES NE PEUVENT PLUS SATURER LA BASE
+// -----------------------------------------------------------------
+// Bulletins scolaires et documents institutionnels étaient stockés tels
+// quels, en base64, sans le moindre contrôle de taille. Or un document
+// Firestore est plafonné à 1 Mo : une photo de bulletin prise au
+// téléphone — trois à cinq mégaoctets — suffisait à faire échouer toute
+// la synchronisation de l'espace équipe, silencieusement et pour tout le
+// monde, jusqu'à ce que quelqu'un devine laquelle retirer.
+// Les images sont désormais redimensionnées et recompressées, par paliers,
+// jusqu'à tenir. Ce qui n'est pas une image — un PDF — ne peut pas être
+// compressé ici : on le refuse en le nommant, plutôt que de laisser la
+// base tomber.
+// =================================================================
+const LIMITE_PIECE_JOINTE = 700 * 1024;
+
+function estFichierImage(file) {
+  return !!(file && /^image\//.test(file.type || ""));
+}
+
+function poidsBase64(donnees) {
+  return typeof donnees === "string" ? donnees.length : 0;
+}
+
+function lireFichierEnBase64(file) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function (e) { resolve(e.target.result); };
+    reader.onerror = function () { reject(new Error("Lecture impossible")); };
+    reader.readAsDataURL(file);
+  });
+}
+
+// Redimensionnement proportionnel — à la différence du portrait de
+// trombinoscope, un bulletin ne se recadre pas en carré : on y perdrait
+// des notes.
+function compresserImageProportionnelle(file, maxDim, qualite) {
+  return new Promise(function (resolve, reject) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        const facteur = Math.min(1, maxDim / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * facteur));
+        canvas.height = Math.max(1, Math.round(img.height * facteur));
+        const ctx = canvas.getContext("2d");
+        if (ctx.imageSmoothingQuality !== undefined) ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", qualite));
+      };
+      img.onerror = function () { reject(new Error("Image invalide")); };
+      img.src = e.target.result;
+    };
+    reader.onerror = function () { reject(new Error("Lecture impossible")); };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function preparerFichierPourStockage(file, limite) {
+  limite = limite || LIMITE_PIECE_JOINTE;
+  if (!file) return { ok: false, motif: "aucun_fichier" };
+  if (estFichierImage(file)) {
+    let dim = 1600, qualite = 0.8;
+    let donnees = await compresserImageProportionnelle(file, dim, qualite);
+    let paliers = 0;
+    while (poidsBase64(donnees) > limite && paliers < 4) {
+      dim = Math.round(dim * 0.75);
+      qualite = Math.max(0.45, qualite - 0.12);
+      donnees = await compresserImageProportionnelle(file, dim, qualite);
+      paliers++;
+    }
+    return {
+      ok: poidsBase64(donnees) <= limite, donnees: donnees,
+      taille: poidsBase64(donnees), original: file.size, compresse: true,
+      motif: poidsBase64(donnees) <= limite ? "" : "trop_lourd"
+    };
+  }
+  const donnees = await lireFichierEnBase64(file);
+  return {
+    ok: poidsBase64(donnees) <= limite, donnees: donnees,
+    taille: poidsBase64(donnees), original: file.size, compresse: false,
+    motif: poidsBase64(donnees) <= limite ? "" : "trop_lourd_non_image"
+  };
+}
+
+function messageFichierRefuse(res, nomFichier) {
+  const ko = Math.round((res.taille || 0) / 1024);
+  if (res.motif === "trop_lourd_non_image") {
+    return "\u26D4 « " + nomFichier + " » pèse " + ko + " Ko une fois encodé, " +
+      "au-delà de ce que la base accepte pour un seul document.\n\n" +
+      "Ce n'est pas une image : l'application ne peut pas l'alléger elle-même.\n" +
+      "Réduisez-le avant de le déposer (un PDF se compresse depuis l'outil qui l'a produit), " +
+      "ou déposez-le page par page en photo.";
+  }
+  return "\u26D4 « " + nomFichier + " » reste trop lourd (" + ko + " Ko) même après compression.\n\n" +
+    "Reprenez la photo de plus loin, ou en résolution plus basse.";
+}
 
 // Compresse et redimensionne une photo pour stockage localStorage
 function compresserPhotoPourStockage(file, maxDim) {
@@ -43051,7 +43818,95 @@ function afficherParametrageAnnee() {
   anneeEnParametrage = ANNEE_SCOLAIRE_COURANTE;
   classeEnParametrage = Object.keys(CLASSES)[0];
 
+  try { majBandeauBasculeAnnee(); } catch (e) {}
   afficherGrillePlanning();
+}
+
+// =================================================================
+// v5.33 — L'ANNÉE SCOLAIRE COURANTE NE SE METTAIT JAMAIS À JOUR
+// -----------------------------------------------------------------
+// ANNEE_SCOLAIRE_COURANTE était calculée au tout premier lancement, puis
+// figée dans le stockage — et relue telle quelle à chaque ouverture, pour
+// toujours. Aucun écran ne permettait de la changer : le sélecteur de la
+// page de paramétrage choisit l'année que l'on ÉDITE, pas l'année courante.
+// L'application est donc restée sur son année d'origine, et a continué d'y
+// classer les bulletins, les plannings et les indicateurs.
+// Conséquence directe : des documents datés de l'année précédente remis à
+// une promotion en cours, et un classement erroné le jour de l'audit.
+//
+// La bascule ne peut pas être automatique : changer d'année scolaire à
+// l'improviste au beau milieu d'une session d'examen surprendrait toute
+// l'équipe. Elle est donc signalée, expliquée, et déclenchée par la
+// Direction — qui seule sait si le moment est venu.
+// =================================================================
+function anneeScolaireEnRetard() {
+  try {
+    const attendue = calculerAnneeScolaireEnCours();
+    return (attendue && attendue !== ANNEE_SCOLAIRE_COURANTE) ? attendue : "";
+  } catch (e) { return ""; }
+}
+
+function majBandeauBasculeAnnee() {
+  const el = document.getElementById("bandeau-bascule-annee");
+  if (!el) return;
+  const attendue = anneeScolaireEnRetard();
+  if (!attendue || typeof estAdminMFR !== "function" || !estAdminMFR()) {
+    el.style.display = "none";
+    return;
+  }
+  el.style.display = "block";
+  el.style.cssText = "display:block;margin:0 0 1rem;padding:0.9rem 1.1rem;border-radius:8px;" +
+    "background:#FBF0E4;border-left:4px solid #B45309;";
+  el.innerHTML =
+    '<strong style="color:#7A3E1D;">⚠️ L\'année scolaire enregistrée n\'est plus celle du calendrier.</strong>' +
+    '<p style="margin:0.5rem 0;font-size:0.94rem;">L\'application classe actuellement les bulletins, les plannings ' +
+    'et les indicateurs sous <strong>' + escapeHtml(ANNEE_SCOLAIRE_COURANTE) + '</strong>, alors que l\'année en cours ' +
+    'est <strong>' + escapeHtml(attendue) + '</strong>.</p>' +
+    '<p style="margin:0.5rem 0;font-size:0.9rem;color:#555;">La bascule ne déplace aucune donnée : ' +
+    'ce qui a été enregistré sous l\'année précédente y reste, et reste consultable. ' +
+    'Seuls les nouveaux enregistrements porteront la nouvelle année.</p>' +
+    '<button class="btn-primary" onclick="basculerAnneeScolaire(\'' + escapeHtml(attendue) + '\')">' +
+    '→ Passer à ' + escapeHtml(attendue) + '</button>';
+}
+
+async function basculerAnneeScolaire(annee) {
+  if (typeof estAdminMFR !== "function" || !estAdminMFR()) {
+    if (typeof refusAcces === "function") refusAcces("Seule la Direction peut changer l'année scolaire courante.");
+    return;
+  }
+  if (!annee || !/^\d{4}-\d{4}$/.test(annee)) { alert("Année scolaire inexploitable."); return; }
+  if (!confirm("Passer l'année scolaire courante de " + ANNEE_SCOLAIRE_COURANTE + " à " + annee + " ?\n\n" +
+      "• Les données déjà enregistrées ne bougent pas et restent consultables.\n" +
+      "• Les nouveaux bulletins, plannings et indicateurs porteront " + annee + ".\n" +
+      "• Le changement s'applique à tous les postes après envoi vers la base partagée.\n\n" +
+      "À ne faire qu'une fois la session précédente close.")) return;
+
+  ANNEE_SCOLAIRE_COURANTE = annee;
+  if (!ANNEES_SCOLAIRES[annee]) ANNEES_SCOLAIRES[annee] = { plannings: {} };
+  try {
+    localStorage.setItem("mfr_annee_scolaire_courante", annee);
+    localStorage.setItem("mfr_annees_scolaires", JSON.stringify(ANNEES_SCOLAIRES));
+  } catch (e) {
+    alert("⛔ L'enregistrement a échoué : rien n'a été changé.");
+    return;
+  }
+
+  let diffuse = false;
+  try {
+    if (typeof envoyerVersFirestore === "function"
+        && typeof sessionSynchroniseeFirebase === "function" && sessionSynchroniseeFirebase()) {
+      const r = await envoyerVersFirestore(true);
+      diffuse = !!(r && r.envoyees > 0);
+    }
+  } catch (e) {}
+
+  alert("✅ Année scolaire courante : " + annee + ".\n\n" +
+    (diffuse
+      ? "Le changement a été transmis à la base partagée. Vos collègues le verront à leur prochaine connexion."
+      : "⚠️ Il n'a PAS encore été transmis aux autres postes. Lancez « ⬆️ Envoyer les données vers la base partagée » " +
+        "depuis la page Synchronisation, sans quoi vos collègues resteront sur l'ancienne année."));
+
+  if (typeof afficherParametrageAnnee === "function") afficherParametrageAnnee();
 }
 
 function changerAnneeParametrage(anneeCode) {
@@ -43805,14 +44660,38 @@ async function recevoirMaFiche() {
     }
     // Carnets publiés par la MFR : fusionnés champ par champ, jamais
     // substitués — ce que l'utilisateur vient d'écrire ici fait foi. (v5.25)
+    // v5.32 — ORDRE DE RETRAIT, exécuté avant toute réception.
+    // Un apprenti majeur a retiré à ses responsables l'accès à son dossier :
+    // ce qui leur avait déjà été transmis est effacé de cet appareil. Le
+    // retrait passe en premier, pour qu'aucune donnée reçue dans le même
+    // échange ne vienne le contredire.
+    const retires = {};
+    if (brut.retraits && typeof brut.retraits === "object") {
+      Object.keys(brut.retraits).forEach(function(cle) {
+        if (cle.indexOf("carnet_") !== 0 && cle.indexOf("acteurs_") !== 0) return;
+        retires[cle] = true;
+        try { localStorage.removeItem(cle); } catch (e) {}
+      });
+    }
     if (brut.carnets && typeof brut.carnets === "object") {
       Object.keys(brut.carnets).forEach(function(cle) {
         if (cle.indexOf("carnet_") !== 0) return;
+        if (retires[cle]) return;
         const qui = cle.substring(7);
         try {
           const recu = JSON.parse(brut.carnets[cle]);
           fusionnerCarnetLocal(qui, recu, "mfr");
         } catch (e) {}
+      });
+    }
+    // v5.32 — entourage et contact d'urgence publiés par la MFR. Complète
+    // ce qui est vide chez le destinataire, n'écrase jamais sa saisie.
+    if (brut.acteurs && typeof brut.acteurs === "object") {
+      Object.keys(brut.acteurs).forEach(function(cle) {
+        if (cle.indexOf("acteurs_") !== 0) return;
+        if (retires[cle]) return;
+        try { fusionnerActeursLocal(cle.substring(8), JSON.parse(brut.acteurs[cle])); }
+        catch (e) {}
       });
     }
     const d = JSON.parse(brut.contenu || "{}");
@@ -44090,9 +44969,13 @@ async function uploadDocInstitutionnel(event) {
 
   const description = prompt("Description courte (optionnelle) :", "") || "";
 
-  // Lire le fichier en base64
-  const reader = new FileReader();
-  reader.onload = function(e) {
+  // v5.32 — même garde-fou que pour les bulletins : un document trop lourd
+  // faisait échouer la synchronisation entière, sans dire lequel.
+  preparerFichierPourStockage(file).then(function(preparation) {
+    if (!preparation.ok) {
+      alert(messageFichierRefuse(preparation, file.name));
+      return;
+    }
     const docs = chargerDocsInstitutionnels();
     const nouveauDoc = {
       id: "doc-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
@@ -44101,18 +44984,18 @@ async function uploadDocInstitutionnel(event) {
       nomFichier: file.name,
       dateDepot: new Date().toISOString(),
       deposePar: utilisateurConnecte ? utilisateurConnecte.id : "",
-      taille: file.size,
-      donneesBase64: e.target.result
+      taille: preparation.taille,
+      tailleOrigine: file.size,
+      compresse: preparation.compresse,
+      donneesBase64: preparation.donnees
     };
     docs.push(nouveauDoc);
     sauvegarderDocsInstitutionnels(docs);
     afficherRgpd();
     alert("✅ Document déposé avec succès.");
-  };
-  reader.onerror = function() {
+  }).catch(function() {
     alert("Erreur lors de la lecture du fichier.");
-  };
-  reader.readAsDataURL(file);
+  });
   event.target.value = "";
 }
 
@@ -45789,9 +46672,16 @@ function signerMaPresence(seanceId) {
     nom: u.nom || u.id
   };
   sauverEmargements();
-  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
-  alert("\u2705 Votre pr\u00e9sence est sign\u00e9e.");
-  afficherEmargement();
+  // v5.32 — la confirmation attend le serveur : une signature de présence
+  // qui n'est pas remontée ne prouve rien le jour du contrôle.
+  remonterEtConfirmer().then(function(ok) {
+    alert(ok
+      ? "\u2705 Votre pr\u00e9sence est sign\u00e9e et transmise \u00e0 la MFR."
+      : "\u26A0\uFE0F Votre signature est enregistr\u00e9e sur cet appareil, mais n'a PAS " +
+        "encore \u00e9t\u00e9 transmise \u00e0 la MFR.\n\nElle partira \u00e0 votre prochaine " +
+        "connexion. Pr\u00e9venez votre moniteur si le message revient.");
+    afficherEmargement();
+  });
 }
 
 // --- Remontée et agrégation ----------------------------------------------
@@ -48526,6 +49416,10 @@ function sauverActeurs() {
   });
 
   localStorage.setItem(cle, JSON.stringify(donnees));
+  // v5.32 — la page Acteurs emprunte la remontée du carnet : même jeune,
+  // mêmes destinataires, même regroupement de quelques secondes. Sans cela,
+  // le contact d'urgence restait sur le seul poste qui l'avait saisi.
+  try { planifierPublicationCarnet(acteursApprentiCourant); } catch (e) {}
 }
 
 function appliquerVerrousActeurs() {
@@ -49246,7 +50140,15 @@ function afficherPopupEnquetes(enquetes) {
   } else {
     titrePopup = "Votre avis nous est indispensable";
     chapo = "Dans le cadre de notre démarche qualité <strong>Qualiopi</strong>, nous avons besoin de recueillir votre satisfaction et vos retours.";
-    mentionCadre = "Vos réponses sont <strong>anonymisées</strong> pour l'analyse statistique et alimentent l'amélioration continue de la formation. Cette démarche est une exigence du référentiel qualité Qualiopi (indicateurs 22, 23, 24 et 30).";
+    // v5.32 — ce texte annonçait un anonymat qui n'a jamais existé : les
+    // réponses sont enregistrées sous l'identifiant de leur auteur. Annoncer
+    // l'anonymat à un répondant qui ne l'a pas, c'est recueillir son avis par
+    // surprise — et fausser l'enquête autant que manquer à la loyauté due à
+    // la personne interrogée.
+    mentionCadre = "Vos réponses sont <strong>rattachées à votre nom</strong> : la MFR sait qui a répondu quoi. " +
+      "C'est ce qui lui permet de relancer celles et ceux qui n'ont pas encore répondu, et de donner suite " +
+      "à une situation individuelle qui le mériterait. Les résultats sont ensuite <strong>présentés de façon " +
+      "agrégée</strong>. Cette démarche est une exigence du référentiel qualité Qualiopi (indicateurs 22, 23, 24 et 30).";
   }
 
   const listeHtml = enquetes.map(function(e) {
@@ -49527,7 +50429,7 @@ function ouvrirQuestionnaire(modeleId) {
         <button class="btn-fermer" onclick="fermerQuestionnaire()" aria-label="Fermer">✕</button>
       </div>
       <div class="enquete-modal-corps">
-        <p class="enquete-intro">Évaluez chaque proposition de <strong>1 (pas du tout d'accord) à 5 (tout à fait d'accord)</strong>. Vos réponses sont anonymes pour les statistiques agrégées.</p>
+        <p class="enquete-intro">Évaluez chaque proposition de <strong>1 (pas du tout d'accord) à 5 (tout à fait d'accord)</strong>. <strong>Vos réponses sont nominatives</strong> : la MFR saura qui a répondu quoi. Les résultats sont présentés de façon agrégée, mais une réponse qui appelle une réaction sera traitée individuellement.</p>
         <div class="enquete-questions">
           ${modele.questions.map((q, idx) => `
             <div class="enquete-question" data-question-id="${q.id}">
@@ -53333,9 +54235,13 @@ function envoyerReponseEval(campagneId) {
   const toutes = chargerReponsesEval();
   toutes.push(nouveau);
   sauverReponsesEval(toutes);
-  // Sans cette remontée, la réponse resterait sur l'appareil de l'apprenti :
-  // mfr_eval_reponses appartient à l'espace équipe, qu'il ne peut pas écrire.
-  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
+  // v5.32 — mfr_eval_reponses appartient à l'espace équipe, que l'apprenti
+  // ne peut pas écrire : sa réponse passe par son document personnel. On
+  // attend que le serveur l'ait acceptée avant de le remercier.
+  remonterEtConfirmer().then(function(ok) {
+    const zone = document.getElementById("eval-etat-transmission");
+    if (zone && !ok) zone.innerHTML = blocNonTransmis("Votre \u00e9valuation");
+  });
 
   // Marquer localement comme fait (pour éviter double vote)
   const u = utilisateurConnecte;
@@ -53349,6 +54255,7 @@ function envoyerReponseEval(campagneId) {
     '<div class="icon">✅</div>' +
     '<h3>Merci pour votre évaluation !</h3>' +
     '<p>Vos réponses ont été enregistrées.</p>' +
+    '<div id="eval-etat-transmission"></div>' +
     '<p style="font-size:0.9rem;color:var(--text-muted);margin-top:1rem;">Elles serviront à améliorer les enseignements pour vous et pour les futures promotions.</p>' +
     '<button class="btn-signer" style="margin-top:1.5rem;" onclick="afficherEvalApprenti(document.getElementById(\'evaluationContenu\'))">Retour</button>' +
     '</div>';
@@ -53978,9 +54885,13 @@ function envoyerReclamation(estFormateur) {
   const recs = chargerReclamations();
   recs.push(nouveau);
   sauverReclamations(recs);
-  // Remontée immédiate : sans elle, la réclamation resterait sur l'appareil
-  // de son auteur et ne parviendrait jamais à la MFR.
-  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
+  // v5.32 — un numéro de référence annoncé alors que rien n'est parti est
+  // une promesse que l'application ne tient pas. On attend le serveur, et
+  // on le dit si la remontée a échoué.
+  remonterEtConfirmer().then(function(ok) {
+    const zone = document.getElementById("reclam-etat-transmission");
+    if (zone && !ok) zone.innerHTML = blocNonTransmis("Votre r\u00e9clamation");
+  });
 
   const container = document.getElementById("reclamationsContenu");
   container.innerHTML =
@@ -53988,6 +54899,7 @@ function envoyerReclamation(estFormateur) {
     '<div class="icon">✅</div>' +
     '<h3>Votre réclamation a bien été enregistrée</h3>' +
     '<p>Elle sera examinée dans les plus brefs délais.</p>' +
+    '<div id="reclam-etat-transmission"></div>' +
     '<p><strong>Votre numéro de référence :</strong></p>' +
     '<div class="numero-ref">' + nouveau.id + '</div>' +
     '<p style="font-size:0.9rem;color:var(--text-muted);margin-top:1rem;">Vous recevrez la réponse directement dans cette page, dans la section « Mes réclamations ».</p>' +
@@ -57971,12 +58883,20 @@ function referentielPourClasse(classe) {
 function chargerEvalsLivret() {
   try { return JSON.parse(localStorage.getItem("mfr_livret_evaluations") || "[]"); } catch (e) { return []; }
 }
-function sauverEvalsLivret(e) { localStorage.setItem("mfr_livret_evaluations", JSON.stringify(e)); }
+function sauverEvalsLivret(e) {
+  localStorage.setItem("mfr_livret_evaluations", JSON.stringify(e));
+  // v5.32 — un maître d'apprentissage n'écrit pas dans l'espace équipe :
+  // son évaluation remonte par son document personnel, que la MFR ramasse.
+  try { if (typeof estEquipeMFR === "function" && !estEquipeMFR()) planifierDepotPersonnel(); } catch (err) {}
+}
 
 function chargerPreuvesLivret() {
   try { return JSON.parse(localStorage.getItem("mfr_livret_preuves") || "[]"); } catch (e) { return []; }
 }
-function sauverPreuvesLivret(p) { localStorage.setItem("mfr_livret_preuves", JSON.stringify(p)); }
+function sauverPreuvesLivret(p) {
+  localStorage.setItem("mfr_livret_preuves", JSON.stringify(p));
+  try { if (typeof estEquipeMFR === "function" && !estEquipeMFR()) planifierDepotPersonnel(); } catch (err) {}
+}
 
 // Aiguillage principal
 function initPageLivret() {
@@ -58936,13 +59856,14 @@ function envoyerMessageEntreprise() {
     lu: false
   });
   sauverMessagesEntreprise(messages);
-  // Sans cette remontée, le message resterait sur l'appareil du maître
-  // d'apprentissage : mfr_messages_entreprise appartient à l'espace équipe.
-  if (typeof envoyerMesDonneesPersonnelles === "function") envoyerMesDonneesPersonnelles(true);
-
   document.getElementById("msg_texte").value = "";
-  afficherToast("✓ Message envoyé à la MFR.");
-  initPageEntreprise("messagerie");
+  // v5.32 — « Message envoyé » n'est dit qu'une fois le serveur l'ayant pris.
+  remonterEtConfirmer().then(function(ok) {
+    afficherToast(ok
+      ? "\u2713 Message transmis \u00e0 la MFR."
+      : "\u26A0\uFE0F Message enregistr\u00e9 ici, pas encore transmis \u00e0 la MFR.");
+    initPageEntreprise("messagerie");
+  });
 }
 
 // -----------------------------------------------------------------
