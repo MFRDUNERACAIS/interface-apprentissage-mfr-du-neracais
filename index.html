@@ -22775,6 +22775,13 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.30 (23/09/2026) — « La séance n'a pas pu être publiée » : le message
+//       ne disait pas pourquoi et laissait la Direction chercher entre deux
+//       causes sans rapport. publierSeance() distingue désormais le refus
+//       des règles Firestore, l'absence d'authentification et la coupure
+//       réseau, et donne le geste à faire — y compris le texte exact de la
+//       règle à déployer. Un bouton « ↻ Republier la séance » apparaît sur
+//       la séance non transmise : plus besoin de la recréer.
 //   v5.29 (23/09/2026) — Signalé par la Direction : « je ne trouve pas le
 //       bouton ». Le bouton « + Ouvrir une nouvelle séance » vivait dans le
 //       bloc « Aucune séance ouverte », donc masqué dès qu'une séance
@@ -23215,7 +23222,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.29";
+const APP_VERSION = "5.30";
 const APP_DATE_BUILD = "22 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -45859,9 +45866,22 @@ function seanceOuvertePour_fin() {}
 // d'apprentis, ni présences, seulement ce qu'il faut pour signer.
 // =================================================================
 
+// v5.30 — la publication ne se contente plus d'échouer : elle dit pourquoi.
+// Un refus des règles Firestore et une absence de connexion demandent deux
+// gestes très différents, et le message précédent laissait la Direction
+// choisir entre les deux.
+let DERNIER_MOTIF_SEANCE = "";
+
 async function publierSeance(seance) {
+  DERNIER_MOTIF_SEANCE = "";
   try {
-    if (!seance || !initialiserFirebase() || !fbAuth.currentUser) return false;
+    if (!seance) { DERNIER_MOTIF_SEANCE = "interne"; return false; }
+    if (!initialiserFirebase() || !fbAuth.currentUser) {
+      DERNIER_MOTIF_SEANCE = "non_authentifie";
+      seance.publiee = false;
+      try { sauverEmargements(); } catch (e) {}
+      return false;
+    }
     await fbDb.collection("seances").doc(seance.id).set({
       id: seance.id,
       classes: classesDeSeance(seance),
@@ -45872,8 +45892,55 @@ async function publierSeance(seance) {
       formateurNom: seance.formateurNom || "",
       cloture: !!seance.cloture
     });
+    seance.publiee = true;
+    try { sauverEmargements(); } catch (e) {}
     return true;
-  } catch (e) { return false; }
+  } catch (e) {
+    const code = (e && e.code) || "";
+    seance.publiee = false;
+    try { sauverEmargements(); } catch (e) {}
+    DERNIER_MOTIF_SEANCE = (code.indexOf("permission") >= 0) ? "regles_refusent"
+      : (code.indexOf("unavailable") >= 0 || code.indexOf("network") >= 0) ? "hors_ligne"
+      : (code || "erreur");
+    return false;
+  }
+}
+
+// Message adapté au motif réel, avec le geste à faire.
+function messageEchecSeance() {
+  if (DERNIER_MOTIF_SEANCE === "non_authentifie") {
+    return "⚠️ Vous n'êtes pas connecté·e à Firebase sur ce poste.\n\n" +
+      "La séance est ouverte ici, mais les apprentis ne la verront pas.\n" +
+      "Déconnectez-vous et reconnectez-vous avec votre mot de passe personnel.";
+  }
+  if (DERNIER_MOTIF_SEANCE === "regles_refusent") {
+    return "⚠️ Firebase REFUSE l'écriture des séances.\n\n" +
+      "La règle de sécurité des séances n'est pas déployée. Dans la console\n" +
+      "Firebase → Firestore Database → Règles, ajoutez :\n\n" +
+      "    match /seances/{seanceId} {\n" +
+      "      allow read: if connecte();\n" +
+      "      allow write: if estEquipe();\n" +
+      "    }\n\n" +
+      "puis Publier, et recréez la séance.";
+  }
+  if (DERNIER_MOTIF_SEANCE === "hors_ligne") {
+    return "⚠️ Pas de réseau : la séance n'a pas été transmise.\n\n" +
+      "Elle est ouverte sur ce poste. Utilisez « ↻ Republier la séance »\n" +
+      "dès que la connexion revient.";
+  }
+  return "⚠️ La séance est ouverte sur ce poste, mais n'a pas pu être publiée\n" +
+    "(" + (DERNIER_MOTIF_SEANCE || "cause inconnue") + ").\n\nLes apprentis ne la verront pas.";
+}
+
+// Reprise manuelle, sans avoir à recréer la séance.
+async function republierSeanceActive() {
+  const seance = PROFILS_EMARGEMENTS.find(function(s) { return s.id === seanceActiveId; });
+  if (!seance) { alert("Aucune séance en cours."); return; }
+  const ok = await publierSeance(seance);
+  alert(ok ? "✅ Séance transmise. Les apprentis peuvent désormais signer\n" +
+    "(qu'ils appuient sur ↻ Actualiser dans leur onglet Émargement)."
+    : messageEchecSeance());
+  afficherSeanceActive();
 }
 
 // Côté apprenti : séances du jour de sa classe, fusionnées dans la liste
@@ -45955,9 +46022,8 @@ function creerSeance() {
   // Publication immédiate : sans elle, les apprentis ne verraient pas la
   // séance sur leur téléphone et ne pourraient pas signer.
   publierSeance(seance).then(function(ok) {
-    if (!ok) alert("\u26A0 La s\u00e9ance est ouverte sur ce poste, mais n'a pas pu \u00eatre publi\u00e9e.\n\n" +
-      "Les apprentis ne la verront pas. V\u00e9rifiez votre connexion et que vous \u00eates bien " +
-      "connect\u00e9\u00b7e avec votre compte Firebase (pas de bandeau rouge en haut de l'\u00e9cran).");
+    if (!ok) alert(messageEchecSeance());
+    afficherSeanceActive();
   });
   seanceActiveId = seance.id;
   fermerModalEmarg();
@@ -45990,6 +46056,15 @@ function afficherSeanceActive() {
     '</div>' +
     '<div class="emarg-seance-compteur">' + emargDone + ' / ' + nbTotal + ' émargés</div>' +
   '</div>';
+
+  // v5.30 — une séance non transmise ne doit pas passer inaperçue : les
+  // apprentis ne la voient pas et ne peuvent pas signer.
+  if (seance.publiee === false) {
+    html += '<div style="background:#FDECEA;border-left:4px solid #C62828;padding:0.8rem 1rem;margin-bottom:1rem;border-radius:6px;">' +
+      '<strong>⚠️ Séance non transmise aux apprentis.</strong> Ils ne la voient pas et ne peuvent pas signer. ' +
+      '<button class="btn-mini" style="margin-left:0.5rem;" onclick="republierSeanceActive()">↻ Republier la séance</button>' +
+    '</div>';
+  }
 
   if (apprentis.length === 0) {
     html += '<div class="emarg-vide">Aucun apprenti actif dans cette classe. Vérifiez la liste des apprentis dans Gestion des profils.</div>';
