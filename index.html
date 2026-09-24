@@ -22790,6 +22790,42 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.37 (24/09/2026) — RÉPARER UNE PERSONNE SANS EN TRAITER SOIXANTE-NEUF.
+//       Pour débloquer un seul apprenti, il fallait relancer le traitement
+//       des 69 comptes. Ce matin-là, l'opération est restée muette quarante
+//       minutes : rien ne permettait de distinguer un traitement qui avance
+//       d'un traitement bloqué, et la Direction attendait devant un écran
+//       vide pendant qu'un jeune restait sans accès.
+//       Quatre corrections :
+//       1. Un bouton « ☁️ Compte » sur chaque fiche d'apprenti traite CE
+//          compte-là, en quelques secondes, avec la même sécurité : rien
+//          n'est écrit en local avant l'accord du serveur, et chaque cause
+//          d'échec est nommée — compte désactivé, code divergent, mot de
+//          passe personnalisé.
+//       2. Un bandeau de progression nomme la personne en cours de
+//          traitement.
+//       3. L'enregistrement a lieu après CHAQUE compte, non plus à la fin :
+//          une interruption ne laisse plus de comptes créés dans Firebase
+//          dont le rattachement n'est consigné nulle part.
+//       4. Le compte rendu s'affiche dans la page — il reste lisible, se
+//          copie, et ne dépend plus d'une boîte de dialogue que le
+//          navigateur peut supprimer. La liste des échecs n'est plus
+//          tronquée à douze : une personne omise est une personne qu'on
+//          oublie de dépanner.
+//   v5.36 (23/09/2026) — UN COMPTE DÉSACTIVÉ N'ÉTAIT PAS NOMMÉ.
+//       La console Firebase a révélé la vraie cause de l'enfermement d'un
+//       apprenti : son compte y était DÉSACTIVÉ. Aucun mot de passe ne peut
+//       ouvrir un compte désactivé — tous les essais de la journée étaient
+//       condamnés d'avance.
+//       Or auth/user-disabled n'était pas traité : il tombait dans la
+//       catégorie fourre-tout, et le bandeau annonçait « Firebase n'a pas
+//       répondu : connexion internet, ou blocage du navigateur ». Le message
+//       désignait le réseau quand le compte était fermé, et a fait chercher
+//       des heures du côté des mots de passe et des appareils.
+//       La cause est désormais nommée aux quatre endroits où elle peut
+//       surgir — connexion, bandeau de mode local, création de comptes,
+//       réparation — avec le chemin exact dans la console et l'avertissement
+//       de NE PAS supprimer le compte : son mot de passe reste valable.
 //   v5.35 (23/09/2026) — « RETRAITER TOUS LES PROFILS » CASSAIT DES COMPTES
 //       QUI MARCHAIENT. Question de la Direction, à qui je venais de
 //       conseiller cette opération : « ça va faire sauter les mots de passe
@@ -23376,7 +23412,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.35";
+const APP_VERSION = "5.37";
 const APP_DATE_BUILD = "23 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24400,6 +24436,13 @@ async function connexionFirebase(id, code) {
       return { user: null, raison: "refuse" };
     }
     if (c === "auth/too-many-requests") return { user: null, raison: "trop_de_tentatives" };
+    // v5.36 — un compte DÉSACTIVÉ dans la console Firebase ne peut pas
+    // s'authentifier, quel que soit le mot de passe. Faute d'être nommée,
+    // cette cause tombait dans la catégorie fourre-tout et le bandeau
+    // désignait le réseau : on a cherché du côté des mots de passe et des
+    // appareils tout un après-midi, alors que le compte était simplement
+    // fermé côté serveur.
+    if (c === "auth/user-disabled") return { user: null, raison: "desactive" };
     if (window.console && console.warn) console.warn("connexionFirebase", c, e);
     return { user: null, raison: "indisponible" };
   }
@@ -24525,6 +24568,11 @@ async function reparerCompteFirebase(identifiantParDefaut) {
         "Le compte existe peut-être avec un autre code, ou n'existe pas du tout.\n\n" +
         "Remède sûr : console Firebase > Authentication > Utilisateurs >\n" +
         "supprimez " + id + DOMAINE_TECHNIQUE + " > puis relancez ☁️ Créer les comptes.");
+    } else if (c === "auth/user-disabled") {
+      alert("⛔ Le compte " + id + " est DÉSACTIVÉ dans Firebase.\n\n" +
+        "Aucun mot de passe ne peut l'ouvrir tant qu'il l'est, et la réparation n'y peut rien.\n\n" +
+        "Console Firebase > Authentication > Utilisateurs > les trois points à droite de la ligne\n" +
+        "> « Activer le compte ».\n\nNe le supprimez pas : son mot de passe reste valable.");
     } else if (c === "permission-denied") {
       alert("⛔ L'écriture dans l'annuaire est refusée.\n\n" +
         "Publiez les règles de bascule, relancez cette réparation,\n" +
@@ -24604,6 +24652,160 @@ async function traiterUnCompteFirebase(item, code, codeInvente) {
   }
 }
 
+// v5.37 — Bandeau de progression du traitement des comptes. Posé en haut
+// de la page Profils, retiré à la fin. Sans lui, une opération de plusieurs
+// minutes était indiscernable d'un blocage.
+function afficherProgressionComptes(fait, total, nom) {
+  let el = document.getElementById("progression-comptes");
+  if (fait < 0) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "progression-comptes";
+    el.className = "no-print";
+    el.style.cssText = "position:fixed;left:50%;transform:translateX(-50%);bottom:1.2rem;z-index:9999;" +
+      "background:#2E5B31;color:#fff;padding:0.8rem 1.2rem;border-radius:10px;" +
+      "box-shadow:0 6px 24px rgba(0,0,0,.25);font-size:0.95rem;max-width:90vw;";
+    document.body.appendChild(el);
+  }
+  const pct = total ? Math.round((fait / total) * 100) : 0;
+  el.innerHTML = "\u2601\uFE0F Traitement des comptes \u2014 <strong>" + fait + " / " + total + "</strong>" +
+    (nom ? " &nbsp;\u00b7&nbsp; " + escapeHtml(nom) : "") +
+    '<div style="margin-top:0.5rem;height:6px;background:rgba(255,255,255,.25);border-radius:99px;">' +
+    '<div style="height:100%;width:' + pct + '%;background:#fff;border-radius:99px;"></div></div>';
+}
+
+// v5.37 — le compte rendu ne dépend plus d'une bo\u00eete de dialogue que le
+// navigateur peut supprimer, et que rien ne conserve. Il s'affiche dans la
+// page, reste lisible, et se copie.
+function afficherCompteRenduComptes(texte) {
+  let el = document.getElementById("compte-rendu-comptes");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "compte-rendu-comptes";
+    el.className = "no-print";
+    el.style.cssText = "position:fixed;inset:5vh 5vw;z-index:10000;background:#FFFFFF;color:#23291F;" +
+      "border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.35);display:flex;flex-direction:column;";
+    document.body.appendChild(el);
+  }
+  el.innerHTML =
+    '<div style="padding:1rem 1.2rem;border-bottom:1px solid #DFE0D6;display:flex;' +
+    'justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">' +
+      '<strong style="font-size:1.05rem;">Compte rendu du traitement des comptes</strong>' +
+      '<span>' +
+        '<button class="btn-secondary" onclick="copierCompteRenduComptes()">\u{1F4CB} Copier</button> ' +
+        '<button class="btn-primary" onclick="document.getElementById(\'compte-rendu-comptes\').remove()">Fermer</button>' +
+      '</span>' +
+    '</div>' +
+    '<pre id="texte-compte-rendu" style="margin:0;padding:1.2rem;overflow:auto;flex:1;' +
+    'white-space:pre-wrap;font-family:ui-monospace,Menlo,monospace;font-size:0.88rem;">' +
+    escapeHtml(texte) + '</pre>';
+}
+
+function copierCompteRenduComptes() {
+  const z = document.getElementById("texte-compte-rendu");
+  if (!z) return;
+  const t = z.textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(t).then(function() { afficherToast("\u2713 Compte rendu copi\u00e9."); })
+      .catch(function() { afficherToast("Copie refus\u00e9e par le navigateur \u2014 s\u00e9lectionnez le texte."); });
+  } else {
+    afficherToast("Copie indisponible \u2014 s\u00e9lectionnez le texte.");
+  }
+}
+
+// =================================================================
+// v5.37 — CRÉER LE COMPTE D'UNE SEULE PERSONNE
+// -----------------------------------------------------------------
+// Pour réparer un apprenti, il fallait jusqu'ici relancer le traitement
+// des 69 comptes : plusieurs minutes, aucun indicateur de progression, et
+// un blocage possible qui laisse la Direction devant un écran muet — c'est
+// arrivé le 24 septembre au matin.
+// Un compte se traite désormais seul, en quelques secondes, depuis sa
+// fiche. Même logique, même sécurité : rien n'est écrit en local avant
+// l'accord du serveur, et l'enregistrement a lieu immédiatement.
+// =================================================================
+const ROLE_DE_TYPE = { apprenti: "apprenti", famille: "parent", lieu: "maitre", salarie: "mfr" };
+
+async function creerCompteFirebaseIndividuel(type, id) {
+  if (!estAdminMFR()) {
+    refusAcces("Seules la Direction et le Secrétariat peuvent créer un compte.");
+    return;
+  }
+  if (!initialiserFirebase()) { alert("Firebase n'est pas joignable."); return; }
+  const col = collectionProfils(type);
+  if (!col) return;
+  const profil = col.arr.find(function(p) { return p.id === id || p.identifiant === id; });
+  if (!profil) { alert("Profil introuvable."); return; }
+
+  const identifiant = normaliserIdentifiantConnexion(profil.username || profil.identifiant || "")
+    .replace(/^\.+|\.+$/g, "");
+  if (!identifiant) {
+    alert("⛔ Ce profil n'a pas d'identifiant de connexion.\n\nRenseignez-le dans la fiche, puis recommencez.");
+    return;
+  }
+  const nomAffiche = ((profil.prenom || profil.prenomMA || "") + " " + (profil.nom || profil.nomMA || "")).trim()
+    || profil.entreprise || identifiant;
+
+  if (!confirm("Créer ou rattacher le compte Firebase de " + nomAffiche + " ?\n\n" +
+      "Identifiant : " + identifiant + "\n" +
+      "Adresse technique : " + identifiant + DOMAINE_TECHNIQUE + "\n\n" +
+      "Cette opération ne concerne que cette personne. Comptez quelques secondes.")) return;
+
+  let code = profil.password;
+  const codeInvente = !code;
+  if (codeInvente) code = genererMotDePasse();
+
+  try {
+    const r = await traiterUnCompteFirebase(
+      { profil: profil, role: ROLE_DE_TYPE[type] || "apprenti", identifiant: identifiant },
+      code, codeInvente);
+    if (codeInvente) {
+      profil.password = code;
+      delete profil.passwordHash;
+      delete profil.dateChangementMdp;
+    }
+    profil.uidFirebase = r.uid;
+    profil.username = identifiant;
+    if (type === "salarie") profil.identifiant = identifiant;
+    sauvegarderProfils();
+    alert("✅ Compte opérationnel : " + nomAffiche + "\n\n" +
+      "Identifiant : " + identifiant + "\n" +
+      "Code d'accès : " + profil.password + "\n\n" +
+      (r.repris ? "Le compte existait déjà : il a été rattaché." : "Le compte a été créé.") +
+      "\n\nRemettez ces éléments à la personne — le bouton ✉️ Courriers en édite le courrier.");
+    if (typeof afficherApprentis === "function" && type === "apprenti") afficherApprentis();
+    if (typeof filtrerSalaries === "function" && type === "salarie") filtrerSalaries();
+  } catch (e) {
+    const c = (e && e.code) ? e.code : "";
+    if (c === "mfr/compte-existant-code-inconnu") {
+      alert("✋ " + nomAffiche + " a personnalisé son mot de passe, et son compte existe déjà.\n\n" +
+        "RIEN n'a été touché : elle continue de se connecter normalement avec son mot de passe.\n\n" +
+        "N'intervenez que si elle signale un problème — dans ce cas, supprimez son compte dans la\n" +
+        "console Firebase (Authentication > Utilisateurs), puis relancez ce bouton.");
+    } else if (c === "auth/user-disabled") {
+      alert("⛔ Le compte " + identifiant + DOMAINE_TECHNIQUE + " est DÉSACTIVÉ dans Firebase.\n\n" +
+        "Aucun mot de passe ne peut l'ouvrir tant qu'il l'est.\n\n" +
+        "Console Firebase > Authentication > Utilisateurs > les trois points à droite de la ligne\n" +
+        "> « Activer le compte ». Ne le supprimez pas.");
+    } else if (c === "auth/wrong-password" || c === "auth/invalid-credential") {
+      alert("⛔ Un compte existe déjà à l'adresse " + identifiant + DOMAINE_TECHNIQUE + ",\n" +
+        "mais avec un autre code que celui de la fiche.\n\n" +
+        "Remède : console Firebase > Authentication > Utilisateurs > supprimez ce compte,\n" +
+        "puis relancez ce bouton. Rien n'a été changé sur ce poste.");
+    } else if (c === "auth/weak-password") {
+      alert("⛔ Le code de la fiche est trop court : six caractères au minimum.\n\n" +
+        "Utilisez 🔑 MDP pour en générer un valable, puis relancez.");
+    } else if (c === "permission-denied") {
+      alert("⛔ L'écriture de la fiche d'annuaire a été refusée.\n\n" +
+        "Vérifiez que vous êtes bien connectée à la base partagée — le bandeau orange ne doit pas " +
+        "s'afficher — puis relancez.");
+    } else {
+      alert("⛔ Échec : " + (c || (e && e.message) || "erreur inconnue") + "\n\n" +
+        "Rien n'a été changé sur ce poste.");
+    }
+  }
+}
+
 async function creerComptesFirebase() {
   if (typeof peutGererDocsInstitutionnels === "function" && !peutGererDocsInstitutionnels()) {
     alert("Cette op\u00e9ration est r\u00e9serv\u00e9e \u00e0 la Direction et au Secr\u00e9tariat.");
@@ -24647,8 +24849,16 @@ async function creerComptesFirebase() {
   let crees = 0, reprises = 0, parDirection = 0;
   const echecs = [], nouveauxCodes = [], intacts = [];
 
+  // v5.37 — une opération de plusieurs minutes ne doit pas se dérouler
+  // derrière un écran muet : la Direction ne pouvait pas distinguer un
+  // traitement qui avance d'un traitement bloqué.
+  afficherProgressionComptes(0, aCreer.length, "");
+
   for (let i = 0; i < aCreer.length; i++) {
     const item = aCreer[i];
+    afficherProgressionComptes(i, aCreer.length, item.identifiant);
+    // Laisse le navigateur redessiner avant de repartir sur le réseau.
+    await new Promise(function(r) { setTimeout(r, 0); });
 
     const idPropre = normaliserIdentifiantConnexion(item.identifiant).replace(/^\.+|\.+$/g, "");
     if (!idPropre) {
@@ -24686,6 +24896,11 @@ async function creerComptesFirebase() {
       crees++;
       if (r.repris) reprises++;
       if (r.parDirection) parDirection++;
+      // v5.37 — enregistrement APRÈS CHAQUE compte, et non à la fin. Une
+      // interruption — page fermée, veille, réseau coupé — laissait sinon des
+      // comptes créés dans Firebase dont le rattachement n'était consigné
+      // nulle part, et des codes générés perdus.
+      sauvegarderProfils();
     } catch (e) {
       const c = (e && e.code) ? e.code : "";
       if (c === "mfr/compte-existant-code-inconnu") {
@@ -24694,6 +24909,9 @@ async function creerComptesFirebase() {
         echecs.push(idPropre + " \u2014 compte Firebase existant avec un autre code : supprimez-le dans la console, puis relancez");
       } else if (c === "auth/weak-password") {
         echecs.push(idPropre + " \u2014 code trop court (6 caract\u00e8res minimum)");
+      } else if (c === "auth/user-disabled") {
+        echecs.push(idPropre + " \u2014 compte D\u00c9SACTIV\u00c9 dans Firebase : r\u00e9activez-le dans la console " +
+          "(Authentication > Utilisateurs > trois points > Activer le compte). Ne le supprimez pas.");
       } else if (c === "permission-denied") {
         echecs.push(idPropre + " \u2014 annuaire refus\u00e9 : publiez les r\u00e8gles de bascule");
       } else {
@@ -24703,6 +24921,7 @@ async function creerComptesFirebase() {
   }
 
   if (crees > 0) sauvegarderProfils();
+  afficherProgressionComptes(-1, aCreer.length, "");
 
   let bilan = "\u2705 " + crees + " compte(s) op\u00e9rationnel(s) sur " + aCreer.length + ".";
   if (reprises > 0) bilan += "\n   (dont " + reprises + " repris d'une tentative pr\u00e9c\u00e9dente)";
@@ -24727,11 +24946,13 @@ async function creerComptesFirebase() {
       "compte dans la console Firebase puis relancez cette op\u00e9ration pour elle.";
   }
   if (echecs.length > 0) {
-    bilan += "\n\n\u26D4 \u00c9CHECS (" + echecs.length + ") :\n   " + echecs.slice(0, 12).join("\n   ");
-    if (echecs.length > 12) bilan += "\n   \u2026 et " + (echecs.length - 12) + " autre(s)";
+    // v5.37 — la liste n'est plus tronqu\u00e9e : elle s'affiche dans la page,
+    // o\u00f9 la place ne manque pas, et une personne omise est une personne
+    // qu'on oublie de d\u00e9panner.
+    bilan += "\n\n\u26D4 \u00c9CHECS (" + echecs.length + ") :\n   " + echecs.join("\n   ");
   }
   bilan += "\n\nV\u00e9rifiez dans la console Firebase, onglet Authentication > Utilisateurs.";
-  alert(bilan);
+  afficherCompteRenduComptes(bilan);
   if (typeof filtrerSalaries === "function") filtrerSalaries();
 }
 
@@ -26591,6 +26812,11 @@ async function login() {
         "quelques minutes. Patientez, ou utilisez un autre compte.";
     } else if (raisonFirebase === "archive") {
       errorBox.textContent = "Ce compte a été désactivé. Contactez le secrétariat.";
+    } else if (raisonFirebase === "desactive") {
+      alert("\u26D4 Ce compte est d\u00e9sactiv\u00e9 dans Firebase.\n\n" +
+        "Aucun mot de passe ne peut l'ouvrir tant qu'il l'est. Signalez-le au secr\u00e9tariat : " +
+        "la r\u00e9activation se fait en deux clics dans la console, et le mot de passe actuel " +
+        "reste valable.");
     } else if (raisonFirebase === "sans_annuaire") {
       errorBox.textContent = "Votre compte existe mais sa fiche d'annuaire est manquante. " +
         "Signalez-le à la direction : une réparation est nécessaire.";
@@ -34144,6 +34370,7 @@ function filtrerApprentis() {
           ${estArchive ? `<button class="btn-action" onclick="imprimerFicheApprenti('${a.id}')" title="Imprimer la fiche récapitulative">🖨️ Fiche</button>` : `
             <button class="btn-action action-primary" onclick="editerCourriersTrio('${a.id}')" title="Éditer les 3 courriers d'identifiants (apprenti, famille, maître d'apprentissage)">✉️ Courriers</button>
             <button class="btn-action" onclick="reinitMotDePasse('apprenti','${a.id}')" title="Réinitialiser le mot de passe de l'apprenti">🔑 MDP</button>
+            <button class="btn-action" onclick="creerCompteFirebaseIndividuel('apprenti','${a.id}')" title="Créer ou rattacher le compte Firebase de cet apprenti — quelques secondes, sans toucher aux autres">☁️ Compte</button>
           `}
           <button class="btn-action ${a.statut === 'actif' ? 'action-danger' : ''}" onclick="toggleStatutProfil('apprenti','${a.id}')">${a.statut === 'actif' ? '🚫 Désactiver' : '✓ Réactiver'}</button>
         </td>
@@ -45472,6 +45699,10 @@ function majBandeauModeLocal() {
     trop_de_tentatives: "Firebase a bloqu\u00e9 ce compte apr\u00e8s plusieurs tentatives. " +
       "Patientez quelques minutes et reconnectez-vous.",
     archive: "Ce compte est archiv\u00e9 dans Firebase.",
+    desactive: "Ce compte est D\u00c9SACTIV\u00c9 dans Firebase : aucun mot de passe ne peut " +
+      "l'ouvrir tant qu'il l'est. Console Firebase > Authentication > Utilisateurs > " +
+      "les trois points \u00e0 droite de la ligne > \u00ab Activer le compte \u00bb. " +
+      "Ne le supprimez pas : son mot de passe reste valable.",
     indisponible: "Firebase n'a pas r\u00e9pondu : connexion internet, ou blocage du navigateur."
   };
   const u2 = utilisateurConnecte;
