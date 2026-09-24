@@ -22790,6 +22790,20 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 // =================================================================
 // Format Major.Minor — à incrémenter à chaque livraison significative.
 // Historique récent :
+//   v5.38 (24/09/2026) — LE BOUTON QUI « NE FAISAIT RIEN ».
+//       Chrome propose « Empêcher cette page de créer des boîtes de dialogue
+//       supplémentaires » dès qu'une page en affiche plusieurs d'affilée. Une
+//       case cochée par mégarde rend TOUTES les fenêtres muettes — y compris
+//       les demandes de confirmation. Or un confirm() étouffé renvoie « non » :
+//       la fonction s'arrête sans rien dire, et la Direction clique dans le
+//       vide sans comprendre pourquoi.
+//       Cela explique les trois silences de ces deux jours : le compte rendu
+//       jamais affiché, les quarante minutes d'attente devant un écran vide,
+//       et le bouton ☁️ Compte qui ne réagissait pas.
+//       Le flux de création d'un compte ne passe plus par le navigateur :
+//       sa demande de confirmation et tous ses messages s'affichent DANS la
+//       page, où rien ne peut les faire taire. Le banc le vérifie en simulant
+//       un navigateur qui étouffe les fenêtres.
 //   v5.37 (24/09/2026) — RÉPARER UNE PERSONNE SANS EN TRAITER SOIXANTE-NEUF.
 //       Pour débloquer un seul apprenti, il fallait relancer le traitement
 //       des 69 comptes. Ce matin-là, l'opération est restée muette quarante
@@ -23412,7 +23426,7 @@ const PHOTO_FRAYSSINOUS = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2w
 //        paramétrage année, courriers, archivage, OPCO, autocomplétion
 //   v1.5 (04/09/2026) — Tests de positionnement, module Salariés, RGPD initial
 //   v1.0 (juillet 2026) — Version initiale
-const APP_VERSION = "5.37";
+const APP_VERSION = "5.38";
 const APP_DATE_BUILD = "23 septembre 2026";
 
 // Injection année dynamique dans le footer
@@ -24731,25 +24745,31 @@ async function creerCompteFirebaseIndividuel(type, id) {
     refusAcces("Seules la Direction et le Secrétariat peuvent créer un compte.");
     return;
   }
-  if (!initialiserFirebase()) { alert("Firebase n'est pas joignable."); return; }
+  if (!initialiserFirebase()) { afficherMessagePage("Firebase injoignable", "L'application n'arrive pas à joindre la base partagée.\n\nVérifiez votre connexion, puis recommencez.", "refus"); return; }
   const col = collectionProfils(type);
   if (!col) return;
   const profil = col.arr.find(function(p) { return p.id === id || p.identifiant === id; });
-  if (!profil) { alert("Profil introuvable."); return; }
+  if (!profil) { afficherMessagePage("Profil introuvable", "Aucune fiche ne porte cet identifiant.", "refus"); return; }
 
   const identifiant = normaliserIdentifiantConnexion(profil.username || profil.identifiant || "")
     .replace(/^\.+|\.+$/g, "");
   if (!identifiant) {
-    alert("⛔ Ce profil n'a pas d'identifiant de connexion.\n\nRenseignez-le dans la fiche, puis recommencez.");
+    afficherMessagePage("Identifiant manquant",
+      "Ce profil n'a pas d'identifiant de connexion.\n\nRenseignez-le dans la fiche, puis recommencez.",
+      "refus");
     return;
   }
   const nomAffiche = ((profil.prenom || profil.prenomMA || "") + " " + (profil.nom || profil.nomMA || "")).trim()
     || profil.entreprise || identifiant;
 
-  if (!confirm("Créer ou rattacher le compte Firebase de " + nomAffiche + " ?\n\n" +
-      "Identifiant : " + identifiant + "\n" +
-      "Adresse technique : " + identifiant + DOMAINE_TECHNIQUE + "\n\n" +
-      "Cette opération ne concerne que cette personne. Comptez quelques secondes.")) return;
+  const feuVert = await demanderConfirmationPage(
+    "Compte Firebase de " + nomAffiche,
+    ["Identifiant : <strong>" + escapeHtml(identifiant) + "</strong>",
+     "Adresse technique : <strong>" + escapeHtml(identifiant + DOMAINE_TECHNIQUE) + "</strong>",
+     "Vérifiez cette adresse : c'est elle que l'application utilisera pour l'authentification.",
+     "Cette opération ne concerne que cette personne. Comptez quelques secondes."],
+    "Créer le compte");
+  if (!feuVert) return;
 
   let code = profil.password;
   const codeInvente = !code;
@@ -24768,40 +24788,50 @@ async function creerCompteFirebaseIndividuel(type, id) {
     profil.username = identifiant;
     if (type === "salarie") profil.identifiant = identifiant;
     sauvegarderProfils();
-    alert("✅ Compte opérationnel : " + nomAffiche + "\n\n" +
+    afficherMessagePage("Compte opérationnel",
+      nomAffiche + "\n\n" +
       "Identifiant : " + identifiant + "\n" +
       "Code d'accès : " + profil.password + "\n\n" +
       (r.repris ? "Le compte existait déjà : il a été rattaché." : "Le compte a été créé.") +
-      "\n\nRemettez ces éléments à la personne — le bouton ✉️ Courriers en édite le courrier.");
+      "\n\nRemettez ces éléments à la personne — le bouton ✉️ Courriers en édite le courrier.",
+      "ok");
     if (typeof afficherApprentis === "function" && type === "apprenti") afficherApprentis();
     if (typeof filtrerSalaries === "function" && type === "salarie") filtrerSalaries();
   } catch (e) {
     const c = (e && e.code) ? e.code : "";
     if (c === "mfr/compte-existant-code-inconnu") {
-      alert("✋ " + nomAffiche + " a personnalisé son mot de passe, et son compte existe déjà.\n\n" +
-        "RIEN n'a été touché : elle continue de se connecter normalement avec son mot de passe.\n\n" +
-        "N'intervenez que si elle signale un problème — dans ce cas, supprimez son compte dans la\n" +
-        "console Firebase (Authentication > Utilisateurs), puis relancez ce bouton.");
+      afficherMessagePage("Laissé intact",
+        nomAffiche + " a personnalisé son mot de passe, et son compte existe déjà.\n\n" +
+        "RIEN n'a été touché : cette personne continue de se connecter normalement.\n\n" +
+        "N'intervenez que si elle signale un problème — dans ce cas, supprimez son compte dans la " +
+        "console Firebase (Authentication > Utilisateurs), puis relancez ce bouton.",
+        "attention");
     } else if (c === "auth/user-disabled") {
-      alert("⛔ Le compte " + identifiant + DOMAINE_TECHNIQUE + " est DÉSACTIVÉ dans Firebase.\n\n" +
+      afficherMessagePage("Compte désactivé",
+        "Le compte " + identifiant + DOMAINE_TECHNIQUE + " est DÉSACTIVÉ dans Firebase.\n\n" +
         "Aucun mot de passe ne peut l'ouvrir tant qu'il l'est.\n\n" +
-        "Console Firebase > Authentication > Utilisateurs > les trois points à droite de la ligne\n" +
-        "> « Activer le compte ». Ne le supprimez pas.");
+        "Console Firebase > Authentication > Utilisateurs > les trois points à droite de la ligne " +
+        "> « Activer le compte ».\n\nNe le supprimez pas : son mot de passe reste valable.",
+        "refus");
     } else if (c === "auth/wrong-password" || c === "auth/invalid-credential") {
-      alert("⛔ Un compte existe déjà à l'adresse " + identifiant + DOMAINE_TECHNIQUE + ",\n" +
-        "mais avec un autre code que celui de la fiche.\n\n" +
-        "Remède : console Firebase > Authentication > Utilisateurs > supprimez ce compte,\n" +
-        "puis relancez ce bouton. Rien n'a été changé sur ce poste.");
+      afficherMessagePage("Code divergent",
+        "Un compte existe déjà à l'adresse " + identifiant + DOMAINE_TECHNIQUE + ", " +
+        "mais avec un autre code que celui inscrit dans la fiche.\n\n" +
+        "Remède : console Firebase > Authentication > Utilisateurs > supprimez ce compte, " +
+        "puis relancez ce bouton.\n\nRien n'a été changé sur ce poste.",
+        "refus");
     } else if (c === "auth/weak-password") {
-      alert("⛔ Le code de la fiche est trop court : six caractères au minimum.\n\n" +
-        "Utilisez 🔑 MDP pour en générer un valable, puis relancez.");
+      afficherMessagePage("Code trop court",
+        "Le code inscrit dans la fiche fait moins de six caractères : Firebase le refuse.\n\n" +
+        "Utilisez 🔑 MDP pour en générer un valable, puis relancez.", "refus");
     } else if (c === "permission-denied") {
-      alert("⛔ L'écriture de la fiche d'annuaire a été refusée.\n\n" +
+      afficherMessagePage("Écriture refusée",
+        "L'écriture de la fiche d'annuaire a été refusée par le serveur.\n\n" +
         "Vérifiez que vous êtes bien connectée à la base partagée — le bandeau orange ne doit pas " +
-        "s'afficher — puis relancez.");
+        "s'afficher — puis relancez.", "refus");
     } else {
-      alert("⛔ Échec : " + (c || (e && e.message) || "erreur inconnue") + "\n\n" +
-        "Rien n'a été changé sur ce poste.");
+      afficherMessagePage("Échec",
+        (c || (e && e.message) || "erreur inconnue") + "\n\nRien n'a été changé sur ce poste.", "refus");
     }
   }
 }
